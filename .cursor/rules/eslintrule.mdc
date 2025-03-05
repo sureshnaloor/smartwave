@@ -1,0 +1,10 @@
+---
+description: helpful for eslint and typescript
+globs: 
+---
+- Enforce TypeScript strict mode
+- No unused variables or imports
+- Consistent type imports
+- Prefer nullish coalescing over ternaries for null/undefined checks
+- Enforce named exports for components
+- No default exports except for pages and layouts

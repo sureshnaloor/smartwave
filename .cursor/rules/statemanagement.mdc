@@ -1,0 +1,8 @@
+---
+description: for managing state or context
+globs: 
+---
+- Use React Context for global state only when necessary
+- Prefer server components for data fetching
+- Implement proper caching strategies with Next.js caching directives
+- Use form actions for server mutations

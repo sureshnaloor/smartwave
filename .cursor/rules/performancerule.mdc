@@ -1,0 +1,9 @@
+---
+description: performance rules
+globs: 
+---
+- Prefer server components when possible
+- Use next/image for all images
+- Implement proper code splitting
+- Use useCallback and useMemo for expensive operations
+- Implement lazy loading for below-the-fold content

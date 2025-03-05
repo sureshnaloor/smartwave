@@ -1,0 +1,8 @@
+---
+description: helpful for structuring components
+globs: 
+---
+- Separate server and client components clearly (use "use client" directive consistently)
+- Group components by feature/module rather than type
+- Keep component files under 300 lines
+- One component per file (except for small helper components)

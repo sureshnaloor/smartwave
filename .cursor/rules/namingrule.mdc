@@ -1,0 +1,9 @@
+---
+description: naming convention for components, functions, variables
+globs: 
+---
+- PascalCase for components
+- camelCase for functions and variables
+- kebab-case for files and directories
+- Suffix server actions with .server.ts
+- Suffix client-only code with .client.ts

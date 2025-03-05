@@ -1,0 +1,9 @@
+---
+description: best practices for app router
+globs: 
+---
+- Use metadata API for SEO
+- Organize route segments logically
+- Implement proper error boundaries
+- Use suspense boundaries for loading states
+- Keep page components thin, delegate to feature components

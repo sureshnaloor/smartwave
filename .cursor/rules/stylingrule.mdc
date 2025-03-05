@@ -1,0 +1,7 @@
+---
+description: css styling rules
+globs: *.css
+---
+- Consistent approach (either Tailwind, CSS Modules, or styled-components)
+- Follow mobile-first responsive design patterns
+- Enforce design token usage instead of hardcoded values

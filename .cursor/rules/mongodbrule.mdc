@@ -1,0 +1,7 @@
+---
+description: for best concurrency
+globs: 
+---
+- always optimize connections
+- close redundant connections
+- avoid connection timeout and selection delay
