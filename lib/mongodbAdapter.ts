@@ -132,6 +132,22 @@ const adapter: Adapter = {
       expires: verificationToken.expires
     };
   },
+  async updateSession(session: AdapterSession) {
+    const db = await getDb();
+    const result = await db.collection('sessions').updateOne(
+      { sessionToken: session.sessionToken },
+      { $set: session }
+    );
+    
+    if (!result.matchedCount) return null;
+    
+    return {
+      id: session.id,
+      sessionToken: session.sessionToken,
+      userId: session.userId,
+      expires: session.expires
+    };
+  },
   // Implement other required adapter methods...
 };
 
