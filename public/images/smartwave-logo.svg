@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <!-- Wave Background (lighter blue) -->
+  <path d="M50 100 C 100 70, 150 130, 200 100 C 250 70, 300 130, 350 100" 
+        fill="none" 
+        stroke="#60a5fa" 
+        stroke-width="8"
+        stroke-linecap="round"/>
+  
+  <!-- Secondary Wave (lighter blue) -->
+  <path d="M50 120 C 100 90, 150 150, 200 120 C 250 90, 300 150, 350 120" 
+        fill="none" 
+        stroke="#93c5fd" 
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.6"/>
+  
+  <!-- Smart Text -->
+  <text x="200" y="90" 
+        font-family="Arial, sans-serif" 
+        font-size="48" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#dc2626">
+    Smart
+  </text>
+  
+  <!-- Wave Text (now matching Smart font) -->
+  <text x="200" y="140" 
+        font-family="Arial, sans-serif" 
+        font-size="48" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#00CED1">
+    Wave
+  </text>
+  
+  <!-- Card Icon -->
+  <defs>
+    <linearGradient id="silverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C0C0C0"/>
+      <stop offset="50%" style="stop-color:#E8E8E8"/>
+      <stop offset="100%" style="stop-color:#C0C0C0"/>
+    </linearGradient>
+  </defs>
+  
+  <rect x="315" y="65" 
+        width="40" height="30" 
+        rx="3" 
+        fill="url(#silverGradient)"/>
+</svg>

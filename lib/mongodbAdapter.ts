@@ -105,7 +105,7 @@ const adapter: Adapter = {
       }
     };
   },
-  async deleteSession(sessionToken) {
+  async deleteSession(sessionToken: string) {
     const db = await getDb();
     await db.collection('sessions').deleteOne({ sessionToken });
   },
@@ -132,17 +132,29 @@ const adapter: Adapter = {
       expires: verificationToken.expires
     };
   },
-  async updateSession(session: AdapterSession) {
+  async updateSession(session: AdapterSession): Promise<AdapterSession | null> {
     const db = await getDb();
-    const result = await db.collection('sessions').updateOne(
+    
+    // First try to find the session
+    const existingSession = await db.collection('sessions').findOne({ 
+      sessionToken: session.sessionToken 
+    });
+
+    if (!existingSession) return null;
+
+    // Update the session
+    await db.collection('sessions').updateOne(
       { sessionToken: session.sessionToken },
-      { $set: session }
+      { 
+        $set: {
+          expires: session.expires,
+          userId: session.userId,
+        } 
+      }
     );
-    
-    if (!result.matchedCount) return null;
-    
+
     return {
-      id: session.id,
+      id: existingSession._id.toString(),
       sessionToken: session.sessionToken,
       userId: session.userId,
       expires: session.expires
