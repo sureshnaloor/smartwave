@@ -12,7 +12,7 @@ export default function NotFound() {
         {/* 404 Illustration */}
         <div className="relative w-64 h-64 mx-auto mb-8">
           <CldImage
-            src="notfound_mverxg"
+            src="smartwave/notfound_mverxg"
             alt="404 Illustration"
             fill
             priority

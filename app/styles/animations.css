@@ -1,0 +1,55 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes gradient-xy {
+  0% {
+    background-size: 400% 400%;
+    background-position: 0% 0%;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: 100% 100%;
+  }
+  100% {
+    background-size: 400% 400%;
+    background-position: 0% 0%;
+  }
+}
+
+.animate-gradient-xy {
+  animation: gradient-xy 15s ease infinite;
+  background: linear-gradient(
+    to right,
+    theme('colors.purple.400 / 20%'),
+    theme('colors.indigo.400 / 20%'),
+    theme('colors.blue.400 / 20%'),
+    theme('colors.indigo.400 / 20%'),
+    theme('colors.purple.400 / 20%')
+  );
+  background-size: 400% 400%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .animate-gradient-xy {
+    background: linear-gradient(
+      to right,
+      theme('colors.purple.500 / 10%'),
+      theme('colors.indigo.500 / 10%'),
+      theme('colors.blue.500 / 10%'),
+      theme('colors.indigo.500 / 10%'),
+      theme('colors.purple.500 / 10%')
+    );
+  }
+} 
