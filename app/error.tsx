@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
+import {CldImage} from 'next-cloudinary'
 
 export default function Error({
   error,
@@ -21,8 +21,8 @@ export default function Error({
       <div className="text-center max-w-2xl mx-auto">
         {/* Error Illustration */}
         <div className="relative w-64 h-64 mx-auto mb-8">
-          <Image
-            src="/error-illustration.svg"
+          <CldImage
+            src="errorpage_sdfade"
             alt="Error Illustration"
             fill
             priority

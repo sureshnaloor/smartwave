@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+// import Image from 'next/image'
+import {CldImage} from 'next-cloudinary'
 import { Button } from '@/components/ui/button'
 
 export default function NotFound() {
@@ -10,8 +11,8 @@ export default function NotFound() {
       <div className="text-center max-w-2xl mx-auto">
         {/* 404 Illustration */}
         <div className="relative w-64 h-64 mx-auto mb-8">
-          <Image
-            src="/404-illustration.svg"
+          <CldImage
+            src="notfound_mverxg"
             alt="404 Illustration"
             fill
             priority

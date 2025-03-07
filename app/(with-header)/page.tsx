@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Image from 'next/image';
+// import Image from 'next/image';
+import {CldImage} from 'next-cloudinary'
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 // Move constants outside the component
@@ -23,15 +24,15 @@ const testimonials = [
 
 const carouselImages = [
   {
-    src: "/images/carousel1.jpg",
+    src: "/smartwave/carousel1_uihxgo",
     alt: "Business Meeting"
   },
   {
-    src: "/images/carousel2.jpg",
+    src: "/smartwave/carousel2_bed7op",
     alt: "Technology Innovation"
   },
   {
-    src: "/images/carousel3.jpg",
+    src: "/smartwave/carousel3_wq6jpl",
     alt: "Digital Solutions"
   }
 ];
@@ -133,7 +134,7 @@ export default function LandingPage() {
                 index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             >
-              <Image
+              <CldImage
                 src={image.src}
                 alt={image.alt}
                 fill
@@ -347,8 +348,8 @@ export default function LandingPage() {
               <p className="mb-4 text-gray-700 dark:text-gray-300">
                 Let AI manage your calendar and find the perfect meeting times for you and your contacts.
               </p>
-              <Image
-                src="/images/aischeduling.svg"
+              <CldImage
+                src="smartwave/aischeduling_uq8pbi"
                 alt="AI Scheduling Demo"
                 width={400}
                 height={200}
@@ -360,8 +361,8 @@ export default function LandingPage() {
               <p className="mb-4 text-gray-700 dark:text-gray-300">
                 Our AI suggests valuable connections based on your profile and industry trends.
               </p>
-              <Image
-                src="/images/ainetworking.svg"
+              <CldImage
+                src="smartwave/ainetworking_zkxqae"
                 alt="AI Networking Demo"
                 width={400}
                 height={200}
@@ -391,8 +392,8 @@ export default function LandingPage() {
                 dark:from-green-500/10 dark:to-emerald-500/10 
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
-              <Image
-                src="/images/landing/card2.png"
+              <CldImage
+                src="smartwave/card2_qbuowc"
                 alt="Eco-friendly"
                 width={100}
                 height={100}
@@ -416,8 +417,8 @@ export default function LandingPage() {
                 dark:from-blue-500/10 dark:to-cyan-500/10 
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
-              <Image
-                src="/images/landing/card3.png"
+              <CldImage
+                src="smartwave/card3_omqbzg"
                 alt="Digital"
                 width={100}
                 height={100}
@@ -441,8 +442,8 @@ export default function LandingPage() {
                 dark:from-yellow-500/10 dark:to-orange-500/10 
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
-              <Image
-                src="/images/landing/card1.png"
+              <CldImage
+                src="smartwave/card1_sdmps8"
                 alt="Renewable"
                 width={100}
                 height={100}
@@ -488,11 +489,14 @@ export default function LandingPage() {
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
               <div className="flex items-center mb-4">
-                <Image
-                  src="/images/landing/techlady.png"
+                <CldImage
+                  src="smartwave/techlady_glxzl7"
                   alt="Client 1"
                   width={100}
                   height={100}
+                  crop="fill"
+                  quality="auto"
+                  gravity="auto"
                   className="rounded-full transform group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="ml-4 relative z-10">
@@ -525,11 +529,14 @@ export default function LandingPage() {
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
               <div className="flex items-center mb-4">
-                <Image
-                  src="/images/landing/techindian.png"
+                <CldImage
+                  src="smartwave/techindian_bkhy5u"
                   alt="Client 2"
                   width={100}
                   height={100}
+                  crop="fill"
+                  quality="auto"
+                  gravity="auto"
                   className="rounded-full transform group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="ml-4 relative z-10">
@@ -562,11 +569,14 @@ export default function LandingPage() {
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" 
               />
               <div className="flex items-center mb-4">
-                <Image
-                  src="/images/landing/techsaudi.png"
+                <CldImage
+                  src="smartwave/techsaudi_uwvmnf"
                   alt="Client 3"
                   width={100}
                   height={100}
+                  crop="fill"
+                  quality="auto"
+                  gravity="auto"
                   className="rounded-full transform group-hover:scale-110 transition-transform duration-300"
                 />
                 <div className="ml-4 relative z-10">
