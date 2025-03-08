@@ -1,7 +1,16 @@
 import { Check, Info } from 'lucide-react'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
-export default function PricingPage() {
+import { headers } from 'next/headers';
+import { detectUserLocation } from '@/lib/geoLocation';
+import { getCurrencyForCountry } from '@/lib/currencyMapper';
+import PriceDisplay from '@/components/PriceDisplay';
+
+export default async function PricingPage() {
+  const headersList = headers();
+  const { countryCode } = await detectUserLocation(headersList);
+  const currencyInfo = await getCurrencyForCountry(countryCode);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section for Card Store */}
@@ -38,7 +47,7 @@ export default function PricingPage() {
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-t-4 border-gray-400">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Free Tier</h2>
             <p className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              $0
+              <PriceDisplay amount={0} currencyInfo={currencyInfo} />
               <span className="text-base font-normal text-gray-600 dark:text-gray-400">/forever</span>
             </p>
             <ul className="space-y-4 mb-8">
@@ -73,18 +82,33 @@ export default function PricingPage() {
             <div className="space-y-6 mb-8">
               <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white">1-10 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">$20<span className="text-base font-normal">/card</span></p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Example: 5 cards = $100</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <PriceDisplay amount={20} currencyInfo={currencyInfo} />
+                  <span className="text-base font-normal">/card</span>
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Example: 5 cards = <PriceDisplay amount={100} currencyInfo={currencyInfo} />
+                </p>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white">11-100 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">$15<span className="text-base font-normal">/card</span></p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Example: 50 cards = $750</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <PriceDisplay amount={15} currencyInfo={currencyInfo} />
+                  <span className="text-base font-normal">/card</span>
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Example: 50 cards = <PriceDisplay amount={750} currencyInfo={currencyInfo} />
+                </p>
               </div>
               <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white">101-1000 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">$10<span className="text-base font-normal">/card</span></p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Example: 500 cards = $5,000</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <PriceDisplay amount={10} currencyInfo={currencyInfo} />
+                  <span className="text-base font-normal">/card</span>
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Example: 500 cards = <PriceDisplay amount={5000} currencyInfo={currencyInfo} />
+                </p>
               </div>
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 mb-8">
@@ -112,11 +136,11 @@ export default function PricingPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Subscription</h2>
             <div className="mb-6">
               <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                $29
+                <PriceDisplay amount={29} currencyInfo={currencyInfo} />
                 <span className="text-base font-normal text-gray-600 dark:text-gray-400">/month</span>
               </p>
               <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-                or $290/year (save 20%)
+                or <PriceDisplay amount={290} currencyInfo={currencyInfo} />/year (save 20%)
               </p>
             </div>
             <ul className="space-y-4 mb-8">

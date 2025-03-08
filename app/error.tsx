@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {CldImage} from 'next-cloudinary'
-
+import Footer from '@/components/Footer'
 export default function Error({
   error,
   reset,
@@ -22,7 +22,7 @@ export default function Error({
         {/* Error Illustration */}
         <div className="relative w-64 h-64 mx-auto mb-8">
           <CldImage
-            src="errorpage_sdfade"
+            src="smartwave/errorpage_sdfade"
             alt="Error Illustration"
             fill
             priority
@@ -64,6 +64,7 @@ export default function Error({
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 } 
