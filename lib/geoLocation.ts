@@ -16,12 +16,23 @@ async function getLocationFromHeaders(headers: Headers): Promise<GeoLocation | n
 }
 
 // Strategy 2: IP-API
-async function getLocationFromIpApi(): Promise<GeoLocation | null> {
+async function getLocationFromIpApi(headers: Headers): Promise<GeoLocation | null> {
   try {
-    const response = await fetch('http://ip-api.com/json/?fields=countryCode', { next: { revalidate: 3600 } });
+    // Get the client IP from headers
+    const forwardedFor = headers.get('x-forwarded-for');
+    const clientIP = forwardedFor ? forwardedFor.split(',')[0] : headers.get('x-real-ip');
+    
+    if (!clientIP) {
+      console.log('No client IP found in headers');
+      return null;
+    }
+
+    const response = await fetch(`http://ip-api.com/json/${clientIP}?fields=countryCode`, { 
+      next: { revalidate: 3600 } 
+    });
     const data = await response.json();
     if (data.countryCode) {
-      console.log('ip-api countryCode', data.countryCode);
+      console.log('ip-api countryCode client', data.countryCode, 'for IP:', clientIP);
       return { countryCode: data.countryCode, source: 'ip-api' };
     }
   } catch (error) {
@@ -52,7 +63,7 @@ export async function detectUserLocation(headers: Headers): Promise<GeoLocation>
   // Try each strategy in order until one works
   const location = 
     await getLocationFromHeaders(headers) ||
-    await getLocationFromIpApi() ||
+    await getLocationFromIpApi(headers) ||
     await getLocationFromIpInfo();
   console.log('location from geolocation:', location);
 
