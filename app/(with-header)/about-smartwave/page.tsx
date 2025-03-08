@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ArrowRight, HelpCircle } from "lucide-react";
 import Footer from "@/components/Footer";
-
+import Carousal from "@/components/about-smartwave/carousal";
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Main Content */}
+      
       <main className="flex-grow">
-        {/* Hero Section */}
+      <Carousal />
+        {/* /* Hero Section */}
         <section className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
@@ -29,9 +31,9 @@ export default function Home() {
               </Link>
             </div>
           </div>
-        </section>
+        </section> 
 
-        {/* Features Section */}
+        {/* /* Features Section */}
         <section className="py-16 bg-gradient-to-b from-blue-50 via-blue-50/50 to-white dark:bg-none dark:bg-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-12">
@@ -92,9 +94,9 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section> 
 
-        {/* FAQ Section */}
+         {/* FAQ Section */}
         <section className="py-16 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-12">
@@ -154,7 +156,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </section>
+        </section> 
       </main>
       <Footer />
     </div>
