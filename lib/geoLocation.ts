@@ -9,6 +9,7 @@ type GeoLocation = {
 async function getLocationFromHeaders(headers: Headers): Promise<GeoLocation | null> {
   const countryCode = headers.get('cf-ipcountry');
   if (countryCode) {
+    console.log('cloudflare countryCode', countryCode);
     return { countryCode, source: 'cloudflare' };
   }
   return null;
@@ -20,6 +21,7 @@ async function getLocationFromIpApi(): Promise<GeoLocation | null> {
     const response = await fetch('http://ip-api.com/json/?fields=countryCode', { next: { revalidate: 3600 } });
     const data = await response.json();
     if (data.countryCode) {
+      console.log('ip-api countryCode', data.countryCode);
       return { countryCode: data.countryCode, source: 'ip-api' };
     }
   } catch (error) {
@@ -37,6 +39,7 @@ async function getLocationFromIpInfo(): Promise<GeoLocation | null> {
     const response = await fetch(`https://ipinfo.io/json?token=${API_KEY}`, { next: { revalidate: 3600 } });
     const data = await response.json();
     if (data.country) {
+      console.log('ipinfo countryCode', data.country);
       return { countryCode: data.country, source: 'ipinfo' };
     }
   } catch (error) {
@@ -51,6 +54,7 @@ export async function detectUserLocation(headers: Headers): Promise<GeoLocation>
     await getLocationFromHeaders(headers) ||
     await getLocationFromIpApi() ||
     await getLocationFromIpInfo();
+  console.log('location from geolocation:', location);
 
   // Default to US if all strategies fail
   return location || { countryCode: 'US', source: 'default' };
