@@ -1,8 +1,11 @@
 "use client"
-
+import {Session} from "next-auth"
 import { useState, useEffect } from "react"
 import Image from "next/image"
-
+import Footer from "@/components/Footer"
+interface UserDashboardProps {
+  session: Session;
+}
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -29,7 +32,7 @@ interface User {
   isPremium: boolean;
 }
 
-export default function UserDashboardlogin() {
+export default function UserDashboardlogin({ session }: UserDashboardProps) {
   const [isProfileComplete, setIsProfileComplete] = useState(false)
   const [user, setUser] = useState<User>({
     name: "",
@@ -67,40 +70,26 @@ export default function UserDashboardlogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-blue-600 to-red-600 text-white py-4">
-        <div className="container mx-auto flex justify-between items-center px-4">
-          <h1 className="text-2xl font-bold">SmartWave</h1>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white hover:bg-white/20">
-              <User className="mr-2 h-4 w-4" />
-              {isProfileComplete ? user.name : "My Account"}
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <>
+    <div className="min-h-screen  bg-gray-50">
+  
       <main className="container mx-auto py-8 px-4">
         {isProfileComplete ? (
           <CompletedProfileView user={user} />
         ) : (
           <IncompleteProfileView onProfileComplete={handleProfileComplete} />
         )}
-      </main>
-
-      <footer className="bg-blue-900 text-white py-6">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2025 SmartWave. All rights reserved.</p>
-        </div>
-      </footer>
+      </main>  
     </div>
+    <Footer />
+    </>
   )
 }
 
 function CompletedProfileView({ user }: { user: User }) {
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-blue-600">Welcome back, {user.name}!</h2>
+      <h2 className="text-xl font-bold text-blue-600">Welcome back, {user.name}!</h2>
 
       <Tabs defaultValue="digital-card" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
