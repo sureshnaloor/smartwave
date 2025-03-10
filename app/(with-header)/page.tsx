@@ -8,7 +8,7 @@ import AiShowcase from "@/components/landing/AiShowcase";
 import Sustainability from "@/components/landing/Sustainability";
 import CallToAction from "@/components/landing/CallToAction";
 import Testimonials from "@/components/landing/Testimonials";
-import UserDashboard from "@/components/dashboard/UserDashboard";
+import UserDashboardlogin from "@/components/dashboardlogin/UserDashboardlogin";
 import Footer from '@/components/Footer';
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -25,9 +25,8 @@ export default function LandingPage() {
   if (isLoading) {
     return <LoadingSpinner />;
   }
-
   if (session) {
-    return <UserDashboard session={session} />;
+    return <UserDashboardlogin />;
   }
 
   return (
