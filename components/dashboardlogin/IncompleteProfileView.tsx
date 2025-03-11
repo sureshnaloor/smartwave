@@ -96,6 +96,17 @@ const iconColor = "rgb(14, 165, 233)" // deep sky blue color
 
 const STORAGE_KEY = 'smartwave_profile_data';
 
+// Add this constant for tab labels
+const TAB_LABELS = {
+  personal: "Personal",
+  organization: "Organization",
+  contact: "Contact",
+  "work-address": "Work Address",
+  "home-address": "Home Address",
+  social: "Social",
+  additional: "Additional"
+} as const;
+
 export default function IncompleteProfileView({
   onProfileComplete,
   userEmail,
@@ -288,6 +299,18 @@ export default function IncompleteProfileView({
       }
     };
 
+  // Add this function to handle tab navigation
+  const navigateTab = (direction: 'next' | 'previous') => {
+    const tabOrder = ['personal', 'organization', 'contact', 'work-address', 'home-address', 'social', 'additional'];
+    const currentIndex = tabOrder.indexOf(activeTab);
+    
+    if (direction === 'next' && currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    } else if (direction === 'previous' && currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -309,50 +332,29 @@ export default function IncompleteProfileView({
 
         <div className="p-4 border border-gray-200 rounded-lg">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 h-14 bg-gray-50/90">
-              <TabsTrigger 
-                value="personal" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Personal
-              </TabsTrigger>
-              <TabsTrigger 
-                value="organization" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Organization
-              </TabsTrigger>
-              <TabsTrigger 
-                value="contact" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Contact
-              </TabsTrigger>
-              <TabsTrigger 
-                value="work-address" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Work Address
-              </TabsTrigger>
-              <TabsTrigger 
-                value="home-address" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Home Address
-              </TabsTrigger>
-              <TabsTrigger 
-                value="social" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Social
-              </TabsTrigger>
-              <TabsTrigger 
-                value="additional" 
-                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
-              >
-                Additional
-              </TabsTrigger>
+            {/* Desktop view tabs */}
+            <TabsList className="hidden md:grid w-full grid-cols-7 h-14 bg-gray-50/90">
+              {Object.entries(TAB_LABELS).map(([value, label]) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
+                >
+                  {label}
+                </TabsTrigger>
+              ))}
             </TabsList>
+
+            {/* Mobile view current tab indicator */}
+            <div className="md:hidden flex items-center justify-between bg-gray-50/90 px-4 py-2 rounded-t-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">Step {Object.keys(TAB_LABELS).indexOf(activeTab) + 1} of {Object.keys(TAB_LABELS).length}</span>
+                <span className="font-semibold text-red-600">{TAB_LABELS[activeTab as keyof typeof TAB_LABELS]}</span>
+              </div>
+              <div className="text-xs text-gray-400">
+                {progress}% Complete
+              </div>
+            </div>
 
             {/* Add a consistent height wrapper for all TabsContent */}
             <div className="min-h-[400px]"> {/* Adjust height as needed */}
@@ -444,9 +446,10 @@ export default function IncompleteProfileView({
                 </div>
 
                 <div className="flex justify-between">
+                  <div /> {/* Empty div for spacing */}
                   <Button
-                    onClick={() => setActiveTab("organization")}
-                    variant="outline"
+                    onClick={() => navigateTab('next')}
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
                   </Button>
@@ -521,11 +524,14 @@ export default function IncompleteProfileView({
                 </div>
 
                 <div className="flex justify-between">
-                  <Button onClick={() => setActiveTab("contact")} variant="outline">
+                  <Button
+                    onClick={() => navigateTab('previous')}
+                    variant="outline"
+                  >
                     Previous
                   </Button>
                   <Button
-                    onClick={() => setActiveTab("contact")}
+                    onClick={() => navigateTab('next')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
@@ -633,13 +639,13 @@ export default function IncompleteProfileView({
 
                 <div className="flex justify-between">
                   <Button
-                    onClick={() => setActiveTab("organization")}
+                    onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
                   <Button
-                    onClick={() => setActiveTab("work-address")}
+                    onClick={() => navigateTab('next')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
@@ -762,13 +768,13 @@ export default function IncompleteProfileView({
 
                 <div className="flex justify-between">
                   <Button
-                    onClick={() => setActiveTab("work-address")}
+                    onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
                   <Button
-                    onClick={() => setActiveTab("social")}
+                    onClick={() => navigateTab('next')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
@@ -891,13 +897,13 @@ export default function IncompleteProfileView({
 
                 <div className="flex justify-between">
                   <Button
-                    onClick={() => setActiveTab("home-address")}
+                    onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
                   <Button
-                    onClick={() => setActiveTab("social")}
+                    onClick={() => navigateTab('next')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
@@ -1026,13 +1032,13 @@ export default function IncompleteProfileView({
 
                 <div className="flex justify-between">
                   <Button
-                    onClick={() => setActiveTab("home-address")}
+                    onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
                   <Button
-                    onClick={() => setActiveTab("additional")}
+                    onClick={() => navigateTab('next')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Next
@@ -1075,7 +1081,10 @@ export default function IncompleteProfileView({
                 </div>
 
                 <div className="flex justify-between">
-                  <Button onClick={() => setActiveTab("social")} variant="outline">
+                  <Button
+                    onClick={() => navigateTab('previous')}
+                    variant="outline"
+                  >
                     Previous
                   </Button>
                   <Button
