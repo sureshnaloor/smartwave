@@ -7,11 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import ProfileForm from "./profile-form";
+
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+
 import {
   User as UserIcon,
   Upload,
@@ -22,6 +20,20 @@ import {
   Globe,
   FileText,
   Calendar as CalendarIcon,
+  Mail,
+  Briefcase,
+  Building,
+  Hash,
+  MapPinned,
+  Flag,
+  AtSign,
+  Link,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Instagram,
+  Youtube,
+  FileText as NotesIcon,
 } from "lucide-react";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -29,15 +41,20 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { User } from "./types"; // Import the User type from types.ts
+import { saveProfile } from '@/app/actions/profile';
 
 interface IncompleteProfileViewProps {
   onProfileComplete: (data: User) => void;
+  userEmail: string;
+  initialData?: User;
+  isEditing?: boolean;
 }
 
 // Define FormData type to match all the fields we're using
 type FormData = {
   firstName: string;
-  lastName: string;
+  familyName: string;
+  middleName: string;
   photo: string;
   birthday: string;
   title: string;
@@ -74,54 +91,74 @@ type FormData = {
   address: string;
 };
 
+// Add this constant for icon color
+const iconColor = "rgb(14, 165, 233)" // deep sky blue color
+
+const STORAGE_KEY = 'smartwave_profile_data';
+
 export default function IncompleteProfileView({
   onProfileComplete,
+  userEmail,
+  initialData,
+  isEditing = false,
 }: IncompleteProfileViewProps) {
   const [progress, setProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("personal");
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    photo: "",
-    birthday: "",
-    title: "",
-    company: "",
-    companyLogo: "",
-    workEmail: "",
-    personalEmail: "",
-    mobile: "",
-    workPhone: "",
-    fax: "",
-    homePhone: "",
-    workStreet: "",
-    workDistrict: "",
-    workCity: "",
-    workState: "",
-    workZipcode: "",
-    workCountry: "",
-    homeStreet: "",
-    homeDistrict: "",
-    homeCity: "",
-    homeState: "",
-    homeZipcode: "",
-    homeCountry: "",
-    website: "",
-    linkedin: "",
-    twitter: "",
-    facebook: "",
-    instagram: "",
-    youtube: "",
-    notes: "",
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
+  const [formData, setFormData] = useState<FormData>(() => {
+    // Initialize with initialData if provided (editing mode)
+    if (initialData) {
+      return {
+        ...initialData,
+        // Add any additional fields that might be in FormData but not in User
+      };
+    }
+    // Default initial state for new profile
+    return {
+      firstName: "",
+      familyName: "",
+      middleName: "",
+      photo: "",
+      birthday: "",
+      title: "",
+      company: "",
+      companyLogo: "",
+      workEmail: "",
+      personalEmail: "",
+      mobile: "",
+      workPhone: "",
+      fax: "",
+      homePhone: "",
+      workStreet: "",
+      workDistrict: "",
+      workCity: "",
+      workState: "",
+      workZipcode: "",
+      workCountry: "",
+      homeStreet: "",
+      homeDistrict: "",
+      homeCity: "",
+      homeState: "",
+      homeZipcode: "",
+      homeCountry: "",
+      website: "",
+      linkedin: "",
+      twitter: "",
+      facebook: "",
+      instagram: "",
+      youtube: "",
+      notes: "",
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+    };
   });
 
   useEffect(() => {
     const mandatoryFields = [
       "firstName",
-      "lastName",
+      "familyName",
+      "middleName",
       "workEmail",
       "mobile",
       "title",
@@ -168,31 +205,54 @@ export default function IncompleteProfileView({
     setProgress(Math.round(mandatoryProgress + optionalProgress));
   }, [formData]);
 
-  // Add handleSubmit function
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isMandatoryFieldsFilled()) {
-      return; // Don't submit if mandatory fields aren't filled
+      return;
     }
 
-    // Construct the full name from firstName and lastName
-    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    // Construct the full name
+    const fullName = [
+      formData.firstName,
+      formData.middleName,
+      formData.familyName
+    ].filter(Boolean).join(" ").trim();
+
+    // Construct the work address
+    const workAddress = [
+      formData.workStreet,
+      formData.workDistrict,
+      formData.workCity, 
+      formData.workState,
+      formData.workZipcode,
+      formData.workCountry
+    ].filter(Boolean).join(", ");
 
     // Construct the complete user data
-    const completeUserData: User = {
+    const completeUserData = {
       ...formData,
       name: fullName,
-      isPremium: false,
+      workAddress,
+      userEmail, // Use the provided user email
+      isPremium: initialData?.isPremium || false,
     };
 
-    // Call the onProfileComplete callback with the user data
-    onProfileComplete(completeUserData);
+    // Save to MongoDB
+    const result = await saveProfile(completeUserData, userEmail);
+    
+    if (result.success) {
+      // Call the onProfileComplete callback with the user data
+      onProfileComplete(completeUserData as User);
+    } else {
+      // Handle error - you might want to show an error message to the user
+      console.error('Failed to save profile');
+    }
   };
 
   // Helper function to check if all mandatory fields are filled
   const isMandatoryFieldsFilled = () => {
     const mandatoryFields = [
       "firstName",
-      "lastName",
+      "familyName",
       "workEmail",
       "mobile",
       "title",
@@ -230,7 +290,7 @@ export default function IncompleteProfileView({
 
   return (
     <div className="space-y-8">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-xl font-bold text-blue-600 mb-2">
           Complete Your Profile
         </h2>
@@ -247,583 +307,794 @@ export default function IncompleteProfileView({
           <Progress value={progress} className="h-2" />
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="personal">Personal</TabsTrigger>
-            <TabsTrigger value="organization">Organization</TabsTrigger>
-            <TabsTrigger value="contact">Contact</TabsTrigger>
-            <TabsTrigger value="work-address">Work Address</TabsTrigger>
-            <TabsTrigger value="home-address">Home Address</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
-            <TabsTrigger value="additional">Additional</TabsTrigger>
-          </TabsList>
-
-          {/* personal tab */}
-          <TabsContent value="personal" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      firstName: e.target.value,
-                    }))
-                  }
-                  placeholder="John"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      lastName: e.target.value,
-                    }))
-                  }
-                  placeholder="Doe"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="photo">Photo</Label>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload("photo")}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                onClick={() => setActiveTab("organization")}
-                variant="outline"
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-7 h-14 bg-gray-50/90">
+              <TabsTrigger 
+                value="personal" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-          {/* Organization tab */}
-          <TabsContent value="organization" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      company: e.target.value,
-                    }))
-                  }
-                  placeholder="SmartWave"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  placeholder="CEO"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="workEmail">Work Email</Label>
-                <Input
-                  id="workEmail"
-                  value={formData.workEmail}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      workEmail: e.target.value,
-                    }))
-                  }
-                  placeholder="john.doe@smartwave.com"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <Button onClick={() => setActiveTab("contact")} variant="outline">
-                Previous
-              </Button>
-              <Button
-                onClick={() => setActiveTab("contact")}
-                className="bg-blue-600 hover:bg-blue-700"
+                Personal
+              </TabsTrigger>
+              <TabsTrigger 
+                value="organization" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-          {/* Contact tab */}
-          <TabsContent value="contact" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="mobile">Mobile</Label>
-                <Input
-                  id="mobile"
-                  value={formData.mobile}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, mobile: e.target.value }))
-                  }
-                  placeholder="1234567890"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="workPhone">Work Phone</Label>
-                <Input
-                  id="workPhone"
-                  value={formData.workPhone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      workPhone: e.target.value,
-                    }))
-                  }
-                  placeholder="1234567890"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fax">Fax</Label>
-                <Input
-                  id="fax"
-                  value={formData.fax}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, fax: e.target.value }))
-                  }
-                  placeholder="1234567890"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homePhone">Home Phone</Label>
-                <Input
-                  id="homePhone"
-                  value={formData.homePhone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homePhone: e.target.value,
-                    }))
-                  }
-                  placeholder="1234567890"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="personalEmail">Personal Email</Label>
-                <Input
-                  id="personalEmail"
-                  value={formData.personalEmail}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      personalEmail: e.target.value,
-                    }))
-                  }
-                  placeholder="john.doe@example.com"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                onClick={() => setActiveTab("organization")}
-                variant="outline"
+                Organization
+              </TabsTrigger>
+              <TabsTrigger 
+                value="contact" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Previous
-              </Button>
-              <Button
-                onClick={() => setActiveTab("work-address")}
-                className="bg-blue-600 hover:bg-blue-700"
+                Contact
+              </TabsTrigger>
+              <TabsTrigger 
+                value="work-address" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-          {/* Work Address Tab */}
-
-          <TabsContent value="work-address" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="homeStreet">Street Address</Label>
-                <Input
-                  id="homeStreet"
-                  value={formData.homeStreet}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeStreet: e.target.value,
-                    }))
-                  }
-                  placeholder="123 Home Street"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeDistrict">District</Label>
-                <Input
-                  id="homeDistrict"
-                  value={formData.homeDistrict}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeDistrict: e.target.value,
-                    }))
-                  }
-                  placeholder="Residential Area"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeCity">City</Label>
-                <Input
-                  id="homeCity"
-                  value={formData.homeCity}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeCity: e.target.value,
-                    }))
-                  }
-                  placeholder="San Francisco"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeState">State</Label>
-                <Input
-                  id="homeState"
-                  value={formData.homeState}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeState: e.target.value,
-                    }))
-                  }
-                  placeholder="California"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeZipcode">Zipcode</Label>
-                <Input
-                  id="homeZipcode"
-                  value={formData.homeZipcode}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeZipcode: e.target.value,
-                    }))
-                  }
-                  placeholder="94105"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="homeCountry">Country</Label>
-                <Input
-                  id="homeCountry"
-                  value={formData.homeCountry}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeCountry: e.target.value,
-                    }))
-                  }
-                  placeholder="United States"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                onClick={() => setActiveTab("work-address")}
-                variant="outline"
+                Work Address
+              </TabsTrigger>
+              <TabsTrigger 
+                value="home-address" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Previous
-              </Button>
-              <Button
-                onClick={() => setActiveTab("social")}
-                className="bg-blue-600 hover:bg-blue-700"
+                Home Address
+              </TabsTrigger>
+              <TabsTrigger 
+                value="social" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-          {/* Home Address Tab */}
-          <TabsContent value="home-address" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="homeStreet">Street Address</Label>
-                <Input
-                  id="homeStreet"
-                  value={formData.homeStreet}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeStreet: e.target.value,
-                    }))
-                  }
-                  placeholder="123 Home Street"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="homeDistrict">District</Label>
-                <Input
-                  id="homeDistrict"
-                  value={formData.homeDistrict}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeDistrict: e.target.value,
-                    }))
-                  }
-                  placeholder="Residential Area"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeCity">City</Label>
-                <Input
-                  id="homeCity"
-                  value={formData.homeCity}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeCity: e.target.value,
-                    }))
-                  }
-                  placeholder="San Francisco"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="homeState">State</Label>
-                <Input
-                  id="homeState"
-                  value={formData.homeState}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      homeState: e.target.value,
-                    }))
-                  }
-                  placeholder="California"
-                />
-              </div>
-              <div className="space-y-2"></div>
-              <Label htmlFor="homeZipcode">Zipcode</Label>
-              <Input
-                id="homeZipcode"
-                value={formData.homeZipcode}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    homeZipcode: e.target.value,
-                  }))
-                }
-                placeholder="94105"
-              />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="homeCountry">Country</Label>
-              <Input
-                id="homeCountry"
-                value={formData.homeCountry}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    homeCountry: e.target.value,
-                  }))
-                }
-                placeholder="United States"
-              />
-            </div>
-
-            <div className="flex justify-between">
-              <Button
-                onClick={() => setActiveTab("home-address")}
-                variant="outline"
+                Social
+              </TabsTrigger>
+              <TabsTrigger 
+                value="additional" 
+                className="data-[state=active]:bg-white data-[state=active]:text-red-600 text-sm font-semibold"
               >
-                Previous
-              </Button>
-              <Button
-                onClick={() => setActiveTab("social")}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
+                Additional
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Social/Online Presence Tab */}
-          <TabsContent value="social" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      website: e.target.value,
-                    }))
-                  }
-                  placeholder="https://www.example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                <Input
-                  id="linkedin"
-                  type="url"
-                  value={formData.linkedin}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      linkedin: e.target.value,
-                    }))
-                  }
-                  placeholder="https://www.linkedin.com/in/username"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="twitter">Twitter/X Profile</Label>
-                <Input
-                  id="twitter"
-                  type="url"
-                  value={formData.twitter}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      twitter: e.target.value,
-                    }))
-                  }
-                  placeholder="https://twitter.com/username"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="facebook">Facebook Profile</Label>
-                <Input
-                  id="facebook"
-                  type="url"
-                  value={formData.facebook}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      facebook: e.target.value,
-                    }))
-                  }
-                  placeholder="https://facebook.com/username"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="instagram">Instagram Profile</Label>
-                <Input
-                  id="instagram"
-                  type="url"
-                  value={formData.instagram}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      instagram: e.target.value,
-                    }))
-                  }
-                  placeholder="https://instagram.com/username"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="youtube">YouTube Channel</Label>
-                <Input
-                  id="youtube"
-                  type="url"
-                  value={formData.youtube}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      youtube: e.target.value,
-                    }))
-                  }
-                  placeholder="https://youtube.com/c/channelname"
-                />
-              </div>
-            </div>
+            {/* Add a consistent height wrapper for all TabsContent */}
+            <div className="min-h-[400px]"> {/* Adjust height as needed */}
+              {/* personal tab */}
+              <TabsContent value="personal" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="firstName" className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      First Name *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            firstName: e.target.value,
+                          }))
+                        }
+                        placeholder="John"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="familyName" className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      Family Name *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="familyName"
+                        value={formData.familyName}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            familyName: e.target.value,
+                          }))
+                        }
+                        placeholder="Doe"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
 
-            <div className="flex justify-between">
-              <Button
-                onClick={() => setActiveTab("home-address")}
-                variant="outline"
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={() => setActiveTab("additional")}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Next
-              </Button>
-            </div>
-          </TabsContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="middleName" className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      Middle Name
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="middleName"
+                        value={formData.middleName}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            middleName: e.target.value,
+                          }))
+                        }
+                        placeholder="Middle Name"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                  
 
-          {/* Additional Info Tab */}
-          <TabsContent value="additional" className="mt-6 space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="birthday">Birthday</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="birthday"
-                    type="date"
-                    value={formData.birthday}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        birthday: e.target.value,
-                      }))
-                    }
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="photo" className="flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Photo
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload("photo")}
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Upload className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
-                  placeholder="Add any additional information you'd like to share..."
-                  className="h-32"
-                />
-              </div>
-            </div>
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => setActiveTab("organization")}
+                    variant="outline"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              {/* Organization tab */}
+              <TabsContent value="organization" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="company" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Company *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="company"
+                        value={formData.company}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            company: e.target.value,
+                          }))
+                        }
+                        placeholder="SmartWave"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Building2 className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      Title *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
+                        placeholder="CEO"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Briefcase className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workEmail" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Work Email *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workEmail"
+                        value={formData.workEmail}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            workEmail: e.target.value,
+                          }))
+                        }
+                        placeholder="john.doe@smartwave.com"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Mail className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
 
-            <div className="flex justify-between">
-              <Button onClick={() => setActiveTab("social")} variant="outline">
-                Previous
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={!isMandatoryFieldsFilled()}
-              >
-                Complete Profile
-              </Button>
+                <div className="flex justify-between">
+                  <Button onClick={() => setActiveTab("contact")} variant="outline">
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("contact")}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              {/* Contact tab */}
+              <TabsContent value="contact" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="mobile" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" style={{ color: iconColor }} />
+                      Mobile *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="mobile"
+                        value={formData.mobile}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, mobile: e.target.value }))
+                        }
+                        placeholder="1234567890"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="workPhone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" style={{ color: iconColor }} />
+                      Work Phone
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workPhone"
+                        value={formData.workPhone}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workPhone: e.target.value }))
+                        }
+                        placeholder="1234567890"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fax" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" style={{ color: iconColor }} />
+                      Fax
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="fax"
+                        value={formData.fax}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, fax: e.target.value }))
+                        }
+                        placeholder="1234567890"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homePhone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" style={{ color: iconColor }} />
+                      Home Phone
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homePhone"
+                        value={formData.homePhone}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homePhone: e.target.value }))
+                        }
+                        placeholder="1234567890"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="personalEmail" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" style={{ color: iconColor }} />
+                      Personal Email
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="personalEmail"
+                        value={formData.personalEmail}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, personalEmail: e.target.value }))
+                        }
+                        placeholder="personal@example.com"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Mail className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => setActiveTab("organization")}
+                    variant="outline"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("work-address")}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              {/* Work Address Tab */}
+
+              <TabsContent value="work-address" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="workStreet" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Street Address *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workStreet"
+                        value={formData.workStreet}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workStreet: e.target.value }))
+                        }
+                        placeholder="123 Work Street"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workDistrict" className="flex items-center gap-2">
+                      <MapPinned className="h-4 w-4" style={{ color: iconColor }} />
+                      District
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workDistrict"
+                        value={formData.workDistrict}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workDistrict: e.target.value }))
+                        }
+                        placeholder="Business District"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPinned className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workCity" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      City *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workCity"
+                        value={formData.workCity}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workCity: e.target.value }))
+                        }
+                        placeholder="San Francisco"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workState" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      State *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workState"
+                        value={formData.workState}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workState: e.target.value }))
+                        }
+                        placeholder="California"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workZipcode" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Zipcode *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workZipcode"
+                        value={formData.workZipcode}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workZipcode: e.target.value }))
+                        }
+                        placeholder="94105"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workCountry" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Country *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="workCountry"
+                        value={formData.workCountry}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, workCountry: e.target.value }))
+                        }
+                        placeholder="United States"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => setActiveTab("work-address")}
+                    variant="outline"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("social")}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+              {/* Home Address Tab */}
+              <TabsContent value="home-address" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="homeStreet" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Street Address *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeStreet"
+                        value={formData.homeStreet}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeStreet: e.target.value }))
+                        }
+                        placeholder="123 Home Street"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homeDistrict" className="flex items-center gap-2">
+                      <MapPinned className="h-4 w-4" style={{ color: iconColor }} />
+                      District *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeDistrict"
+                        value={formData.homeDistrict}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeDistrict: e.target.value }))
+                        }
+                        placeholder="Residential Area"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPinned className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="homeCity" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      City *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeCity"
+                        value={formData.homeCity}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeCity: e.target.value }))
+                        }
+                        placeholder="San Francisco"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="homeState" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      State *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeState"
+                        value={formData.homeState}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeState: e.target.value }))
+                        }
+                        placeholder="California"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="homeZipcode" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Zipcode *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeZipcode"
+                        value={formData.homeZipcode}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeZipcode: e.target.value }))
+                        }
+                        placeholder="94105"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="homeCountry" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" style={{ color: iconColor }} />
+                      Country *
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="homeCountry"
+                        value={formData.homeCountry}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, homeCountry: e.target.value }))
+                        }
+                        placeholder="United States"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => setActiveTab("home-address")}
+                    variant="outline"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("social")}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Social/Online Presence Tab */}
+              <TabsContent value="social" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="website" className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" style={{ color: iconColor }} />
+                      Website
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="website"
+                        type="url"
+                        value={formData.website}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, website: e.target.value }))
+                        }
+                        placeholder="www.example.com"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Globe className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin" className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4" style={{ color: iconColor }} />
+                      LinkedIn
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="linkedin"
+                        type="url"
+                        value={formData.linkedin}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, linkedin: e.target.value }))
+                        }
+                        placeholder="LinkedIn Profile"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Linkedin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter" className="flex items-center gap-2">
+                      <Twitter className="h-4 w-4" style={{ color: iconColor }} />
+                      Twitter/X
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="twitter"
+                        type="url"
+                        value={formData.twitter}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, twitter: e.target.value }))
+                        }
+                        placeholder="Twitter Profile"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Twitter className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook" className="flex items-center gap-2">
+                      <Facebook className="h-4 w-4" style={{ color: iconColor }} />
+                      Facebook
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="facebook"
+                        type="url"
+                        value={formData.facebook}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, facebook: e.target.value }))
+                        }
+                        placeholder="Facebook Profile"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Facebook className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram" className="flex items-center gap-2">
+                      <Instagram className="h-4 w-4" style={{ color: iconColor }} />
+                      Instagram
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="instagram"
+                        type="url"
+                        value={formData.instagram}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, instagram: e.target.value }))
+                        }
+                        placeholder="Instagram Profile"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Instagram className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="youtube" className="flex items-center gap-2">
+                      <Youtube className="h-4 w-4" style={{ color: iconColor }} />
+                      YouTube
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="youtube"
+                        type="url"
+                        value={formData.youtube}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, youtube: e.target.value }))
+                        }
+                        placeholder="YouTube Channel"
+                        className="pl-10 border-2 focus:border-blue-500"
+                      />
+                      <Youtube className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => setActiveTab("home-address")}
+                    variant="outline"
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("additional")}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Additional Info Tab */}
+              <TabsContent value="additional" className="mt-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="birthday">Birthday</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="birthday"
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            birthday: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Additional Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                      }
+                      placeholder="Add any additional information you'd like to share..."
+                      className="h-32"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button onClick={() => setActiveTab("social")} variant="outline">
+                    Previous
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={!isMandatoryFieldsFilled()}
+                  >
+                    Complete Profile
+                  </Button>
+                </div>
+              </TabsContent>
             </div>
-          </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
 
       {/* Benefits and FAQ section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-xl font-semibold text-blue-600 mb-4">
             Benefits of SmartWave
           </h3>
@@ -871,7 +1142,7 @@ export default function IncompleteProfileView({
           </ul>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-xl font-semibold text-blue-600 mb-4">
             Frequently Asked Questions
           </h3>
