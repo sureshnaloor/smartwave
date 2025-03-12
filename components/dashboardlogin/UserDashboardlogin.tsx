@@ -1,5 +1,5 @@
 "use client"
-import {Session} from "next-auth"
+import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Footer from "@/components/Footer"
@@ -10,55 +10,77 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Download, User, ChevronRight } from "lucide-react"
+import { Download, User as UserIcon, ChevronRight } from "lucide-react"
 import ProfileForm from "../dashboardlogin/profile-form"
 import DigitalCard from "../dashboardlogin/digital-card"
 import QRCodeGenerator from "../dashboardlogin/qr-code-generator"
 import CalendarIntegration from "../dashboardlogin/calendar-integration"
 import PaymentOptions from "../dashboardlogin/payment-options"
+import { User } from "./types"
 
-interface User {
-  name: string;
-  title: string;
-  company: string;
-  email: string;
-  phone: string;
-  website: string;
-  address: string;
-  photo: string;
-  isPremium: boolean;
-}
-
-interface UserDashboardProps {
-  session: Session;
-}
-
-export default function UserDashboardlogin({ session }: UserDashboardProps) {
+export default function UserDashboardlogin() {
+  const { data: session, status } = useSession()
   const [isProfileComplete, setIsProfileComplete] = useState(false)
   const [user, setUser] = useState<User>({
-    name: "",
+    firstName: "",
+    lastName: "",
+    middleName: "",
+    photo: "",
+    birthday: "",
     title: "",
     company: "",
-    email: "",
-    phone: "",
+    companyLogo: "",
+    workEmail: "",
+    personalEmail: "",
+    mobile: "",
+    workPhone: "",
+    fax: "",
+    homePhone: "",
+    workStreet: "",
+    workDistrict: "",
+    workCity: "",
+    workState: "",
+    workZipcode: "",
+    workCountry: "",
+    homeStreet: "",
+    homeDistrict: "",
+    homeCity: "",
+    homeState: "",
+    homeZipcode: "",
+    homeCountry: "",
     website: "",
-    address: "",
-    photo: "",
+    linkedin: "",
+    twitter: "",
+    facebook: "",
+    instagram: "",
+    youtube: "",
+    notes: "",
     isPremium: false,
+    name: "",
+    workAddress: "",
   })
 
   useEffect(() => {
-    const fetchUserData = () => {
-      const userData = localStorage.getItem("userData")
-      if (userData) {
-        const parsedData = JSON.parse(userData)
-        setUser(parsedData)
-        setIsProfileComplete(true)
-      }
-    }
+    // Log session state
+    console.log('UserDashboard Session State:', { 
+      status,
+      hasSession: !!session,
+      userEmail: session?.user?.email,
+      isAuthenticated: status === 'authenticated' 
+    });
 
-    fetchUserData()
-  }, [])
+    if (status === 'authenticated' && session?.user?.email) {
+      const fetchUserData = () => {
+        const userData = localStorage.getItem("userData")
+        if (userData) {
+          const parsedData = JSON.parse(userData)
+          setUser(parsedData)
+          setIsProfileComplete(true)
+        }
+      }
+      fetchUserData()
+    }
+  }, [session, status])
 
   const handleProfileComplete = (profileData: User) => {
     setUser(profileData)
@@ -66,14 +88,40 @@ export default function UserDashboardlogin({ session }: UserDashboardProps) {
     localStorage.setItem("userData", JSON.stringify(profileData))
   }
 
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          <p className="text-gray-600">Please wait while we load your profile</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status !== 'authenticated' || !session?.user?.email) {
+    console.error('Not authenticated in UserDashboard:', { status, email: session?.user?.email });
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Please log in to continue</h2>
+          <p className="text-gray-600">You need to be logged in to access your dashboard</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto py-8 px-4">
           {isProfileComplete ? (
-            <CompletedProfileView user={user} />
+            <CompletedProfileView userEmail={session.user.email} />
           ) : (
-            <IncompleteProfileView onProfileComplete={handleProfileComplete} />
+            <IncompleteProfileView 
+              onProfileComplete={handleProfileComplete}
+              userEmail={session.user.email}
+            />
           )}
         </main>
       </div>
@@ -226,7 +274,7 @@ export default function UserDashboardlogin({ session }: UserDashboardProps) {
 //                   />
 //                 ) : (
 //                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-//                     <User className="h-10 w-10 text-blue-600" />
+//                     <UserIcon className="h-10 w-10 text-blue-600" />
 //                   </div>
 //                 )}
 //                 <div>

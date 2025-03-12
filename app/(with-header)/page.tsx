@@ -17,18 +17,27 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Landing Page Session State:', {
+      status,
+      session,
+      userEmail: session?.user?.email
+    });
+
     if (status !== 'loading') {
       setIsLoading(false);
     }
-  }, [status]);
+  }, [status, session]);
 
-  if (isLoading) {
+  if (status === 'loading' || isLoading) {
     return <LoadingSpinner />;
   }
-  if (session) {
+
+  if (status === 'authenticated' && session?.user?.email) {
+    console.log('Rendering dashboard for authenticated user:', session.user.email);
     return <UserDashboardlogin />;
   }
 
+  console.log('Rendering landing page for unauthenticated user');
   return (
     <div className="flex flex-col w-full">
       <Hero />

@@ -53,28 +53,32 @@ export type ProfileData = {
 
 export async function saveProfile(data: Partial<ProfileData>, userEmail: string) {
   try {
-    if (!userEmail) {
-      console.error('No userEmail provided to saveProfile');
-      return { success: false, error: 'User email is required' };
+    console.log('saveProfile called with:', { userEmail, dataFields: Object.keys(data) });
+
+    if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
+      console.error('Invalid userEmail in saveProfile:', { userEmail });
+      return { 
+        success: false, 
+        error: 'User email is required' 
+      };
     }
 
-  
-    // const db = await client.db('smartwave');
-    
-    const now = new Date();
-    const profileData = {
-      ...data,
-      userEmail,
-      updatedAt: now,
-    };
-    console.log(`Checking existing profile for user: ${userEmail}`);
     const client = await clientPromise;
     const db = client.db('smartwave');
+    const now = new Date();
+
+    // Ensure userEmail is included in profileData
+    const profileData = {
+      ...data,
+      userEmail: userEmail.toLowerCase().trim(), // Normalize email
+      updatedAt: now,
+    };
+
+    console.log('Checking existing profile for user:', userEmail);
     const existingProfile = await db.collection('profiles').findOne({ userEmail });
 
     if (existingProfile) {
-      console.log(`Updating existing profile for user: ${userEmail}`);
-      const db = client.db('smartwave');
+      console.log('Updating existing profile for user:', userEmail);
       await db.collection('profiles').updateOne(
         { userEmail },
         { 
@@ -83,9 +87,7 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
         }
       );
     } else {
-      console.log(`Creating new profile for user: ${userEmail}`);
-      const client = await clientPromise;
-      const db = client.db('smartwave');
+      console.log('Creating new profile for user:', userEmail);
       await db.collection('profiles').insertOne({
         ...profileData,
         createdAt: now,
@@ -96,8 +98,15 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
     revalidatePath('/dashboard');
     return { success: true };
   } catch (error) {
-    console.error('Failed to save profile:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Failed to save profile' };
+    console.error('Profile save error:', {
+      error,
+      userEmail,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to save profile' 
+    };
   }
 }
 

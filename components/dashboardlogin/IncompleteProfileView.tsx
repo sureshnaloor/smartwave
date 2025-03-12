@@ -251,7 +251,14 @@ export default function IncompleteProfileView({
   }, [formData]);
 
   const handleSubmit = async () => {
+    if (!userEmail) {
+      console.error('No userEmail provided to component:', { userEmail });
+      toast.error('User email is required. Please try logging in again.');
+      return;
+    }
+
     if (!isMandatoryFieldsFilled()) {
+      toast.error('Please fill all mandatory fields');
       return;
     }
 
@@ -272,29 +279,32 @@ export default function IncompleteProfileView({
       formData.workCountry
     ].filter(Boolean).join(", ");
 
-    // Construct the complete user data
-    const completeUserData = {
-      ...formData,
-      name: fullName,
-      workAddress,
-      userEmail, // Use the provided user email
-      isPremium: initialData?.isPremium || false,
-    };
-
-    // Save to MongoDB
-    const result = await saveProfile(completeUserData, userEmail);
-    
-    if (result.success) {
-      // Call the onProfileComplete callback with the user data
-      const userData: User = {
-        ...completeUserData,
-        lastName: completeUserData.familyName // Map familyName to lastName
+    try {
+      console.log('Submitting profile with userEmail:', userEmail);
+      
+      // Prepare the data for MongoDB
+      const profileData = {
+        ...formData,
+        name: fullName,
+        workAddress,
+        userEmail, // Add the userEmail from props
+        isPremium: initialData?.isPremium || false,
       };
-      onProfileComplete(userData);
-    } else {
-      // Handle error - you might want to show an error message to the user
-      console.error('Failed to save profile');
-      toast.error('Failed to save profile. Please try again.');
+
+      // Save to MongoDB
+      const result = await saveProfile(profileData, userEmail);
+      
+      if (result.success) {
+        toast.success('Profile saved successfully');
+        // Call the onProfileComplete callback with the user data
+        onProfileComplete(profileData as User);
+      } else {
+        console.error('Failed to save profile:', result.error);
+        toast.error(result.error || 'Failed to save profile. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     }
   };
 
