@@ -2,7 +2,7 @@ export interface User {
   // Personal Info
   firstName: string;
   lastName: string;
-  name: string;
+  middleName: string;
   photo: string;
   birthday: string;
 
@@ -48,4 +48,8 @@ export interface User {
 
   // System fields
   isPremium: boolean;
+
+  // New fields
+  name: string;
+  workAddress: string;
 } 

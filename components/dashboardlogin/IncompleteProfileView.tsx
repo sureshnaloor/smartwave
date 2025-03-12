@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { toast } from "sonner";
 
 import { Textarea } from "@/components/ui/textarea";
 
@@ -116,14 +117,47 @@ export default function IncompleteProfileView({
   const [progress, setProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("personal");
   const [formData, setFormData] = useState<FormData>(() => {
-    // Initialize with initialData if provided (editing mode)
     if (initialData) {
       return {
-        ...initialData,
-        // Add any additional fields that might be in FormData but not in User
+        firstName: initialData.firstName || "",
+        familyName: initialData.lastName || "",
+        middleName: initialData.middleName || "",
+        photo: initialData.photo || "",
+        birthday: initialData.birthday || "",
+        title: initialData.title || "",
+        company: initialData.company || "",
+        companyLogo: initialData.companyLogo || "",
+        workEmail: initialData.workEmail || "",
+        personalEmail: initialData.personalEmail || "",
+        mobile: initialData.mobile || "",
+        workPhone: initialData.workPhone || "",
+        fax: initialData.fax || "",
+        homePhone: initialData.homePhone || "",
+        workStreet: initialData.workStreet || "",
+        workDistrict: initialData.workDistrict || "",
+        workCity: initialData.workCity || "",
+        workState: initialData.workState || "",
+        workZipcode: initialData.workZipcode || "",
+        workCountry: initialData.workCountry || "",
+        homeStreet: initialData.homeStreet || "",
+        homeDistrict: initialData.homeDistrict || "",
+        homeCity: initialData.homeCity || "",
+        homeState: initialData.homeState || "",
+        homeZipcode: initialData.homeZipcode || "",
+        homeCountry: initialData.homeCountry || "",
+        website: initialData.website || "",
+        linkedin: initialData.linkedin || "",
+        twitter: initialData.twitter || "",
+        facebook: initialData.facebook || "",
+        instagram: initialData.instagram || "",
+        youtube: initialData.youtube || "",
+        notes: initialData.notes || "",
+        name: initialData.name || "",
+        email: initialData.workEmail || "",
+        phone: initialData.mobile || "",
+        address: initialData.workAddress || ""
       };
     }
-    // Default initial state for new profile
     return {
       firstName: "",
       familyName: "",
@@ -252,10 +286,15 @@ export default function IncompleteProfileView({
     
     if (result.success) {
       // Call the onProfileComplete callback with the user data
-      onProfileComplete(completeUserData as User);
+      const userData: User = {
+        ...completeUserData,
+        lastName: completeUserData.familyName // Map familyName to lastName
+      };
+      onProfileComplete(userData);
     } else {
       // Handle error - you might want to show an error message to the user
       console.error('Failed to save profile');
+      toast.error('Failed to save profile. Please try again.');
     }
   };
 

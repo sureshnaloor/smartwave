@@ -1,8 +1,12 @@
 'use server'
-
 import { revalidatePath } from 'next/cache';
-import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import clientPromise from '@/lib/mongodb';
+
+
+
+const uri = process.env.MONGODB_URI || '';
+const client = clientPromise;
 
 export type ProfileData = {
   _id?: ObjectId;
@@ -54,8 +58,8 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       return { success: false, error: 'User email is required' };
     }
 
-    const client = await clientPromise;
-    const db = client.db('smartwave');
+  
+    // const db = await client.db('smartwave');
     
     const now = new Date();
     const profileData = {
@@ -63,12 +67,14 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       userEmail,
       updatedAt: now,
     };
-
     console.log(`Checking existing profile for user: ${userEmail}`);
+    const client = await clientPromise;
+    const db = client.db('smartwave');
     const existingProfile = await db.collection('profiles').findOne({ userEmail });
 
     if (existingProfile) {
       console.log(`Updating existing profile for user: ${userEmail}`);
+      const db = client.db('smartwave');
       await db.collection('profiles').updateOne(
         { userEmail },
         { 
@@ -78,6 +84,8 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       );
     } else {
       console.log(`Creating new profile for user: ${userEmail}`);
+      const client = await clientPromise;
+      const db = client.db('smartwave');
       await db.collection('profiles').insertOne({
         ...profileData,
         createdAt: now,
