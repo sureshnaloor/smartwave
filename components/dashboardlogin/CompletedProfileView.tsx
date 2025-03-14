@@ -145,10 +145,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                   This QR code links directly to your digital profile. When scanned, it will open your complete SmartWave
                   profile.
                 </p>
-                <QRCodeGenerator user={{
-                  ...profileData,
-                  lastName: profileData.familyName
-                }} />
+                <QRCodeGenerator user={profileData} />
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-2xl font-semibold mb-4 text-red-500">Download Options</h3>
@@ -475,11 +472,11 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
     return (
       <IncompleteProfileView
         onProfileComplete={(data) => {
-          setProfileData(data as ProfileData);
+          setProfileData(data as unknown as ProfileData);
           setIsEditing(false);
         }}
         userEmail={userEmail}
-        initialData={isEditing ? profileData : undefined}
+        initialData={isEditing && profileData ? profileData : undefined}
         isEditing={isEditing}
       />
     );
