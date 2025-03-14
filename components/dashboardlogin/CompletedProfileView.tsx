@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Download, User, ChevronRight } from "lucide-react"
+import { Download, User, ChevronRight, Mail, Phone } from "lucide-react"
 import DigitalCard from "./digital-card"
 import QRCodeGenerator from "./qr-code-generator"
 import CalendarIntegration from "./calendar-integration"
@@ -182,8 +182,25 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Name</h4>
+                        <h4 className="text-sm font-medium text-gray-500">Full Name</h4>
                         <p className="text-lg">{profileData.name}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-500">Name Components</h4>
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500">Last:</span>
+                            <p>{profileData.familyName}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">First:</span>
+                            <p>{profileData.firstName}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Middle:</span>
+                            <p>{profileData.middleName}</p>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Title</h4>
@@ -194,17 +211,40 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                         <p className="text-lg">{profileData.company}</p>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                        <p className="text-lg">{profileData.workEmail}</p>
+                        <h4 className="text-sm font-medium text-gray-500">Work Contact</h4>
+                        <div className="space-y-2">
+                          <p className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-500" />
+                            {profileData.workEmail}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-500" />
+                            {profileData.workPhone}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-500" />
+                            Mobile: {profileData.mobile}
+                          </p>
+                        </div>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                        <p className="text-lg">{profileData.mobile}</p>
+                        <h4 className="text-sm font-medium text-gray-500">Work Address</h4>
+                        <p className="text-base">
+                          {[
+                            profileData.workStreet,
+                            profileData.workCity,
+                            profileData.workState,
+                            profileData.workZipcode,
+                            profileData.workCountry
+                          ].filter(Boolean).join(', ')}
+                        </p>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Website</h4>
-                        <p className="text-lg">{profileData.website}</p>
-                      </div>
+                      {profileData.website && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-500">Website</h4>
+                          <p className="text-lg">{profileData.website}</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -214,7 +254,37 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                 <p className="text-gray-600 mb-6">
                   Download your vCard to easily share your contact information with others.
                 </p>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    // Generate vCard data
+                    const vCardData = [
+                      'BEGIN:VCARD',
+                      'VERSION:3.0',
+                      `FN:${profileData.name}`,
+                      `N:${profileData.familyName || ''};${profileData.firstName || ''};${profileData.middleName || ''};;`,
+                      `TITLE:${profileData.title || ''}`,
+                      `ORG:${profileData.company || ''}`,
+                      `EMAIL;type=WORK:${profileData.workEmail || ''}`,
+                      `TEL;type=WORK:${profileData.workPhone || ''}`,
+                      `TEL;type=CELL:${profileData.mobile || ''}`,
+                      `ADR;type=WORK:;;${profileData.workStreet || ''};${profileData.workCity || ''};${profileData.workState || ''};${profileData.workZipcode || ''};${profileData.workCountry || ''}`,
+                      profileData.website ? `URL:${profileData.website}` : '',
+                      'END:VCARD'
+                    ].filter(Boolean).join('\n');
+
+                    // Create and trigger download
+                    const blob = new Blob([vCardData], { type: 'text/vcard' });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${profileData.name.replace(/\s+/g, '-')}.vcf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  }}
+                >
                   <Download className="mr-2 h-4 w-4" />
                   Download vCard (.vcf)
                 </Button>
