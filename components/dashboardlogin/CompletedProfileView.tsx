@@ -145,7 +145,10 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                   This QR code links directly to your digital profile. When scanned, it will open your complete SmartWave
                   profile.
                 </p>
-                <QRCodeGenerator user={profileData} />
+                <QRCodeGenerator user={{
+                  ...profileData,
+                  lastName: profileData.familyName
+                }} />
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-2xl font-semibold mb-4 text-red-500">Download Options</h3>

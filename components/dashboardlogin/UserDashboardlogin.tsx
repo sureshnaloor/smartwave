@@ -27,6 +27,7 @@ export default function UserDashboardlogin() {
   const [user, setUser] = useState<User>({
     firstName: "",
     lastName: "",
+    familyName: "",
     middleName: "",
     photo: "",
     birthday: "",
@@ -85,6 +86,7 @@ export default function UserDashboardlogin() {
               ...user,
               firstName: profileData.firstName || "",
               lastName: profileData.familyName || "",
+              familyName: profileData.familyName || "",
               middleName: profileData.middleName || "",
               photo: profileData.photo || "",
               birthday: profileData.birthday || "",

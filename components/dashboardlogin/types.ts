@@ -1,7 +1,8 @@
 export interface User {
   // Personal Info
   firstName: string;
-  lastName: string;
+  lastName: string;  // for vCard usage
+  familyName: string;  // for MongoDB storage
   middleName: string;
   photo: string;
   birthday: string;
