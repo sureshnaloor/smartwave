@@ -43,6 +43,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { User } from "./types"; // Import the User type from types.ts
 import { saveProfile } from '@/app/actions/profile';
+import { uploadToCloudinary, MAX_FILE_SIZE } from '@/lib/cloudinary';
 
 interface IncompleteProfileViewProps {
   onProfileComplete: (data: User) => void;
@@ -51,7 +52,7 @@ interface IncompleteProfileViewProps {
   isEditing?: boolean;
 }
 
-// Define FormData type to match all the fields we're using
+// Update FormData type to be more strict
 type FormData = {
   firstName: string;
   familyName: string;
@@ -92,6 +93,9 @@ type FormData = {
   address: string;
 };
 
+type MandatoryField = typeof MANDATORY_FIELDS[number];
+type OptionalField = keyof Omit<FormData, MandatoryField>;
+
 // Add this constant for icon color
 const iconColor = "rgb(14, 165, 233)" // deep sky blue color
 
@@ -105,6 +109,38 @@ const TAB_LABELS = {
   social: "Social",
   additional: "Additional"
 } as const;
+
+// Update the TempFileData type to match Cloudinary folder names
+interface TempFileData {
+  file: File;
+  previewUrl: string;
+  field: 'photo' | 'companyLogo';
+  uploadFolder: 'photos' | 'logos';
+}
+
+// Add type for image field keys
+type ImageFieldKey = keyof Pick<FormData, 'photo' | 'companyLogo'>;
+
+// Add mapping for field names to Cloudinary folders
+const fieldToFolderMap: Record<ImageFieldKey, 'photos' | 'logos'> = {
+  photo: 'photos',
+  companyLogo: 'logos'
+};
+
+// Update the mandatory fields list to match what's actually required
+const MANDATORY_FIELDS = [
+  "firstName",
+  "familyName",
+  "workEmail",
+  "mobile",
+  "title",
+  "company",
+  "workStreet",
+  "workCity",
+  "workState",
+  "workCountry",
+  "workZipcode",
+] as const;
 
 export default function IncompleteProfileView({
   onProfileComplete,
@@ -197,23 +233,12 @@ export default function IncompleteProfileView({
     };
   });
 
-  useEffect(() => {
-    const mandatoryFields = [
-      "firstName",
-      "familyName",
-      "middleName",
-      "workEmail",
-      "mobile",
-      "title",
-      "company",
-      "workStreet",
-      "workCity",
-      "workState",
-      "workCountry",
-      "workZipcode",
-    ];
+  const [tempFiles, setTempFiles] = useState<Record<string, TempFileData>>({});
 
-    const optionalFields = [
+  // Update the progress calculation
+  useEffect(() => {
+    const OPTIONAL_FIELDS = [
+      "middleName",
       "personalEmail",
       "workPhone",
       "fax",
@@ -233,19 +258,37 @@ export default function IncompleteProfileView({
       "youtube",
       "notes",
       "birthday",
-    ];
+    ] as const;
 
-    let filledMandatory = mandatoryFields.filter(
-      (field) => formData[field as keyof typeof formData]
-    ).length;
-    let filledOptional = optionalFields.filter(
-      (field) => formData[field as keyof typeof formData]
-    ).length;
+    const filledMandatoryCount = MANDATORY_FIELDS.reduce((count, field) => {
+      return formData[field] && formData[field].trim() !== "" ? count + 1 : count;
+    }, 0);
 
-    const mandatoryProgress = (filledMandatory / mandatoryFields.length) * 80;
-    const optionalProgress = (filledOptional / optionalFields.length) * 20;
+    const filledOptionalCount = OPTIONAL_FIELDS.reduce((count, field) => {
+      const value = formData[field as keyof FormData];
+      return value && value.trim() !== "" ? count + 1 : count;
+    }, 0);
 
-    setProgress(Math.round(mandatoryProgress + optionalProgress));
+    const mandatoryProgress = (filledMandatoryCount / MANDATORY_FIELDS.length) * 80;
+    const optionalProgress = (filledOptionalCount / OPTIONAL_FIELDS.length) * 20;
+    const totalProgress = Math.min(100, Math.round(mandatoryProgress + optionalProgress));
+
+    console.log('Progress calculation:', {
+      filledMandatoryCount,
+      totalMandatory: MANDATORY_FIELDS.length,
+      filledOptionalCount,
+      totalOptional: OPTIONAL_FIELDS.length,
+      mandatoryProgress,
+      optionalProgress,
+      totalProgress,
+      mandatoryFields: MANDATORY_FIELDS.map(field => ({
+        field,
+        value: formData[field],
+        isValid: Boolean(formData[field]?.trim())
+      }))
+    });
+
+    setProgress(totalProgress);
   }, [formData]);
 
   const handleSubmit = async () => {
@@ -260,32 +303,53 @@ export default function IncompleteProfileView({
       return;
     }
 
-    // Construct the full name
-    const fullName = [
-      formData.firstName,
-      formData.middleName,
-      formData.familyName
-    ].filter(Boolean).join(" ").trim();
-
-    // Construct the work address
-    const workAddress = [
-      formData.workStreet,
-      formData.workDistrict,
-      formData.workCity, 
-      formData.workState,
-      formData.workZipcode,
-      formData.workCountry
-    ].filter(Boolean).join(", ");
+    const loadingToastId = toast.loading('Saving profile...');
 
     try {
-      console.log('Submitting profile with userEmail:', userEmail);
+      // Upload any temporary files to Cloudinary first
+      const updatedFormData = { ...formData };
       
+      for (const [field, tempData] of Object.entries(tempFiles)) {
+        try {
+          const result = await uploadToCloudinary(
+            tempData.file, 
+            fieldToFolderMap[tempData.field as ImageFieldKey]
+          );
+          updatedFormData[field] = result.secure_url;
+          
+          // Revoke the temporary object URL
+          URL.revokeObjectURL(tempData.previewUrl);
+        } catch (error) {
+          console.error(`Error uploading ${field}:`, error);
+          toast.dismiss(loadingToastId);
+          toast.error(`Failed to upload ${field}. Please try again.`);
+          return;
+        }
+      }
+
+      // Construct the full name
+      const fullName = [
+        updatedFormData.firstName,
+        updatedFormData.middleName,
+        updatedFormData.familyName
+      ].filter(Boolean).join(" ").trim();
+
+      // Construct the work address
+      const workAddress = [
+        updatedFormData.workStreet,
+        updatedFormData.workDistrict,
+        updatedFormData.workCity, 
+        updatedFormData.workState,
+        updatedFormData.workZipcode,
+        updatedFormData.workCountry
+      ].filter(Boolean).join(", ");
+
       // Prepare the data for MongoDB
       const profileData = {
-        ...formData,
+        ...updatedFormData,
         name: fullName,
         workAddress,
-        userEmail, // Add the userEmail from props
+        userEmail,
         isPremium: initialData?.isPremium || false,
       };
 
@@ -293,58 +357,90 @@ export default function IncompleteProfileView({
       const result = await saveProfile(profileData, userEmail);
       
       if (result.success) {
+        toast.dismiss(loadingToastId);
         toast.success('Profile saved successfully');
+        // Clear temporary files
+        setTempFiles({});
         // Call the onProfileComplete callback with the user data
         onProfileComplete(profileData as User);
       } else {
         console.error('Failed to save profile:', result.error);
+        toast.dismiss(loadingToastId);
         toast.error(result.error || 'Failed to save profile. Please try again.');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
+      toast.dismiss(loadingToastId);
       toast.error('An unexpected error occurred. Please try again.');
     }
   };
 
-  // Helper function to check if all mandatory fields are filled
+  // Update the isMandatoryFieldsFilled function with proper typing
   const isMandatoryFieldsFilled = () => {
-    const mandatoryFields = [
-      "firstName",
-      "familyName",
-      "workEmail",
-      "mobile",
-      "title",
-      "company",
-      "workStreet",
-      "workCity",
-      "workState",
-      "workCountry",
-      "workZipcode",
-    ];
+    const result = MANDATORY_FIELDS.every((field) => {
+      const value = formData[field as keyof FormData];
+      const isValid = Boolean(value?.trim());
+      console.log(`Checking mandatory field "${field}":`, {
+        field,
+        value,
+        isValid,
+        trimmedLength: value?.trim().length
+      });
+      return isValid;
+    });
 
-    return mandatoryFields.every(
-      (field) =>
-        formData[field as keyof typeof formData] &&
-        formData[field as keyof typeof formData].trim() !== ""
-    );
+    console.log('All mandatory fields filled:', result);
+    return result;
   };
 
-  // Handle file upload
-  const handleFileUpload =
-    (field: "photo" | "companyLogo") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setFormData((prev) => ({
-            ...prev,
-            [field]: reader.result as string,
-          }));
-        };
-        reader.readAsDataURL(file);
+  // Update the getImageUrl function with proper typing
+  const getImageUrl = (field: ImageFieldKey) => {
+    // If there's a temporary file, use its preview URL
+    if (tempFiles[field]) {
+      return tempFiles[field].previewUrl;
+    }
+    // Otherwise use the stored URL from formData
+    return formData[field] || '';
+  };
+
+  // Update the handleFileUpload function with proper typing
+  const handleFileUpload = (field: ImageFieldKey) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+        return;
       }
-    };
+
+      // Create temporary preview URL
+      const previewUrl = URL.createObjectURL(file);
+
+      // Store file and preview URL
+      setTempFiles(prev => ({
+        ...prev,
+        [field]: { 
+          file, 
+          previewUrl, 
+          field,
+          uploadFolder: fieldToFolderMap[field]
+        }
+      }));
+
+      // Update form data with temporary preview URL
+      setFormData(prev => ({
+        ...prev,
+        [field]: previewUrl
+      }));
+
+      toast.success('Image selected successfully');
+    } catch (error) {
+      console.error('Error handling file:', error);
+      toast.error('Failed to process image. Please try again.');
+    }
+  };
 
   // Add this function to handle tab navigation
   const navigateTab = (direction: 'next' | 'previous') => {
@@ -358,15 +454,279 @@ export default function IncompleteProfileView({
     }
   };
 
+  // Cleanup temporary files when component unmounts
+  useEffect(() => {
+    return () => {
+      // Revoke all temporary object URLs
+      Object.values(tempFiles).forEach(tempData => {
+        URL.revokeObjectURL(tempData.previewUrl);
+      });
+    };
+  }, [tempFiles]);
+
+  // Render photo upload fields only in edit mode
+  const renderPhotoUploadFields = () => {
+    if (!isEditing) return null;
+
+    return (
+      <div className="space-y-6 border-t border-gray-200 pt-6 mt-6">
+        <h3 className="text-lg font-semibold text-blue-600">Profile Photos</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="photo" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Profile Photo
+            </Label>
+            <div className="relative">
+              <div className="flex items-center space-x-4">
+                {getImageUrl('photo') ? (
+                  <div className="relative h-20 w-20">
+                    <img
+                      src={getImageUrl('photo')}
+                      alt="Profile preview"
+                      className="h-20 w-20 rounded-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                      onClick={() => {
+                        if (tempFiles['photo']) {
+                          URL.revokeObjectURL(tempFiles['photo'].previewUrl);
+                        }
+                        setTempFiles(prev => {
+                          const newFiles = { ...prev };
+                          delete newFiles['photo'];
+                          return newFiles;
+                        });
+                        setFormData(prev => ({ ...prev, photo: '' }));
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center">
+                    <UserIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+                <Input
+                  id="photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload("photo")}
+                  className="max-w-xs pl-10 border-2 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="companyLogo" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" style={{ color: iconColor }} />
+              Company Logo
+            </Label>
+            <div className="relative">
+              <div className="flex items-center space-x-4">
+                {getImageUrl('companyLogo') ? (
+                  <div className="relative h-20 w-20">
+                    <img
+                      src={getImageUrl('companyLogo')}
+                      alt="Company Logo"
+                      className="h-20 w-20 object-contain"
+                    />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                      onClick={() => {
+                        if (tempFiles['companyLogo']) {
+                          URL.revokeObjectURL(tempFiles['companyLogo'].previewUrl);
+                        }
+                        setTempFiles(prev => {
+                          const newFiles = { ...prev };
+                          delete newFiles['companyLogo'];
+                          return newFiles;
+                        });
+                        setFormData(prev => ({ ...prev, companyLogo: '' }));
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-20 w-20 bg-gray-100 rounded flex items-center justify-center">
+                    <Building2 className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+                <Input
+                  id="companyLogo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload("companyLogo")}
+                  className="max-w-xs pl-10 border-2 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Modify the personal tab content to conditionally render photo upload
+  const personalTabContent = (
+    <TabsContent value="personal" className="mt-6 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="firstName" className="flex items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            First Name *
+          </Label>
+          <div className="relative">
+            <Input
+              id="firstName"
+              value={formData.firstName}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  firstName: e.target.value,
+                }))
+              }
+              placeholder="John"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="familyName" className="flex items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            Family Name *
+          </Label>
+          <div className="relative">
+            <Input
+              id="familyName"
+              value={formData.familyName}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  familyName: e.target.value,
+                }))
+              }
+              placeholder="Doe"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="middleName" className="flex items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            Middle Name
+          </Label>
+          <div className="relative">
+            <Input
+              id="middleName"
+              value={formData.middleName}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  middleName: e.target.value,
+                }))
+              }
+              placeholder="Middle Name"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Render photo upload fields only in edit mode */}
+      {isEditing && renderPhotoUploadFields()}
+
+      <div className="flex justify-between">
+        <div /> {/* Empty div for spacing */}
+        <Button
+          onClick={() => navigateTab('next')}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Next
+        </Button>
+      </div>
+    </TabsContent>
+  );
+
+  // Update the organization tab to remove the company logo upload field when not in edit mode
+  const organizationTabContent = (
+    <TabsContent value="organization" className="mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label htmlFor="title" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" style={{ color: iconColor }} />
+            Job Title *
+          </Label>
+          <div className="relative">
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, title: e.target.value }))
+              }
+              placeholder="Software Engineer"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <Briefcase className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="company" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" style={{ color: iconColor }} />
+            Company *
+          </Label>
+          <div className="relative">
+            <Input
+              id="company"
+              value={formData.company}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, company: e.target.value }))
+              }
+              placeholder="Company Name"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <Building2 className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-6">
+        <Button
+          onClick={() => navigateTab('previous')}
+          variant="outline"
+        >
+          Previous
+        </Button>
+        <Button
+          onClick={() => navigateTab('next')}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          Next
+        </Button>
+      </div>
+    </TabsContent>
+  );
+
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-xl font-bold text-blue-600 mb-2">
-          Complete Your Profile
+          {isEditing ? 'Edit Your Profile' : 'Complete Your Profile'}
         </h2>
         <p className="text-gray-600 mb-4">
-          Fill in your information to create your digital card. Fields marked
-          with * are required.
+          {isEditing 
+            ? 'Update your profile information and upload photos.'
+            : 'Fill in your information to create your digital card. Fields marked with * are required. You can add photos after creating your profile.'}
         </p>
 
         <div className="mb-6">
@@ -406,185 +766,9 @@ export default function IncompleteProfileView({
             {/* Add a consistent height wrapper for all TabsContent */}
             <div className="min-h-[400px]"> {/* Adjust height as needed */}
               {/* personal tab */}
-              <TabsContent value="personal" className="mt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="firstName" className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4" />
-                      First Name *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            firstName: e.target.value,
-                          }))
-                        }
-                        placeholder="John"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="familyName" className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4" />
-                      Family Name *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="familyName"
-                        value={formData.familyName}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            familyName: e.target.value,
-                          }))
-                        }
-                        placeholder="Doe"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="middleName" className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4" />
-                      Middle Name
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="middleName"
-                        value={formData.middleName}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            middleName: e.target.value,
-                          }))
-                        }
-                        placeholder="Middle Name"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                  
-
-                  <div className="space-y-2">
-                    <Label htmlFor="photo" className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Photo
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="photo"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload("photo")}
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <Upload className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <div /> {/* Empty div for spacing */}
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </TabsContent>
+              {personalTabContent}
               {/* Organization tab */}
-              <TabsContent value="organization" className="mt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="company" className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Company *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="company"
-                        value={formData.company}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            company: e.target.value,
-                          }))
-                        }
-                        placeholder="SmartWave"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <Building2 className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="title" className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4" />
-                      Title *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            title: e.target.value,
-                          }))
-                        }
-                        placeholder="CEO"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <Briefcase className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="workEmail" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Work Email *
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="workEmail"
-                        value={formData.workEmail}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            workEmail: e.target.value,
-                          }))
-                        }
-                        placeholder="john.doe@smartwave.com"
-                        className="pl-10 border-2 focus:border-blue-500"
-                      />
-                      <Mail className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <Button
-                    onClick={() => navigateTab('previous')}
-                    variant="outline"
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
-                </div>
-              </TabsContent>
+              {organizationTabContent}
               {/* Contact tab */}
               <TabsContent value="contact" className="mt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1139,7 +1323,7 @@ export default function IncompleteProfileView({
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={!isMandatoryFieldsFilled()}
                   >
-                    Complete Profile
+                    {isEditing ? 'Update Profile' : 'Complete Profile'}
                   </Button>
                 </div>
               </TabsContent>
