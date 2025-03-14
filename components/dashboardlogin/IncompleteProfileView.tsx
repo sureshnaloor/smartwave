@@ -313,9 +313,9 @@ export default function IncompleteProfileView({
         try {
           const result = await uploadToCloudinary(
             tempData.file, 
-            fieldToFolderMap[tempData.field as ImageFieldKey]
+            fieldToFolderMap[field as ImageFieldKey]
           );
-          updatedFormData[field] = result.secure_url;
+          updatedFormData[field as keyof FormData] = result.secure_url;
           
           // Revoke the temporary object URL
           URL.revokeObjectURL(tempData.previewUrl);
@@ -657,7 +657,7 @@ export default function IncompleteProfileView({
     </TabsContent>
   );
 
-  // Update the organization tab to remove the company logo upload field when not in edit mode
+  // Update the organization tab to include work email
   const organizationTabContent = (
     <TabsContent value="organization" className="mt-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -696,6 +696,26 @@ export default function IncompleteProfileView({
               className="pl-10 border-2 focus:border-blue-500"
             />
             <Building2 className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
+          </div>
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="workEmail" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" style={{ color: iconColor }} />
+            Work Email *
+          </Label>
+          <div className="relative">
+            <Input
+              id="workEmail"
+              type="email"
+              value={formData.workEmail}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, workEmail: e.target.value }))
+              }
+              placeholder="work@company.com"
+              className="pl-10 border-2 focus:border-blue-500"
+            />
+            <Mail className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
         </div>
       </div>
