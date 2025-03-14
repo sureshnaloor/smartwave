@@ -17,10 +17,13 @@ import QRCodeGenerator from "../dashboardlogin/qr-code-generator"
 import CalendarIntegration from "../dashboardlogin/calendar-integration"
 import PaymentOptions from "../dashboardlogin/payment-options"
 import { User } from "./types"
+import { getProfile } from "@/app/actions/profile"
+import { toast } from "sonner"
 
 export default function UserDashboardlogin() {
   const { data: session, status } = useSession()
   const [isProfileComplete, setIsProfileComplete] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<User>({
     firstName: "",
     lastName: "",
@@ -69,26 +72,78 @@ export default function UserDashboardlogin() {
       isAuthenticated: status === 'authenticated' 
     });
 
-    if (status === 'authenticated' && session?.user?.email) {
-      const fetchUserData = () => {
-        const userData = localStorage.getItem("userData")
-        if (userData) {
-          const parsedData = JSON.parse(userData)
-          setUser(parsedData)
-          setIsProfileComplete(true)
+    const fetchUserData = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          setIsLoading(true);
+          const profileData = await getProfile(session.user.email);
+          console.log('Profile data fetched:', profileData);
+          
+          if (profileData) {
+            // Map ProfileData to User type
+            setUser({
+              ...user,
+              firstName: profileData.firstName || "",
+              lastName: profileData.familyName || "",
+              middleName: profileData.middleName || "",
+              photo: profileData.photo || "",
+              birthday: profileData.birthday || "",
+              title: profileData.title || "",
+              company: profileData.company || "",
+              companyLogo: profileData.companyLogo || "",
+              workEmail: profileData.workEmail || "",
+              personalEmail: profileData.personalEmail || "",
+              mobile: profileData.mobile || "",
+              workPhone: profileData.workPhone || "",
+              fax: profileData.fax || "",
+              homePhone: profileData.homePhone || "",
+              workStreet: profileData.workStreet || "",
+              workDistrict: profileData.workDistrict || "",
+              workCity: profileData.workCity || "",
+              workState: profileData.workState || "",
+              workZipcode: profileData.workZipcode || "",
+              workCountry: profileData.workCountry || "",
+              homeStreet: profileData.homeStreet || "",
+              homeDistrict: profileData.homeDistrict || "",
+              homeCity: profileData.homeCity || "",
+              homeState: profileData.homeState || "",
+              homeZipcode: profileData.homeZipcode || "",
+              homeCountry: profileData.homeCountry || "",
+              website: profileData.website || "",
+              linkedin: profileData.linkedin || "",
+              twitter: profileData.twitter || "",
+              facebook: profileData.facebook || "",
+              instagram: profileData.instagram || "",
+              youtube: profileData.youtube || "",
+              notes: profileData.notes || "",
+              isPremium: profileData.isPremium || false,
+              name: profileData.name || "",
+              workAddress: profileData.workAddress || "",
+            });
+            setIsProfileComplete(true);
+          } else {
+            setIsProfileComplete(false);
+            console.log('No profile data found for user');
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          toast.error('Failed to load profile data');
+          setIsProfileComplete(false);
+        } finally {
+          setIsLoading(false);
         }
       }
-      fetchUserData()
-    }
-  }, [session, status])
+    };
+
+    fetchUserData();
+  }, [session, status]);
 
   const handleProfileComplete = (profileData: User) => {
     setUser(profileData)
     setIsProfileComplete(true)
-    localStorage.setItem("userData", JSON.stringify(profileData))
   }
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

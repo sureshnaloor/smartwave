@@ -95,8 +95,6 @@ type FormData = {
 // Add this constant for icon color
 const iconColor = "rgb(14, 165, 233)" // deep sky blue color
 
-const STORAGE_KEY = 'smartwave_profile_data';
-
 // Add this constant for tab labels
 const TAB_LABELS = {
   personal: "Personal",
