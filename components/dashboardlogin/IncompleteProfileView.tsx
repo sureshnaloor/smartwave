@@ -42,7 +42,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { User } from "./types"; // Import the User type from types.ts
-import { saveProfile } from '@/app/actions/profile';
+import { saveProfile, ProfileData } from '@/app/actions/profile';
 import { uploadToCloudinary, MAX_FILE_SIZE } from '@/lib/cloudinary';
 
 interface IncompleteProfileViewProps {
@@ -52,10 +52,10 @@ interface IncompleteProfileViewProps {
   isEditing?: boolean;
 }
 
-// Update FormData type to be more strict
+// Update FormData type
 type FormData = {
   firstName: string;
-  familyName: string;
+  lastName: string;  // Changed from familyName
   middleName: string;
   photo: string;
   birthday: string;
@@ -127,10 +127,10 @@ const fieldToFolderMap: Record<ImageFieldKey, 'photos' | 'logos'> = {
   companyLogo: 'logos'
 };
 
-// Update the mandatory fields list to match what's actually required
+// Update the mandatory fields list
 const MANDATORY_FIELDS = [
   "firstName",
-  "familyName",
+  "lastName",  // Changed from familyName
   "workEmail",
   "mobile",
   "title",
@@ -154,7 +154,7 @@ export default function IncompleteProfileView({
     if (initialData) {
       return {
         firstName: initialData.firstName || "",
-        familyName: initialData.lastName || "",
+        lastName: initialData.lastName || "",  // Changed from familyName
         middleName: initialData.middleName || "",
         photo: initialData.photo || "",
         birthday: initialData.birthday || "",
@@ -194,7 +194,7 @@ export default function IncompleteProfileView({
     }
     return {
       firstName: "",
-      familyName: "",
+      lastName: "",  // Changed from familyName
       middleName: "",
       photo: "",
       birthday: "",
@@ -273,27 +273,11 @@ export default function IncompleteProfileView({
     const optionalProgress = (filledOptionalCount / OPTIONAL_FIELDS.length) * 20;
     const totalProgress = Math.min(100, Math.round(mandatoryProgress + optionalProgress));
 
-    console.log('Progress calculation:', {
-      filledMandatoryCount,
-      totalMandatory: MANDATORY_FIELDS.length,
-      filledOptionalCount,
-      totalOptional: OPTIONAL_FIELDS.length,
-      mandatoryProgress,
-      optionalProgress,
-      totalProgress,
-      mandatoryFields: MANDATORY_FIELDS.map(field => ({
-        field,
-        value: formData[field],
-        isValid: Boolean(formData[field]?.trim())
-      }))
-    });
-
     setProgress(totalProgress);
   }, [formData]);
 
   const handleSubmit = async () => {
     if (!userEmail) {
-      console.error('No userEmail provided to component:', { userEmail });
       toast.error('User email is required. Please try logging in again.');
       return;
     }
@@ -306,7 +290,6 @@ export default function IncompleteProfileView({
     const loadingToastId = toast.loading('Saving profile...');
 
     try {
-      // Upload any temporary files to Cloudinary first
       const updatedFormData = { ...formData };
       
       for (const [field, tempData] of Object.entries(tempFiles)) {
@@ -316,25 +299,20 @@ export default function IncompleteProfileView({
             fieldToFolderMap[field as ImageFieldKey]
           );
           updatedFormData[field as keyof FormData] = result.secure_url;
-          
-          // Revoke the temporary object URL
           URL.revokeObjectURL(tempData.previewUrl);
         } catch (error) {
-          console.error(`Error uploading ${field}:`, error);
           toast.dismiss(loadingToastId);
           toast.error(`Failed to upload ${field}. Please try again.`);
           return;
         }
       }
 
-      // Construct the full name
       const fullName = [
         updatedFormData.firstName,
         updatedFormData.middleName,
-        updatedFormData.familyName
+        updatedFormData.lastName
       ].filter(Boolean).join(" ").trim();
 
-      // Construct the work address
       const workAddress = [
         updatedFormData.workStreet,
         updatedFormData.workDistrict,
@@ -344,53 +322,68 @@ export default function IncompleteProfileView({
         updatedFormData.workCountry
       ].filter(Boolean).join(", ");
 
-      // Prepare the data for MongoDB
-      const profileData = {
-        ...updatedFormData,
+      const profileData: Partial<ProfileData> = {
+        firstName: updatedFormData.firstName,
+        lastName: updatedFormData.lastName,
+        middleName: updatedFormData.middleName,
+        photo: updatedFormData.photo,
+        birthday: updatedFormData.birthday,
+        title: updatedFormData.title,
+        company: updatedFormData.company,
+        companyLogo: updatedFormData.companyLogo,
+        workEmail: updatedFormData.workEmail,
+        personalEmail: updatedFormData.personalEmail,
+        mobile: updatedFormData.mobile,
+        workPhone: updatedFormData.workPhone,
+        fax: updatedFormData.fax,
+        homePhone: updatedFormData.homePhone,
+        workStreet: updatedFormData.workStreet,
+        workDistrict: updatedFormData.workDistrict,
+        workCity: updatedFormData.workCity,
+        workState: updatedFormData.workState,
+        workZipcode: updatedFormData.workZipcode,
+        workCountry: updatedFormData.workCountry,
+        homeStreet: updatedFormData.homeStreet,
+        homeDistrict: updatedFormData.homeDistrict,
+        homeCity: updatedFormData.homeCity,
+        homeState: updatedFormData.homeState,
+        homeZipcode: updatedFormData.homeZipcode,
+        homeCountry: updatedFormData.homeCountry,
+        website: updatedFormData.website,
+        linkedin: updatedFormData.linkedin,
+        twitter: updatedFormData.twitter,
+        facebook: updatedFormData.facebook,
+        instagram: updatedFormData.instagram,
+        youtube: updatedFormData.youtube,
+        notes: updatedFormData.notes,
         name: fullName,
         workAddress,
         userEmail,
-        isPremium: initialData?.isPremium || false,
+        isPremium: initialData?.isPremium || false
       };
 
-      // Save to MongoDB
       const result = await saveProfile(profileData, userEmail);
       
       if (result.success) {
         toast.dismiss(loadingToastId);
         toast.success('Profile saved successfully');
-        // Clear temporary files
         setTempFiles({});
-        // Call the onProfileComplete callback with the user data
         onProfileComplete(profileData as User);
       } else {
-        console.error('Failed to save profile:', result.error);
         toast.dismiss(loadingToastId);
         toast.error(result.error || 'Failed to save profile. Please try again.');
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
       toast.dismiss(loadingToastId);
       toast.error('An unexpected error occurred. Please try again.');
     }
   };
 
-  // Update the isMandatoryFieldsFilled function with proper typing
   const isMandatoryFieldsFilled = () => {
-    const result = MANDATORY_FIELDS.every((field) => {
+    return MANDATORY_FIELDS.every((field) => {
       const value = formData[field as keyof FormData];
-      const isValid = Boolean(value?.trim());
-      console.log(`Checking mandatory field "${field}":`, {
-        field,
-        value,
-        isValid,
-        trimmedLength: value?.trim().length
-      });
-      return isValid;
+      return Boolean(value?.trim());
     });
-
-    console.log('All mandatory fields filled:', result);
-    return result;
   };
 
   // Update the getImageUrl function with proper typing
@@ -437,7 +430,6 @@ export default function IncompleteProfileView({
 
       toast.success('Image selected successfully');
     } catch (error) {
-      console.error('Error handling file:', error);
       toast.error('Failed to process image. Please try again.');
     }
   };
@@ -598,18 +590,18 @@ export default function IncompleteProfileView({
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="familyName" className="flex items-center gap-2">
+          <Label htmlFor="lastName" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
-            Family Name *
+            Last Name *
           </Label>
           <div className="relative">
             <Input
-              id="familyName"
-              value={formData.familyName}
+              id="lastName"
+              value={formData.lastName}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  familyName: e.target.value,
+                  lastName: e.target.value,
                 }))
               }
               placeholder="Doe"

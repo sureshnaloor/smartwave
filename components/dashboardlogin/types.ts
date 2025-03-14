@@ -1,8 +1,7 @@
 export interface User {
   // Personal Info
   firstName: string;
-  lastName?: string;  // optional since it's derived from familyName
-  familyName: string;  // for MongoDB storage
+  lastName: string;  // Changed from optional to required, removed familyName
   middleName: string;
   photo: string;
   birthday: string;

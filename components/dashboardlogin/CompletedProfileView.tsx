@@ -34,7 +34,6 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
 
     const fetchProfile = async () => {
       if (!userEmail) {
-        console.error('No user email available from props or session');
         setError('Please sign in to view your profile');
         setIsLoading(false);
         return;
@@ -43,21 +42,17 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       try {
         setIsLoading(true);
         setError(null);
-        console.log('Fetching profile for email:', userEmail);
         const profile = await getProfile(userEmail);
         
         if (!isMounted) return;
 
         if (!profile) {
-          console.log('No profile found, showing incomplete profile view');
           setProfileData(null);
         } else {
-          console.log('Profile loaded successfully');
           setProfileData(profile);
         }
       } catch (error) {
         if (!isMounted) return;
-        console.error('Error fetching profile:', error);
         setError('Failed to load profile. Please try again.');
       } finally {
         if (isMounted) {
@@ -75,11 +70,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
 
   const handleProfileUpdate = async (updatedData: ProfileData) => {
     try {
-      if (!userEmail) {
-        console.error('userEmail is missing in handleProfileUpdate');
-        return;
-      }
-      console.log('Updating profile for email:', userEmail); // Debug log
+      if (!userEmail) return;
       setProfileData(updatedData);
       setIsEditing(false);
     } catch (error) {
@@ -187,7 +178,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                         <div className="grid grid-cols-3 gap-2 text-sm">
                           <div>
                             <span className="text-gray-500">Last:</span>
-                            <p>{profileData.familyName}</p>
+                            <p>{profileData.lastName}</p>
                           </div>
                           <div>
                             <span className="text-gray-500">First:</span>
@@ -259,7 +250,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                       'BEGIN:VCARD',
                       'VERSION:3.0',
                       `FN:${profileData.name}`,
-                      `N:${profileData.familyName || ''};${profileData.firstName || ''};${profileData.middleName || ''};;`,
+                      `N:${profileData.lastName || ''};${profileData.firstName || ''};${profileData.middleName || ''};;`,
                       `TITLE:${profileData.title || ''}`,
                       `ORG:${profileData.company || ''}`,
                       `EMAIL;type=WORK:${profileData.workEmail || ''}`,
@@ -468,7 +459,6 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
 
   // If no profile exists or we're in editing mode, show IncompleteProfileView
   if (!profileData || isEditing) {
-    console.log('Rendering IncompleteProfileView with email:', userEmail);
     return (
       <IncompleteProfileView
         onProfileComplete={(data) => {

@@ -11,7 +11,7 @@ const client = clientPromise;
 export type ProfileData = {
   _id?: ObjectId;
   firstName: string;
-  familyName: string;
+  lastName: string;
   middleName: string;
   photo: string;
   birthday: string;

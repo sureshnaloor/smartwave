@@ -22,7 +22,7 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
       'BEGIN:VCARD',
       'VERSION:3.0',
       `FN:${user.name}`,
-      `N:${user.lastName || user.familyName || ''};${user.firstName || ''};${user.middleName || ''};;`,
+      `N:${user.lastName || ''};${user.firstName || ''};${user.middleName || ''};;`,
       `TITLE:${user.title || ''}`, 
       `ORG:${user.company || ''}`,
       `EMAIL;type=WORK:${user.workEmail || ''}`,
