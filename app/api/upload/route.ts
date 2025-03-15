@@ -10,7 +10,9 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
-    const { file, folder, options } = await request.json();
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const folder = formData.get('folder') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -19,13 +21,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Cloudinary
+    // Get file buffer
+    const bytes = await (file as File).arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Upload to Cloudinary using stream
     const uploadResponse = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload(
-        file,
+      const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder,
-          ...options,
           resource_type: 'auto', // Automatically detect resource type
           allowed_formats: ['jpg', 'jpeg', 'png', 'gif'], // Restrict to image formats
           transformation: [
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
             resolve(result);
           }
         }
-      );
+      ).end(buffer);
     });
 
     return NextResponse.json(uploadResponse);
