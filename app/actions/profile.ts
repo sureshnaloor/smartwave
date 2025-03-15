@@ -96,6 +96,7 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
     }
     
     revalidatePath('/dashboard');
+    revalidatePath(`/profile/${userEmail}`);
     return { success: true };
   } catch (error) {
     console.error('Profile save error:', {

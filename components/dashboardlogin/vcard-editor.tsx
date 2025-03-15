@@ -42,7 +42,7 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
       const result = await updateVCardInfo(formData)
       if (result.success) {
         setIsEditing(false)
-        // Create updated user object from form data
+        // Get the updated profile data
         const updatedUser = {
           ...user,
           firstName: formData.get('firstName') as string,
@@ -59,8 +59,24 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
           workZipcode: formData.get('workZipcode') as string,
           workCountry: formData.get('workCountry') as string,
           website: formData.get('website') as string,
+          // Update the name field with the new full name
+          name: [
+            formData.get('firstName'),
+            formData.get('middleName'),
+            formData.get('lastName')
+          ].filter(Boolean).join(" ").trim(),
+          // Update workAddress field
+          workAddress: [
+            formData.get('workStreet'),
+            formData.get('workCity'),
+            formData.get('workState'),
+            formData.get('workZipcode'),
+            formData.get('workCountry')
+          ].filter(Boolean).join(", ")
         }
         onUpdate(updatedUser)
+      } else {
+        setError(result.error || "Failed to update contact information")
       }
     } catch (error) {
       console.error("Error updating vCard info:", error)

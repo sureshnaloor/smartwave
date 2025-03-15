@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,6 +24,7 @@ interface CompletedProfileViewProps {
 
 export default function CompletedProfileView({ userEmail: propUserEmail }: CompletedProfileViewProps) {
   const { data: session } = useSession();
+  const router = useRouter()
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,6 +77,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       if (!userEmail) return;
       setProfileData(updatedData);
       setIsEditing(false);
+      router.refresh();
     } catch (error) {
       console.error('Error updating profile:', error);
     }
