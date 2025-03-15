@@ -41,14 +41,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { User } from "./types"; // Import the User type from types.ts
-import { saveProfile, ProfileData } from '@/app/actions/profile';
-import { uploadToCloudinary, MAX_FILE_SIZE } from '@/lib/cloudinary';
+import { ProfileData, saveProfile } from "@/app/actions/profile";
+import { uploadToCloudinary } from '@/lib/cloudinary';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface IncompleteProfileViewProps {
-  onProfileComplete: (data: User) => void;
-  userEmail: string;
-  initialData?: User;
+  onProfileComplete: (data: ProfileData) => void;
+  userEmail?: string;
+  initialData?: ProfileData;
   isEditing?: boolean;
 }
 
@@ -147,7 +148,7 @@ export default function IncompleteProfileView({
   userEmail,
   initialData,
   isEditing = false,
-}: IncompleteProfileViewProps) {
+}: IncompleteProfileViewProps): JSX.Element {
   const [progress, setProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("personal");
   const [formData, setFormData] = useState<FormData>(() => {
@@ -368,7 +369,7 @@ export default function IncompleteProfileView({
         toast.dismiss(loadingToastId);
         toast.success('Profile saved successfully');
         setTempFiles({});
-        onProfileComplete(profileData as User);
+        onProfileComplete(profileData as ProfileData);
       } else {
         toast.dismiss(loadingToastId);
         toast.error(result.error || 'Failed to save profile. Please try again.');

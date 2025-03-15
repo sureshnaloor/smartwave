@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Edit2, Save, X } from "lucide-react"
-import { User } from "./types"
+import { ProfileData } from "@/app/actions/profile"
 import { updateVCardInfo } from "@/app/_actions/user"
 import { useFormStatus } from "react-dom"
 
 interface VCardEditorProps {
-  user: User
-  onUpdate: (updatedData: User) => void
+  user: ProfileData
+  onUpdate: (updatedData: ProfileData) => void
 }
 
 function SubmitButton() {

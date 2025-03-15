@@ -4,6 +4,8 @@ import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Phone, Globe, RotateCw, QrCode, MapPin, Palette } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { ProfileData } from "@/app/actions/profile"
 
 type Theme = 'smartwave' | 'minimal' | 'dark'
 
@@ -43,22 +45,29 @@ const themeStyles = {
   },
 }
 
-export default function DigitalCard({ user }: { user: {
-  name: string;
-  title: string;
-  company: string;
-  photo?: string;
-  workEmail: string;
-  workPhone: string;
-  mobile: string;
-  workAddress: string;
-  website?: string;
-  homeAddress?: string;
-  personalEmail?: string;
-  personalPhone?: string;
-} }) {
+interface DigitalCardProps {
+  user: ProfileData
+}
+
+export default function DigitalCard({ user }: DigitalCardProps) {
   const [showFront, setShowFront] = useState(true)
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
+
+  const homeAddress = [
+    user.homeStreet,
+    user.homeCity,
+    user.homeState,
+    user.homeZipcode,
+    user.homeCountry
+  ].filter(Boolean).join(", ")
+
+  const workAddress = [
+    user.workStreet,
+    user.workCity,
+    user.workState,
+    user.workZipcode,
+    user.workCountry
+  ].filter(Boolean).join(", ")
 
   const flipCard = () => setShowFront(!showFront)
   
@@ -92,7 +101,7 @@ export default function DigitalCard({ user }: { user: {
               <div className="relative">
                 <MapPin className={`h-3 w-3 absolute -left-4 top-0.5 ${theme.text.icon}`} />
                 <div className={`text-xs font-serif ${theme.text.address} pl-1`}>
-                  <p className="break-words italic leading-relaxed">{user.workAddress}</p>
+                  <p className="break-words italic leading-relaxed">{workAddress}</p>
                 </div>
               </div>
             </div>
@@ -173,11 +182,11 @@ export default function DigitalCard({ user }: { user: {
 
           <div className="mt-8 flex justify-between items-start">
             <div className="max-w-[50%]">
-              {user.homeAddress && (
+              {homeAddress && (
                 <div className="relative mb-4">
                   <MapPin className={`h-3 w-3 absolute -left-4 top-0.5 ${theme.text.icon}`} />
                   <div className={`text-xs font-serif ${theme.text.address} pl-1`}>
-                    <p className="break-words italic leading-relaxed">{user.homeAddress}</p>
+                    <p className="break-words italic leading-relaxed">{homeAddress}</p>
                   </div>
                 </div>
               )}
@@ -189,10 +198,10 @@ export default function DigitalCard({ user }: { user: {
                     <span className="tracking-tight">{user.personalEmail}</span>
                   </p>
                 )}
-                {user.personalPhone && (
+                {user.homePhone && (
                   <p className="flex items-center gap-2">
                     <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span className="tracking-tight">{user.personalPhone}</span>
+                    <span className="tracking-tight">{user.homePhone}</span>
                   </p>
                 )}
               </div>

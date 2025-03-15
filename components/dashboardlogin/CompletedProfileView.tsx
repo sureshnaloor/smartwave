@@ -15,6 +15,7 @@ import { User as UserType } from '@/app/types';
 import { getProfile, ProfileData } from '@/app/actions/profile';
 import IncompleteProfileView from './IncompleteProfileView';
 import VCardEditor from "./vcard-editor"
+import DigitalProfile from "./digital-profile"
 
 interface CompletedProfileViewProps {
   userEmail?: string;
@@ -205,92 +206,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
           </TabsContent>
 
           <TabsContent value="digital-profile" className="mt-6">
-            <div className="space-y-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center space-x-4 mb-6">
-                  {profileData.photo ? (
-                    <Image
-                      src={profileData.photo || "/placeholder.svg"}
-                      alt={profileData.name}
-                      width={80}
-                      height={80}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="h-10 w-10 text-blue-600" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-2xl font-semibold text-blue-600">{profileData.name}</h3>
-                    <p className="text-lg text-gray-600">{profileData.title}</p>
-                    <p className="text-red-500">{profileData.company}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-lg font-semibold text-blue-600 mb-2">Contact Information</h4>
-                      <div className="space-y-2">
-                        <p className="flex items-center text-gray-700">
-                          <span className="font-medium w-20">Email:</span> {profileData.workEmail}
-                        </p>
-                        <p className="flex items-center text-gray-700">
-                          <span className="font-medium w-20">Phone:</span> {profileData.mobile}
-                        </p>
-                        <p className="flex items-center text-gray-700">
-                          <span className="font-medium w-20">Website:</span> {profileData.website}
-                        </p>
-                        <p className="flex items-center text-gray-700">
-                          <span className="font-medium w-20">Address:</span> {profileData.workAddress}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-lg font-semibold text-blue-600 mb-2">About Me</h4>
-                      <p className="text-gray-700">
-                        Professional with expertise in the field. Passionate about delivering high-quality work and
-                        building meaningful connections.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-lg font-semibold text-blue-600 mb-2">Quick Actions</h4>
-                      <div className="space-y-2">
-                        <Button className="w-full justify-between bg-blue-600 hover:bg-blue-700">
-                          Download vCard <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button className="w-full justify-between bg-red-500 hover:bg-red-600">
-                          Download QR Code <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button className="w-full justify-between bg-green-600 hover:bg-green-700">
-                          Schedule Meeting <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-lg font-semibold text-blue-600 mb-2">Social Media</h4>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" className="border-blue-300 text-blue-600">
-                          LinkedIn
-                        </Button>
-                        <Button variant="outline" className="border-blue-300 text-blue-600">
-                          Twitter
-                        </Button>
-                        <Button variant="outline" className="border-blue-300 text-blue-600">
-                          Instagram
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <DigitalProfile user={profileData} onUpdate={handleProfileUpdate} />
           </TabsContent>
 
           <TabsContent value="premium" className="mt-6">

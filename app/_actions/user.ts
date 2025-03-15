@@ -20,6 +20,25 @@ interface VCardUpdateData {
   website?: string
 }
 
+// Add this new function to get user profile data
+export async function getUserProfile(userEmail: string) {
+  try {
+    const client = await clientPromise
+    const db = client.db('smartwave')
+    const collection = db.collection("profiles")
+    
+    const profile = await collection.findOne({ userEmail })
+    if (!profile) {
+      throw new Error("Profile not found")
+    }
+
+    return { success: true, profile }
+  } catch (error) {
+    console.error("Error fetching user profile:", error)
+    throw error
+  }
+}
+
 export async function updateVCardInfo(formData: FormData) {
   try {
     const client = await clientPromise
