@@ -50,7 +50,7 @@ export interface ProfileData {
   title?: string
   photo: string
   company: string
-  logo?: string
+  companyLogo?: string
   work: WorkInfo
   home: HomeInfo
   dates: DatesInfo

@@ -75,12 +75,12 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             title={profileData.title}
             photo={profileData.photo}
             company={profileData.company}
-            logo={profileData.logo}
+            logo={profileData.companyLogo}
             theme={theme}
           />
         </div>
 
-        {/* Temporarily commenting out other components
+    
         <div
           className={cn(
             "grid gap-6",
@@ -93,21 +93,21 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
                   : "grid-cols-1 md:grid-cols-2",
           )}
         >
-          <ContactInfo work={profileData.work} home={profileData.home} theme={theme} />
+        {/* <ContactInfo work={profileData.work} home={profileData.home} theme={theme} /> */}
 
-          <ImportantDates dates={profileData.dates} theme={theme} />
+          {/* <ImportantDates dates={profileData.dates} theme={theme} /> */}
 
-          {profileData.locations && <LocationMap locations={profileData.locations} theme={theme} />}
+          {/* {profileData.locations && <LocationMap locations={profileData.locations} theme={theme} />} */}
 
-          <AboutMe about={profileData.about} theme={theme} />
+          {/* <AboutMe about={profileData.about} theme={theme} /> */}
 
-          <SocialLinks social={profileData.social} theme={theme} />
+          {/* <SocialLinks social={profileData.social} theme={theme} /> */}
         </div>
 
         <div className="mt-8">
           <ActionButtons profileData={profileData} theme={theme} />
         </div>
-        */}
+        
       </div>
     </div>
   )
