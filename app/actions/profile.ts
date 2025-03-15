@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
+import { Profile } from '@/models/profile';
 
 
 
@@ -49,6 +50,7 @@ export type ProfileData = {
   userEmail: string;
   createdAt: Date;
   updatedAt: Date;
+  shorturl?: string;
 }
 
 export async function saveProfile(data: Partial<ProfileData>, userEmail: string) {
@@ -148,5 +150,26 @@ export async function deleteProfile(userEmail: string) {
   } catch (error) {
     console.error('Failed to delete profile:', error);
     return { success: false, error: 'Failed to delete profile' };
+  }
+}
+
+export async function getProfileByShortUrl(shorturl: string): Promise<ProfileData | null> {
+  try {
+    const client = await clientPromise;
+    const db = client.db('smartwave');
+    
+    console.log(`Fetching profile by shortURL: ${shorturl}`);
+    const profile = await db.collection('profiles').findOne({ shorturl });
+    
+    if (!profile) {
+      console.log(`No profile found for shortURL: ${shorturl}`);
+      return null;
+    }
+
+    console.log(`Profile found for shortURL: ${shorturl}`);
+    return profile as ProfileData;
+  } catch (error) {
+    console.error('Failed to get profile by shortURL:', error);
+    return null;
   }
 } 

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Edit2, Building2, User } from "lucide-react"
+import { Edit2, Building2, User, Share2 } from "lucide-react"
 import VCardEditor from "./vcard-editor"
 import { ProfileData } from "@/app/actions/profile"
 import Image from "next/image"
@@ -53,15 +53,28 @@ export default function DigitalProfile({ user, onUpdate }: DigitalProfileProps) 
               <p className="text-blue-100 mt-1">{user.title}</p>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(true)}
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
+            <div className="flex gap-2">
+              {user.shorturl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`/publicprofile/${user.shorturl}`, '_blank')}
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Profile
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
           </div>
         </div>
 

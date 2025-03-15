@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download } from "lucide-react"
+import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { ProfileData } from "@/app/actions/profile"
 import QRCode from "qrcode"
@@ -432,6 +432,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
           <Download className="h-4 w-4" />
           {isDownloading ? 'Downloading...' : 'Download Card Images'}
         </Button>
+        {user.shorturl && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => window.open(`/publicprofile/${user.shorturl}`, '_blank')}
+          >
+            <Share2 className="h-4 w-4" />
+            Share Profile
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
