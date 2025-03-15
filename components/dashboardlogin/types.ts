@@ -1,55 +1,39 @@
 export interface User {
-  // Personal Info
-  firstName: string;
-  lastName: string;  // Changed from optional to required, removed familyName
-  middleName: string;
-  photo: string;
-  birthday: string;
-
-  // Organization Info
-  title: string;
-  company: string;
-  companyLogo: string;
-
-  // Contact Info
-  workEmail: string;
-  personalEmail: string;
-  mobile: string;
-  workPhone: string;
-  fax: string;
-  homePhone: string;
-
-  // Work Address
-  workStreet: string;
-  workDistrict: string;
-  workCity: string;
-  workState: string;
-  workZipcode: string;
-  workCountry: string;
-
-  // Home Address
-  homeStreet: string;
-  homeDistrict: string;
-  homeCity: string;
-  homeState: string;
-  homeZipcode: string;
-  homeCountry: string;
-
-  // Online Presence
-  website: string;
-  linkedin: string;
-  twitter: string;
-  facebook: string;
-  instagram: string;
-  youtube: string;
-
-  // Additional Info
-  notes: string;
-
-  // System fields
-  isPremium: boolean;
-
-  // New fields
+  id?: string;
+  _id?: string;
+  userId?: string;
+  userEmail: string;
+  email?: string;
   name: string;
-  workAddress: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  title?: string;
+  company?: string;
+  workEmail?: string;
+  workPhone?: string;
+  mobile?: string;
+  workStreet?: string;
+  workCity?: string;
+  workState?: string;
+  workZipcode?: string;
+  workCountry?: string;
+  website?: string;
+  companyLogo?: string;
+  photo?: string;
+  birthday?: string;
+  personalEmail?: string;
+  fax?: string;
+  homePhone?: string;
+  workDistrict?: string;
+  homeDistrict?: string;
+  homeStreet?: string;
+  homeCity?: string;
+  homeState?: string;
+  homeZipcode?: string;
+  homeCountry?: string;
+  linkedin?: string;
+  twitter?: string;
+  workAddress?: string;
+  isPremium?: boolean;
 } 

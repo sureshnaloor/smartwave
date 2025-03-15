@@ -14,6 +14,7 @@ import PaymentOptions from "./payment-options"
 import { User as UserType } from '@/app/types';
 import { getProfile, ProfileData } from '@/app/actions/profile';
 import IncompleteProfileView from './IncompleteProfileView';
+import VCardEditor from "./vcard-editor"
 
 interface CompletedProfileViewProps {
   userEmail?: string;
@@ -129,7 +130,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
           </TabsContent>
 
           <TabsContent value="qr-code" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
               <div>
                 <h3 className="text-2xl font-semibold mb-4 text-blue-600">Your QR Code</h3>
                 <p className="text-gray-600 mb-6">
@@ -138,24 +139,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                 </p>
                 <QRCodeGenerator user={profileData} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-semibold mb-4 text-red-500">Download Options</h3>
-                <p className="text-gray-600 mb-6">Download your QR code in different formats and sizes.</p>
-                <div className="space-y-4">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PNG (High Resolution)
-                  </Button>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download for Print (300 DPI)
-                  </Button>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download for Web (72 DPI)
-                  </Button>
-                </div>
-              </div>
+              
             </div>
           </TabsContent>
 
@@ -166,76 +150,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                 <p className="text-gray-600 mb-6">
                   Download your contact information as a vCard file (.vcf) that can be imported into any contact app.
                 </p>
-                <Card className="border-2 border-blue-200">
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Full Name</h4>
-                        <p className="text-lg">{profileData.name}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Name Components</h4>
-                        <div className="grid grid-cols-3 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-500">Last:</span>
-                            <p>{profileData.lastName}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">First:</span>
-                            <p>{profileData.firstName}</p>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Middle:</span>
-                            <p>{profileData.middleName}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Title</h4>
-                        <p className="text-lg">{profileData.title}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Company</h4>
-                        <p className="text-lg">{profileData.company}</p>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Work Contact</h4>
-                        <div className="space-y-2">
-                          <p className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-gray-500" />
-                            {profileData.workEmail}
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-500" />
-                            {profileData.workPhone}
-                          </p>
-                          <p className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-500" />
-                            Mobile: {profileData.mobile}
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Work Address</h4>
-                        <p className="text-base">
-                          {[
-                            profileData.workStreet,
-                            profileData.workCity,
-                            profileData.workState,
-                            profileData.workZipcode,
-                            profileData.workCountry
-                          ].filter(Boolean).join(', ')}
-                        </p>
-                      </div>
-                      {profileData.website && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-500">Website</h4>
-                          <p className="text-lg">{profileData.website}</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                <VCardEditor user={profileData} onUpdate={handleProfileUpdate} />
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-2xl font-semibold mb-4 text-red-500">Download vCard</h3>
