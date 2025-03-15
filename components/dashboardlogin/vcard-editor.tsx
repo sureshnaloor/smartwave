@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Edit2, Save, X } from "lucide-react"
+import { Edit2, Save, X, Upload } from "lucide-react"
 import { ProfileData } from "@/app/actions/profile"
 import { updateVCardInfo } from "@/app/_actions/user"
 import { useFormStatus } from "react-dom"
@@ -32,12 +32,51 @@ function SubmitButton() {
 export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState(user.photo || '')
+  const [companyLogoUrl, setCompanyLogoUrl] = useState(user.companyLogo || '')
+
+  const handleImageUpload = async (file: File, type: 'photo' | 'companyLogo') => {
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', type === 'photo' ? 'profile_photos' : 'company_logos')
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await response.json()
+      if (type === 'photo') {
+        setPhotoUrl(data.secure_url)
+      } else {
+        setCompanyLogoUrl(data.secure_url)
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      setError(error instanceof Error ? error.message : 'Failed to upload image')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleAction = async (formData: FormData) => {
     try {
+      // Add photo and company logo URLs to form data
+      formData.append('photo', photoUrl)
+      formData.append('companyLogo', companyLogoUrl)
+
       // Log the user object and form data
       console.log('Current user data:', user)
       console.log('Form data userEmail:', formData.get('userEmail'))
+      console.log('Photo URL:', photoUrl)
+      console.log('Company Logo URL:', companyLogoUrl)
 
       const result = await updateVCardInfo(formData)
       if (result.success) {
@@ -59,6 +98,8 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
           workZipcode: formData.get('workZipcode') as string,
           workCountry: formData.get('workCountry') as string,
           website: formData.get('website') as string,
+          photo: photoUrl,
+          companyLogo: companyLogoUrl,
           // Update the name field with the new full name
           name: [
             formData.get('firstName'),
@@ -177,6 +218,73 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
         name="userEmail" 
         value={user.userEmail || ''} 
       />
+
+      {/* Image Upload Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-b pb-6">
+        <div>
+          <Label>Profile Photo</Label>
+          <div className="mt-2 flex items-center gap-4">
+            {photoUrl ? (
+              <img src={photoUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+            ) : null}
+            <div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleImageUpload(file, 'photo')
+                }}
+                disabled={uploading}
+                className="hidden"
+                id="photo-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('photo-upload')?.click()}
+                disabled={uploading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Photo'}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <Label>Company Logo</Label>
+          <div className="mt-2 flex items-center gap-4">
+            {companyLogoUrl ? (
+              <img src={companyLogoUrl} alt="Company Logo" className="w-24 h-24 rounded-lg object-contain bg-white p-2 border" />
+            ) : null}
+            <div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleImageUpload(file, 'companyLogo')
+                }}
+                disabled={uploading}
+                className="hidden"
+                id="logo-upload"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('logo-upload')?.click()}
+                disabled={uploading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Logo'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

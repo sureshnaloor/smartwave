@@ -18,6 +18,8 @@ interface VCardUpdateData {
   workZipcode?: string
   workCountry?: string
   website?: string
+  photo?: string
+  companyLogo?: string
 }
 
 // Add this new function to get user profile data
@@ -39,7 +41,7 @@ export async function getUserProfile(userEmail: string) {
   }
 }
 
-export async function updateVCardInfo(formData: FormData) {
+export async function updateVCardInfo(formData: FormData): Promise<{ success: boolean; error?: string }> {
   try {
     const client = await clientPromise
     const db = client.db('smartwave')  // Explicitly use smartwave database
@@ -70,6 +72,8 @@ export async function updateVCardInfo(formData: FormData) {
       workZipcode: formData.get('workZipcode') as string,
       workCountry: formData.get('workCountry') as string,
       website: formData.get('website') as string,
+      photo: formData.get('photo') as string,
+      companyLogo: formData.get('companyLogo') as string,
     }
 
     console.log('Starting vCard update')
@@ -122,6 +126,9 @@ export async function updateVCardInfo(formData: FormData) {
     return { success: true }
   } catch (error) {
     console.error("Error in updateVCardInfo:", error)
-    throw error
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to update contact information" 
+    }
   }
 } 
