@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { ProfileHeader } from "./profile-header"
 import { ContactInfo } from "./contact-info"
 import { ImportantDates } from "./important-dates"
-import { LocationMap } from "./location-maps"
+import { Locations } from "./locations"
 import { AboutMe } from "./about-me"
 import { SocialLinks } from "./social-links"
 import { ActionButtons } from "./action-buttons"
@@ -93,15 +93,45 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
                   : "grid-cols-1 md:grid-cols-2",
           )}
         >
-        {/* <ContactInfo work={profileData.work} home={profileData.home} theme={theme} /> */}
+          <ContactInfo 
+            workPhone={profileData.workPhone}
+            workEmail={profileData.workEmail}
+            fax={profileData.fax}
+            homePhone={profileData.homePhone}
+            personalEmail={profileData.personalEmail}
+            mobile={profileData.mobile}
+            title={profileData.title}
+            theme={theme}
+          />
 
           {/* <ImportantDates dates={profileData.dates} theme={theme} /> */}
 
-          {/* {profileData.locations && <LocationMap locations={profileData.locations} theme={theme} />} */}
+          <Locations 
+            workStreet={profileData.workStreet}
+            workDistrict={profileData.workDistrict}
+            workCity={profileData.workCity}
+            workState={profileData.workState}
+            workZipcode={profileData.workZipcode}
+            workCountry={profileData.workCountry}
+            homeStreet={profileData.homeStreet}
+            homeDistrict={profileData.homeDistrict}
+            homeCity={profileData.homeCity}
+            homeState={profileData.homeState}
+            homeZipcode={profileData.homeZipcode}
+            homeCountry={profileData.homeCountry}
+            theme={theme}
+          />
 
-          {/* <AboutMe about={profileData.about} theme={theme} /> */}
+          <AboutMe about={profileData.notes} theme={theme} />
 
-          {/* <SocialLinks social={profileData.social} theme={theme} /> */}
+          <SocialLinks 
+            linkedin={profileData.linkedin}
+            twitter={profileData.twitter}
+            facebook={profileData.facebook}
+            instagram={profileData.instagram}
+            github={profileData.github}
+            theme={theme}
+          />
         </div>
 
         <div className="mt-8">

@@ -1,26 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building, Home, Mail, MapPin, Phone } from "lucide-react"
-import { WorkInfo, HomeInfo, BaseComponentProps } from "./types"
+import { Building, Home, Mail, Phone } from "lucide-react"
+import { ThemeType } from "./types"
 
-interface ContactInfoProps extends BaseComponentProps {
-  work: WorkInfo
-  home: HomeInfo
+interface ContactInfoProps {
+  // Work contact info
+  workPhone: string
+  workEmail: string
+  fax?: string
+  // Personal contact info
+  homePhone: string
+  personalEmail: string
+  mobile: string
+  title?: string
+  theme: ThemeType
 }
 
-interface AddressFormatProps {
-  address: string
-  city: string
-  state: string
-  country: string
-  zip: string
-}
-
-export function ContactInfo({ work, home, theme }: ContactInfoProps) {
-  const formatAddress = (address: AddressFormatProps) => {
-    return `${address.address}, ${address.city}, ${address.state}, ${address.country} - ${address.zip}`
-  }
-
+export function ContactInfo({ 
+  workPhone,
+  workEmail,
+  fax,
+  homePhone,
+  personalEmail,
+  mobile,
+  title,
+  theme 
+}: ContactInfoProps) {
   if (theme === "minimal") {
     return (
       <div className="space-y-6">
@@ -36,32 +41,34 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="work" className="space-y-3">
-              {work.position && <p className="text-sm font-medium">{work.position}</p>}
-              <div className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{formatAddress(work)}</p>
-              </div>
+              {title && <p className="text-sm font-medium">{title}</p>}
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{work.phone}</p>
+                <p className="text-sm">{workPhone}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{work.email}</p>
+                <p className="text-sm">{workEmail}</p>
               </div>
+              {fax && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm">Fax: {fax}</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="home" className="space-y-3">
-              <div className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{formatAddress(home)}</p>
-              </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{home.phone}</p>
+                <p className="text-sm">{homePhone}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">{home.email}</p>
+                <p className="text-sm">{personalEmail}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm">Mobile: {mobile}</p>
               </div>
             </TabsContent>
           </Tabs>
@@ -70,7 +77,7 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
     )
   }
 
-  if (theme === "modern" || theme === "bold") {
+  if (theme === "modern" || theme === "bold")
     return (
       <Card className={theme === "bold" ? "border-2 border-indigo-200" : ""}>
         <CardHeader className="pb-2">
@@ -89,39 +96,41 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="work" className="space-y-4">
-              {work.position && (
+              {title && (
                 <div className="rounded-md bg-muted p-3">
-                  <p className="font-medium">{work.position}</p>
+                  <p className="font-medium">{title}</p>
                 </div>
               )}
               <div className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                  <p>{formatAddress(work)}</p>
-                </div>
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-muted-foreground" />
-                  <p>{work.phone}</p>
+                  <p>{workPhone}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
-                  <p>{work.email}</p>
+                  <p>{workEmail}</p>
                 </div>
+                {fax && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                    <p>Fax: {fax}</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
             <TabsContent value="home" className="space-y-4">
               <div className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 text-muted-foreground" />
-                  <p>{formatAddress(home)}</p>
-                </div>
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-muted-foreground" />
-                  <p>{home.phone}</p>
+                  <p>{homePhone}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
-                  <p>{home.email}</p>
+                  <p>{personalEmail}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <p>Mobile: {mobile}</p>
                 </div>
               </div>
             </TabsContent>
@@ -129,7 +138,6 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
         </CardContent>
       </Card>
     )
-  }
 
   // Default "classic" theme
   return (
@@ -145,10 +153,10 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
               Work
             </h3>
             <div className="space-y-2 pl-6">
-              {work.position && <p className="text-sm font-medium">{work.position}</p>}
-              <p className="text-sm text-muted-foreground">{formatAddress(work)}</p>
-              <p className="text-sm">{work.phone}</p>
-              <p className="text-sm">{work.email}</p>
+              {title && <p className="text-sm font-medium">{title}</p>}
+              <p className="text-sm">{workPhone}</p>
+              <p className="text-sm">{workEmail}</p>
+              {fax && <p className="text-sm">Fax: {fax}</p>}
             </div>
           </div>
 
@@ -158,9 +166,9 @@ export function ContactInfo({ work, home, theme }: ContactInfoProps) {
               Personal
             </h3>
             <div className="space-y-2 pl-6">
-              <p className="text-sm text-muted-foreground">{formatAddress(home)}</p>
-              <p className="text-sm">{home.phone}</p>
-              <p className="text-sm">{home.email}</p>
+              <p className="text-sm">{homePhone}</p>
+              <p className="text-sm">{personalEmail}</p>
+              <p className="text-sm">Mobile: {mobile}</p>
             </div>
           </div>
         </div>

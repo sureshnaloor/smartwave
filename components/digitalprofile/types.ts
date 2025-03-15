@@ -51,12 +51,36 @@ export interface ProfileData {
   photo: string
   company: string
   companyLogo?: string
-  work: WorkInfo
-  home: HomeInfo
+  // Contact information
+  workPhone: string
+  workEmail: string
+  fax?: string
+  homePhone: string
+  personalEmail: string
+  mobile: string
+  // Address information
+  workStreet: string
+  workDistrict: string
+  workCity: string
+  workState: string
+  workZipcode: string
+  workCountry: string
+  homeStreet: string
+  homeDistrict: string
+  homeCity: string
+  homeState: string
+  homeZipcode: string
+  homeCountry: string
+  // Social media links
+  linkedin?: string
+  twitter?: string
+  facebook?: string
+  instagram?: string
+  github?: string
+  // Other information
   dates: DatesInfo
   locations: LocationsInfo
-  about: string
-  social: SocialInfo
+  notes: string
 }
 
 export interface BaseComponentProps {
