@@ -172,4 +172,33 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
     console.error('Failed to get profile by shortURL:', error);
     return null;
   }
+}
+
+export async function generateAndUpdateShortUrl(userEmail: string) {
+  try {
+    const client = await clientPromise;
+    const db = client.db('smartwave');
+    
+    // Get the user's profile
+    const profile = await db.collection('profiles').findOne({ userEmail });
+    if (!profile) {
+      return { success: false, error: 'Profile not found' };
+    }
+
+    // Generate short URL from MongoDB _id
+    const id = profile._id.toString();
+    const shorturl = id.substring(0, 5) + id.substring(id.length - 5);
+
+    // Update the profile with the short URL
+    await db.collection('profiles').updateOne(
+      { userEmail },
+      { $set: { shorturl } }
+    );
+
+    revalidatePath('/dashboard');
+    return { success: true, shorturl };
+  } catch (error) {
+    console.error('Failed to generate short URL:', error);
+    return { success: false, error: 'Failed to generate short URL' };
+  }
 } 
