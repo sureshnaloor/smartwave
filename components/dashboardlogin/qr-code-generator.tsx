@@ -159,25 +159,31 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
   }
 
   return (
-    <div className="w-full flex justify-center">
-      <div className="w-[80%] flex justify-between">
-        <div className="bg-white p-6 rounded-lg border-2 border-blue-200">
-          <canvas
-            ref={canvasRef}
-            className={`
-              ${size === "small" ? "w-[200px] h-[200px]" : size === "medium" ? "w-[300px] h-[300px]" : "w-[400px] h-[400px]"}
-            `}
-          />
-          <p className="text-sm text-gray-600 text-center mt-4">
-            Scan to add {user.name}'s contact information
-          </p>
+    <div className="w-full px-4 sm:px-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {/* QR Code Display Section */}
+        <div className="w-full flex flex-col items-center">
+          <div className="bg-white p-4 sm:p-6 rounded-lg border-2 border-blue-200 shadow-sm w-full max-w-[400px]">
+            <canvas
+              ref={canvasRef}
+              className={`
+                w-full aspect-square
+                ${size === "small" ? "max-w-[200px]" : size === "medium" ? "max-w-[300px]" : "max-w-[400px]"}
+                mx-auto
+              `}
+            />
+            <p className="text-sm text-gray-600 text-center mt-4">
+              Scan to add {user.name}'s contact information
+            </p>
+          </div>
         </div>
 
-        <div className="mt-6 w-full max-w-[300px]">
-          <div className="flex items-center justify-between mb-4">
-            <label className="text-sm font-medium">QR Code Size</label>
+        {/* Controls Section */}
+        <div className="w-full flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <label className="text-sm font-medium text-gray-700">QR Code Size</label>
             <Select value={size} onValueChange={setSize}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue placeholder="Size" />
               </SelectTrigger>
               <SelectContent>
@@ -188,27 +194,27 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-3">
             <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700" 
+              className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2" 
               onClick={() => downloadQRCode('png')}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download PNG
+              <Download className="h-4 w-4" />
+              <span>Download PNG</span>
             </Button>
             <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
               onClick={() => downloadQRCode('print')}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download for Print
+              <Download className="h-4 w-4" />
+              <span>Download for Print</span>
             </Button>
             <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
               onClick={() => downloadQRCode('web')}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download for Web
+              <Download className="h-4 w-4" />
+              <span>Download for Web</span>
             </Button>
           </div>
         </div>

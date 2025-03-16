@@ -87,82 +87,81 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
     if (!profileData) return null;
     return (
       <>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 gap-2">
           <div>
-            <h2 className="text-xl font-bold text-blue-600">Welcome back, {profileData.name}!</h2>
-            <p className="text-gray-600">Manage your digital business card and profile</p>
+            <h2 className="text-lg md:text-xl font-bold text-blue-600">Welcome back, {profileData.name}!</h2>
+            <p className="text-sm md:text-base text-gray-600">Manage your digital business card and profile</p>
           </div>
           <Button 
             onClick={() => setIsEditing(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base w-full md:w-auto"
           >
             Edit Profile
           </Button>
         </div>
         <Tabs defaultValue="digital-card" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="digital-card">Digital Card</TabsTrigger>
-            <TabsTrigger value="qr-code">QR Code</TabsTrigger>
-            <TabsTrigger value="vcard">vCard</TabsTrigger>
-            <TabsTrigger value="digital-profile">Digital Profile</TabsTrigger>
-            <TabsTrigger value="premium" disabled={profileData?.isPremium === false}>
+            <TabsTrigger className="text-xs md:text-sm px-1 md:px-3 py-1.5" value="digital-card">Digital Card</TabsTrigger>
+            <TabsTrigger className="text-xs md:text-sm px-1 md:px-3 py-1.5" value="qr-code">QR Code</TabsTrigger>
+            <TabsTrigger className="text-xs md:text-sm px-1 md:px-3 py-1.5" value="vcard">vCard</TabsTrigger>
+            <TabsTrigger className="text-xs md:text-sm px-1 md:px-3 py-1.5" value="digital-profile">Digital Profile</TabsTrigger>
+            <TabsTrigger className="text-xs md:text-sm px-1 md:px-3 py-1.5" value="premium" disabled={profileData?.isPremium === false}>
               Premium
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="digital-card" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <TabsContent value="digital-card" className="mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div>
-                <h3 className="text-2xl font-semibold mb-4 text-blue-600">Your Digital Card</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your Digital Card</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   This is how your digital business card looks. You can share it with anyone using the QR code or download
                   options.
                 </p>
                 <DigitalCard user={profileData} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-semibold mb-4 text-red-500">Share Your Card</h3>
-                <p className="text-gray-600 mb-6">Share your digital card via email, text message, or social media.</p>
-                <div className="flex flex-wrap gap-3">
-                  <Button className="bg-blue-600 hover:bg-blue-700">Email</Button>
-                  <Button className="bg-green-600 hover:bg-green-700">WhatsApp</Button>
-                  <Button className="bg-blue-400 hover:bg-blue-500">Twitter</Button>
-                  <Button className="bg-blue-800 hover:bg-blue-900">LinkedIn</Button>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-red-500">Share Your Card</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">Share your digital card via email, text message, or social media.</p>
+                <div className="flex flex-wrap gap-2 md:gap-3">
+                  <Button className="text-xs md:text-sm bg-blue-600 hover:bg-blue-700">Email</Button>
+                  <Button className="text-xs md:text-sm bg-green-600 hover:bg-green-700">WhatsApp</Button>
+                  <Button className="text-xs md:text-sm bg-blue-400 hover:bg-blue-500">Twitter</Button>
+                  <Button className="text-xs md:text-sm bg-blue-800 hover:bg-blue-900">LinkedIn</Button>
                 </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="qr-code" className="mt-6">
+          <TabsContent value="qr-code" className="mt-4 md:mt-6">
             <div>
               <div>
-                <h3 className="text-2xl font-semibold mb-4 text-blue-600">Your QR Code</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your QR Code</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   This QR code links directly to your digital profile. When scanned, it will open your complete SmartWave
                   profile.
                 </p>
                 <QRCodeGenerator user={profileData} />
               </div>
-              
             </div>
           </TabsContent>
 
-          <TabsContent value="vcard" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <TabsContent value="vcard" className="mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div>
-                <h3 className="text-2xl font-semibold mb-4 text-blue-600">Your vCard</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your vCard</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your contact information as a vCard file (.vcf) that can be imported into any contact app.
                 </p>
                 <VCardEditor user={profileData} onUpdate={handleProfileUpdate} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-semibold mb-4 text-red-500">Download vCard</h3>
-                <p className="text-gray-600 mb-6">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-red-500">Download vCard</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your vCard to easily share your contact information with others.
                 </p>
                 <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm"
                   onClick={() => {
                     // Generate vCard data
                     const vCardData = [
@@ -192,12 +191,12 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                     window.URL.revokeObjectURL(url);
                   }}
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 h-3 w-3 md:h-4 md:w-4" />
                   Download vCard (.vcf)
                 </Button>
-                <div className="mt-8">
-                  <h4 className="font-semibold text-lg mb-2">How to use your vCard</h4>
-                  <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                <div className="mt-6 md:mt-8">
+                  <h4 className="font-semibold text-base md:text-lg mb-2">How to use your vCard</h4>
+                  <ol className="list-decimal list-inside space-y-1 md:space-y-2 text-sm md:text-base text-gray-700">
                     <li>Download the vCard file</li>
                     <li>Open your contacts app on your phone or computer</li>
                     <li>Import the vCard file</li>
@@ -208,36 +207,36 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
             </div>
           </TabsContent>
 
-          <TabsContent value="digital-profile" className="mt-6">
+          <TabsContent value="digital-profile" className="mt-4 md:mt-6">
             <DigitalProfile user={profileData} onUpdate={handleProfileUpdate} />
           </TabsContent>
 
-          <TabsContent value="premium" className="mt-6">
+          <TabsContent value="premium" className="mt-4 md:mt-6">
             {profileData.isPremium ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <div>
-                  <h3 className="text-2xl font-semibold mb-4 text-blue-600">Calendar Integration</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Calendar Integration</h3>
+                  <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                     Manage your availability and let others schedule meetings with you.
                   </p>
                   <CalendarIntegration user={profileData} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-semibold mb-4 text-red-500">Payment Options</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-red-500">Payment Options</h3>
+                  <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                     Configure your payment methods to receive payments directly through your digital card.
                   </p>
                   <PaymentOptions user={profileData} />
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <h3 className="text-2xl font-semibold mb-4 text-blue-600">Upgrade to Premium</h3>
-                <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+              <div className="text-center py-8 md:py-12">
+                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Upgrade to Premium</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8 max-w-2xl mx-auto">
                   Unlock premium features like calendar integration and payment options to make your digital card even
                   more powerful.
                 </p>
-                <Button className="bg-gradient-to-r from-blue-600 to-red-600 text-white px-8 py-3 text-lg">
+                <Button className="bg-gradient-to-r from-blue-600 to-red-600 text-white px-6 md:px-8 py-2 md:py-3 text-sm md:text-lg">
                   Upgrade Now
                 </Button>
               </div>

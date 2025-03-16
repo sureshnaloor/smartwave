@@ -127,47 +127,47 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
 
   if (!isEditing) {
     return (
-      <div className="space-y-6 p-6 bg-white rounded-lg border-2 border-blue-200">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 bg-white rounded-lg border-2 border-blue-200">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Contact Information</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Contact Information</h2>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditing(true)}
           >
-            <Edit2 className="h-4 w-4 mr-2" />
+            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Edit
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
-            <Label className="text-sm text-gray-500">Name</Label>
-            <p className="text-lg">{`${user.firstName || ''} ${user.middleName || ''} ${user.lastName || ''}`.trim()}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Name</Label>
+            <p className="text-base sm:text-lg font-medium">{`${user.firstName || ''} ${user.middleName || ''} ${user.lastName || ''}`.trim()}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Title</Label>
-            <p className="text-lg">{user.title}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Title</Label>
+            <p className="text-base sm:text-lg">{user.title}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Company</Label>
-            <p className="text-lg">{user.company}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Company</Label>
+            <p className="text-base sm:text-lg">{user.company}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Work Email</Label>
-            <p className="text-lg">{user.workEmail}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Work Email</Label>
+            <p className="text-base sm:text-lg break-all">{user.workEmail}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Work Phone</Label>
-            <p className="text-lg">{user.workPhone}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Work Phone</Label>
+            <p className="text-base sm:text-lg">{user.workPhone}</p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Mobile</Label>
-            <p className="text-lg">{user.mobile}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Mobile</Label>
+            <p className="text-base sm:text-lg">{user.mobile}</p>
           </div>
           <div className="md:col-span-2">
-            <Label className="text-sm text-gray-500">Work Address</Label>
-            <p className="text-lg">
+            <Label className="text-xs sm:text-sm text-gray-500">Work Address</Label>
+            <p className="text-base sm:text-lg">
               {[
                 user.workStreet,
                 user.workCity,
@@ -178,8 +178,8 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
             </p>
           </div>
           <div>
-            <Label className="text-sm text-gray-500">Website</Label>
-            <p className="text-lg">{user.website}</p>
+            <Label className="text-xs sm:text-sm text-gray-500">Website</Label>
+            <p className="text-base sm:text-lg break-all">{user.website}</p>
           </div>
         </div>
       </div>
@@ -187,9 +187,9 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
   }
 
   return (
-    <form action={handleAction} className="space-y-6 p-6 bg-white rounded-lg border-2 border-blue-200">
+    <form action={handleAction} className="space-y-4 sm:space-y-6 p-4 sm:p-6 bg-white rounded-lg border-2 border-blue-200">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Edit Contact Information</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">Edit Contact Information</h2>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -200,7 +200,7 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
               setError(null)
             }}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Cancel
           </Button>
           <SubmitButton />
@@ -208,7 +208,7 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-md">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 sm:px-4 sm:py-2 rounded-md text-sm">
           {error}
         </div>
       )}
@@ -220,12 +220,12 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
       />
 
       {/* Image Upload Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-b pb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 border-b pb-4 sm:pb-6">
         <div>
-          <Label>Profile Photo</Label>
-          <div className="mt-2 flex items-center gap-4">
+          <Label className="text-xs sm:text-sm">Profile Photo</Label>
+          <div className="mt-2 flex items-center gap-3 sm:gap-4">
             {photoUrl ? (
-              <img src={photoUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+              <img src={photoUrl} alt="Profile" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover" />
             ) : null}
             <div>
               <Input
@@ -245,8 +245,9 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
                 size="sm"
                 onClick={() => document.getElementById('photo-upload')?.click()}
                 disabled={uploading}
+                className="text-xs sm:text-sm h-8 sm:h-9"
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 {uploading ? 'Uploading...' : 'Upload Photo'}
               </Button>
             </div>

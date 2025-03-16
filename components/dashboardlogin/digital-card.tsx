@@ -421,45 +421,52 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         </div>
       </CardContainer>
 
-      <div className="flex justify-center gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
           onClick={downloadBusinessCard}
           disabled={isDownloading}
         >
-          <Download className="h-4 w-4" />
-          {isDownloading ? 'Downloading...' : 'Download Card Images'}
+          <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Download</span>
         </Button>
-        {user.shorturl && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={() => window.open(`/publicprofile/${user.shorturl}`, '_blank')}
-          >
-            <Share2 className="h-4 w-4" />
-            Share Profile
-          </Button>
-        )}
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
+          onClick={() => {
+            // Share functionality
+            if (navigator.share) {
+              navigator.share({
+                title: `${user.name}'s Digital Business Card`,
+                text: `Check out ${user.name}'s digital business card`,
+                url: window.location.href
+              })
+            }
+          }}
+        >
+          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Share</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
           onClick={cycleTheme}
         >
-          <Palette className="h-4 w-4" />
-          Change Theme
+          <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Theme</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
           onClick={flipCard}
         >
-          <RotateCw className="h-4 w-4" />
-          Flip Card
+          <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Flip</span>
         </Button>
       </div>
     </div>
