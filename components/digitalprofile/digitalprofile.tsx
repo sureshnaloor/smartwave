@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { ProfileHeader } from "./profile-header"
 import { ContactInfo } from "./contact-info"
@@ -9,6 +9,8 @@ import { AboutMe } from "./about-me"
 import { SocialLinks } from "./social-links"
 import { ActionButtons } from "./action-buttons"
 import { ThemeSwitcher } from "./theme-switcher"
+import { Button } from "@/components/ui/button"
+import { Sun, Moon } from "lucide-react"
 import { 
   ThemeType, 
   BackgroundType, 
@@ -20,28 +22,44 @@ interface DigitalProfileProps {
 }
 
 export function DigitalProfile({ profileData }: DigitalProfileProps) {
-  const [theme, setTheme] = useState<ThemeType>("classic")
+  // Use "classic" as default for layout theme
+  const [layoutTheme, setLayoutTheme] = useState<ThemeType>("classic")
+  // Use light/dark theme with system preference as default
+  const [colorTheme, setColorTheme] = useState<"light" | "dark">("light")
   const [background, setBackground] = useState<BackgroundType>("gradient")
 
-  // Get background class based on selected background type
+  // Check system preference on mount
+  useEffect(() => {
+    // Check if user prefers dark mode
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+    setColorTheme(prefersDark ? "dark" : "light")
+  }, [])
+
+  // Get background class based on selected background type and color theme
   const getBackgroundClass = () => {
     switch (background) {
       case "gradient":
-        return "bg-gradient-to-br from-blue-50 to-indigo-100"
+        return colorTheme === "dark"
+          ? "bg-gradient-to-br from-gray-800 to-gray-900"
+          : "bg-gradient-to-br from-blue-100 to-indigo-300"
       case "pattern":
-        return "bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
+        return colorTheme === "dark"
+          ? "bg-gray-900 bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px]"
+          : "bg-white bg-[radial-gradient(#62cff4_1px,transparent_1px)] [background-size:16px_16px]"
       case "solid":
-        return "bg-slate-50"
+        return colorTheme === "dark" ? "bg-gray-900" : "bg-slate-200"
       case "image":
-        return "bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center"
+        return colorTheme === "dark" 
+          ? "bg-[url('/bgdark.jpg?height=1080&width=1920')] bg-cover bg-center" 
+          : "bg-[url('/bgwhite.jpg?height=1080&width=1920')] bg-cover bg-center"
       default:
-        return "bg-white"
+        return colorTheme === "dark" ? "bg-gray-900" : "bg-white"
     }
   }
 
   // Get layout class based on selected theme
   const getLayoutClass = () => {
-    switch (theme) {
+    switch (layoutTheme) {
       case "classic":
         return "max-w-4xl"
       case "modern":
@@ -55,13 +73,39 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
     }
   }
 
+  // Toggle between light and dark theme
+  const toggleColorTheme = () => {
+    setColorTheme(prevTheme => (prevTheme === "dark" ? "light" : "dark"))
+  }
+
+  // Get text color based on theme
+  const getTextColorClass = () => {
+    return colorTheme === "dark" ? "text-white" : "text-gray-900"
+  }
+
   return (
-    <div className={cn("min-h-screen w-full pb-10", getBackgroundClass())}>
+    <div className={cn("min-h-screen w-full pb-10", getBackgroundClass(), getTextColorClass())}>
       <div className={cn("mx-auto px-4 py-8", getLayoutClass())}>
-        <div className="fixed top-4 right-4 z-10">
+        <div className="fixed top-4 right-4 z-10 flex gap-2">
+          {/* Dark/Light mode toggle button */}
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={toggleColorTheme}
+            className={colorTheme === "dark" ? "bg-gray-800" : "bg-white"}
+          >
+            {colorTheme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+            <span className="sr-only">Toggle dark mode</span>
+          </Button>
+          
+          {/* Layout theme and background switcher */}
           <ThemeSwitcher
-            currentTheme={theme}
-            setTheme={setTheme}
+            currentTheme={layoutTheme}
+            setTheme={setLayoutTheme}
             currentBackground={background}
             setBackground={setBackground}
           />
@@ -76,7 +120,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             photo={profileData.photo}
             company={profileData.company}
             logo={profileData.companyLogo}
-            theme={theme}
+            theme={layoutTheme}
           />
         </div>
 
@@ -84,11 +128,11 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         <div
           className={cn(
             "grid gap-6",
-            theme === "classic"
+            layoutTheme === "classic"
               ? "grid-cols-1 md:grid-cols-2"
-              : theme === "modern"
+              : layoutTheme === "modern"
                 ? "grid-cols-1 lg:grid-cols-3"
-                : theme === "minimal"
+                : layoutTheme === "minimal"
                   ? "grid-cols-1"
                   : "grid-cols-1 md:grid-cols-2",
           )}
@@ -101,10 +145,10 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             personalEmail={profileData.personalEmail}
             mobile={profileData.mobile}
             title={profileData.title}
-            theme={theme}
+            theme={layoutTheme}
           />
 
-          {/* <ImportantDates dates={profileData.dates} theme={theme} /> */}
+          {/* <ImportantDates dates={profileData.dates} theme={layoutTheme} /> */}
 
           <Locations 
             workStreet={profileData.workStreet}
@@ -119,10 +163,10 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             homeState={profileData.homeState}
             homeZipcode={profileData.homeZipcode}
             homeCountry={profileData.homeCountry}
-            theme={theme}
+            theme={layoutTheme}
           />
 
-          <AboutMe about={profileData.notes} theme={theme} />
+          <AboutMe about={profileData.notes} theme={layoutTheme} />
 
           <SocialLinks 
             linkedin={profileData.linkedin}
@@ -130,12 +174,12 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             facebook={profileData.facebook}
             instagram={profileData.instagram}
             github={profileData.github}
-            theme={theme}
+            theme={layoutTheme}
           />
         </div>
 
         <div className="mt-8">
-          <ActionButtons profileData={profileData} theme={theme} />
+          <ActionButtons profileData={profileData} theme={layoutTheme} />
         </div>
         
       </div>

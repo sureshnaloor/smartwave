@@ -1,4 +1,4 @@
-export type ThemeType = "classic" | "modern" | "minimal" | "bold"
+export type ThemeType = "classic" | "modern" | "minimal" | "bold" | "light" | "dark"
 export type BackgroundType = "gradient" | "pattern" | "solid" | "image"
 
 export interface AddressInfo {

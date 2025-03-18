@@ -234,7 +234,7 @@ export default function AboutXBeyond() {
                     Our flagship products,{' '}
                     <span className="font-semibold text-purple-600 dark:text-purple-400">
                       SmartWave, SmartLink, SmartFlow,
-                      Tagflows, ProjflowAI
+                      SmartTag, SmartProject
                     </span>
                     , represent our commitment to revolutionizing professional networking through 
                     sustainable, feature-rich digital business cards. We combine cutting-edge 

@@ -89,7 +89,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       <>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 gap-2">
           <div>
-            <h2 className="text-lg md:text-xl font-bold text-blue-600">Welcome back, {profileData.name}!</h2>
+            <h2 className="text-[14px] md:text-[18px] font-bold text-sky-800">Welcome back, {profileData.name}!</h2>
             <p className="text-sm md:text-base text-gray-600">Manage your digital business card and profile</p>
           </div>
           <Button 
@@ -113,7 +113,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
           <TabsContent value="digital-card" className="mt-4 md:mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div>
-                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your Digital Card</h3>
+                <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-4 text-teal-600">Your Digital Card</h3>
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   This is how your digital business card looks. You can share it with anyone using the QR code or download
                   options.
@@ -136,7 +136,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
           <TabsContent value="qr-code" className="mt-4 md:mt-6">
             <div>
               <div>
-                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your QR Code</h3>
+                <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-4 text-teal-600">Your QR Code</h3>
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   This QR code links directly to your digital profile. When scanned, it will open your complete SmartWave
                   profile.
@@ -149,7 +149,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
           <TabsContent value="vcard" className="mt-4 md:mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               <div>
-                <h3 className="text-lg md:text-2xl font-semibold mb-2 md:mb-4 text-blue-600">Your vCard</h3>
+                <h3 className="text-lg md:text-xl font-semibold mb-2 md:mb-4 text-teal-600">Your vCard</h3>
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your contact information as a vCard file (.vcf) that can be imported into any contact app.
                 </p>
