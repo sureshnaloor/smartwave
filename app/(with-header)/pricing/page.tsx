@@ -53,15 +53,23 @@ export default async function PricingPage() {
             <ul className="space-y-4 mb-8">
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-300">1 Virtual Business Card</span>
+                <span className="text-gray-600 dark:text-gray-300">1 Week Unlimited Trial</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-300">1 vCard Download</span>
+                <span className="text-gray-600 dark:text-gray-300">Unlimited Edits & Downloads (during trial)</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-300">Basic Templates</span>
+                <span className="text-gray-600 dark:text-gray-300">Free Public Profile with QR Code</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 text-green-500 mt-0.5" />
+                <span className="text-gray-600 dark:text-gray-300">vCard Add to Contacts</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="w-5 h-5 text-green-500 mt-0.5" />
+                <span className="text-gray-600 dark:text-gray-300">Basic Template</span>
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
@@ -78,50 +86,32 @@ export default async function PricingPage() {
 
           {/* One-Time Payment Plans */}
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-t-4 border-cyan-600">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">One-Time Plans</h2>
-            <div className="space-y-6 mb-8">
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white">1-10 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  <PriceDisplay amount={20} currencyInfo={currencyInfo} />
-                  <span className="text-base font-normal">/card</span>
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Example: 5 cards = <PriceDisplay amount={100} currencyInfo={currencyInfo} />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">One-Time Plan with Free NFC Card</h2>
+            <div className="space-y-4 mb-8">
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">PVC Card with QR</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay amount={19} currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white">11-100 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  <PriceDisplay amount={15} currencyInfo={currencyInfo} />
-                  <span className="text-base font-normal">/card</span>
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Example: 50 cards = <PriceDisplay amount={750} currencyInfo={currencyInfo} />
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">NFC Card with QR</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay amount={49.99} currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white">101-1000 Cards</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  <PriceDisplay amount={10} currencyInfo={currencyInfo} />
-                  <span className="text-base font-normal">/card</span>
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Example: 500 cards = <PriceDisplay amount={5000} currencyInfo={currencyInfo} />
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Color NFC Card</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay amount={99.99} currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-8">
-              <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 mt-0.5 text-cyan-600" />
-                <p>All one-time plans include:</p>
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Metallic/Bamboo NFC Card</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay amount={149.99} currencyInfo={currencyInfo} /></span>
+                </p>
               </div>
-              <ul className="ml-6 mt-2 space-y-2">
-                <li>• Premium templates</li>
-                <li>• vCard downloads</li>
-                <li>• One year of updates</li>
-                <li>• Basic support</li>
-              </ul>
             </div>
             <Link 
               href="/contact"
@@ -133,21 +123,30 @@ export default async function PricingPage() {
 
           {/* Subscription Plan */}
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-t-4 border-purple-600">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Subscription</h2>
-            <div className="mb-6">
-              <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                <PriceDisplay amount={29} currencyInfo={currencyInfo} />
-                <span className="text-base font-normal text-gray-600 dark:text-gray-400">/month</span>
-              </p>
-              <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
-                or <PriceDisplay amount={290} currencyInfo={currencyInfo} />/year (save 20%)
-              </p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Profile Editing Plans</h2>
+            <div className="space-y-4 mb-8">
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Annual Unlimited</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay amount={9.99} currencyInfo={currencyInfo} /></span>
+                  <span className="text-sm font-normal">/year</span>
+                </p>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white">5 Edits Plan</h3>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <PriceDisplay amount={2.99} currencyInfo={currencyInfo} />
+                  <span className="text-base font-normal">/year</span>
+                </p>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white">Single Edit</h3>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <PriceDisplay amount={0.99} currencyInfo={currencyInfo} />
+                </p>
+              </div>
             </div>
             <ul className="space-y-4 mb-8">
-              <li className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-300">Upto 100 Cards</span>
-              </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
                 <span className="text-gray-600 dark:text-gray-300">Premium Templates</span>
@@ -160,11 +159,11 @@ export default async function PricingPage() {
                 <Check className="w-5 h-5 text-green-500 mt-0.5" />
                 <span className="text-gray-600 dark:text-gray-300">Continuous Updates</span>
               </li>
-              <li className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                <span className="text-gray-600 dark:text-gray-300">Advanced Analytics</span>
-              </li>
             </ul>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-8">
+              <p className="text-lg font-semibold text-purple-600 dark:text-purple-400">Coming Soon!</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Join our community to enjoy all privileges and access to 6 SMART apps</p>
+            </div>
             <Link 
               href="/auth/signup"
               className="block w-full px-6 py-3 text-center bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
@@ -189,4 +188,4 @@ export default async function PricingPage() {
       <Footer />
     </div>
   )
-} 
+}
