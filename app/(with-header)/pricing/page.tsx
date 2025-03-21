@@ -47,7 +47,7 @@ export default async function PricingPage() {
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-t-4 border-gray-400">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Free Tier</h2>
             <p className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              <PriceDisplay amount={0} currencyInfo={currencyInfo} />
+              <span className="scale-66">Free</span>
               <span className="text-base font-normal text-gray-600 dark:text-gray-400">/forever</span>
             </p>
             <ul className="space-y-4 mb-8">
@@ -91,25 +91,25 @@ export default async function PricingPage() {
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">PVC Card with QR</h3>
                 <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                  <span className="scale-66"><PriceDisplay amount={19} currencyInfo={currencyInfo} /></span>
+                  <span className="scale-66"><PriceDisplay cardType="pvc" currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">NFC Card with QR</h3>
                 <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                  <span className="scale-66"><PriceDisplay amount={49.99} currencyInfo={currencyInfo} /></span>
+                  <span className="scale-66"><PriceDisplay cardType="nfc" currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Color NFC Card</h3>
                 <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                  <span className="scale-66"><PriceDisplay amount={99.99} currencyInfo={currencyInfo} /></span>
+                  <span className="scale-66"><PriceDisplay cardType="color" currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Metallic/Bamboo NFC Card</h3>
                 <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                  <span className="scale-66"><PriceDisplay amount={149.99} currencyInfo={currencyInfo} /></span>
+                  <span className="scale-66"><PriceDisplay cardType="premium" currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
             </div>
@@ -128,21 +128,21 @@ export default async function PricingPage() {
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Annual Unlimited</h3>
                 <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-                  <span className="scale-66"><PriceDisplay amount={9.99} currencyInfo={currencyInfo} /></span>
+                  <span className="scale-66"><PriceDisplay cardType="annual" currencyInfo={currencyInfo} /></span>
                   <span className="text-sm font-normal">/year</span>
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white">5 Edits Plan</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  <PriceDisplay amount={2.99} currencyInfo={currencyInfo} />
-                  <span className="text-base font-normal">/year</span>
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">5 Edits Plan</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay cardType="fiveEdits" currencyInfo={currencyInfo} /></span>
+                  <span className="text-sm font-normal">/year</span>
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Single Edit</h3>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  <PriceDisplay amount={0.99} currencyInfo={currencyInfo} />
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Single Edit</h3>
+                <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
+                  <span className="scale-66"><PriceDisplay cardType="singleEdit" currencyInfo={currencyInfo} /></span>
                 </p>
               </div>
             </div>
