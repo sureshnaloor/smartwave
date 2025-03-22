@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,14 +9,42 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, ShoppingCart, Heart, Settings, ShoppingBag } from "lucide-react";
+import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2 } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { saveThemePreference, getThemePreference } from "@/app/_actions/theme";
+import { toast } from "@/components/ui/use-toast";
+import { useFormStatus } from "react-dom";
+
+// Submit button with loading state for theme form
+function SaveThemeButton() {
+  const { pending } = useFormStatus();
+  
+  return (
+    <Button 
+      type="submit" 
+      disabled={pending}
+      size="sm"
+      className="w-20"
+    >
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Saving
+        </>
+      ) : (
+        'Save'
+      )}
+    </Button>
+  );
+}
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedTheme, setSelectedTheme] = useState<string>("light");
   const [mounted, setMounted] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Check user authentication
   useEffect(() => {
@@ -26,19 +54,69 @@ export default function ProfilePage() {
     }
   }, [status, router, mounted]);
 
-  // For demo purposes, load preferred theme from localStorage
+  // Load theme preference from the database
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedTheme = localStorage.getItem("preferredTheme") || "light";
-      setSelectedTheme(storedTheme);
-    }
-  }, []);
+    const loadThemePreference = async () => {
+      if (status === "authenticated" && session?.user?.email) {
+        startTransition(async () => {
+          try {
+            const result = await getThemePreference();
+            if (result.success) {
+              setSelectedTheme(result.theme);
+            }
+          } catch (error) {
+            console.error("Failed to load theme preference:", error);
+          }
+        });
+      }
+    };
 
-  const saveThemePreference = (theme: string) => {
-    setSelectedTheme(theme);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("preferredTheme", theme);
+    if (mounted && status === "authenticated") {
+      loadThemePreference();
     }
+  }, [mounted, status, session?.user?.email]);
+
+  // Handle form submission
+  const handleThemeFormSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      try {
+        const result = await saveThemePreference(formData);
+        
+        if (result.success) {
+          toast({
+            title: "Theme Saved",
+            description: "Your theme preference has been saved successfully.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Failed to save theme preference",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error saving theme:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while saving your theme preference.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  // Handle theme selection change
+  const handleThemeChange = (value: string) => {
+    setSelectedTheme(value);
+    
+    // Submit the form after updating the state
+    setTimeout(() => {
+      if (formRef.current) {
+        const formData = new FormData(formRef.current);
+        formData.set('theme', value);
+        handleThemeFormSubmit(formData);
+      }
+    }, 0);
   };
 
   // Show loading state
@@ -109,34 +187,56 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Theme Preferences</h3>
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="theme-select">Default Theme</Label>
-                    <Select value={selectedTheme} onValueChange={saveThemePreference}>
-                      <SelectTrigger id="theme-select" className="w-40">
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="system">System</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="dark-mode">Dark Mode</Label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Automatically enable dark mode based on your system settings.
-                      </p>
+                
+                <form 
+                  ref={formRef}
+                  action={handleThemeFormSubmit}
+                  className="space-y-4"
+                >
+                  <input type="hidden" name="theme" value={selectedTheme} />
+                  
+                  <div className="flex flex-col space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="theme-select">Default Theme</Label>
+                      <div className="flex items-center gap-2">
+                        <Select 
+                          value={selectedTheme} 
+                          onValueChange={handleThemeChange}
+                          disabled={isPending}
+                        >
+                          <SelectTrigger id="theme-select" className="w-32">
+                            <SelectValue placeholder="Select theme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="light">Light</SelectItem>
+                            <SelectItem value="dark">Dark</SelectItem>
+                            <SelectItem value="system">System</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <Switch 
-                      id="dark-mode" 
-                      checked={selectedTheme === "system"} 
-                      onCheckedChange={() => saveThemePreference(selectedTheme === "system" ? "light" : "system")} 
-                    />
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="dark-mode">System Mode</Label>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Automatically switch between light and dark based on your system settings.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          id="dark-mode" 
+                          name="system-toggle"
+                          checked={selectedTheme === "system"} 
+                          onCheckedChange={(checked) => {
+                            handleThemeChange(checked ? "system" : "light");
+                          }}
+                          disabled={isPending}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </form>
               </div>
               
               <div className="space-y-2">
@@ -164,7 +264,7 @@ export default function ProfilePage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="ml-auto">Save Changes</Button>
+              <Button className="ml-auto">Save All Changes</Button>
             </CardFooter>
           </Card>
         </TabsContent>

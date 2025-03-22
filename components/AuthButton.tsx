@@ -8,7 +8,14 @@ export default function AuthButton() {
 
   const handleAuth = async () => {
     if (session) {
-      await signOut({ callbackUrl: '/' });
+      // Clear all cookies and storage on logout
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: true,
+      });
+      
+      // For extra safety, clear localStorage theme preference too
+      localStorage.removeItem('theme');
     } else {
       // Direct Google sign-in since it's pre-verified in your setup
       await signIn('google', {
