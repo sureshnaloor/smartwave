@@ -7,14 +7,16 @@ import { Input } from "@/components/ui/input"
 import { getUserPreferences, saveCart, saveOrder } from "@/app/_actions/user-preferences"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { ShoppingCart, Trash } from "lucide-react"
+import { ShoppingBag, Trash, Plus, Minus, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
+import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
 
 // Ensure this matches the schema in user-preferences.ts
 interface CartItem {
   productId: string
   name: string
   price: number
+  currency?: string
   type: string
   quantity: number
   color?: string
@@ -25,16 +27,29 @@ export default function CartItems() {
   const router = useRouter()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [processingQuantity, setProcessingQuantity] = useState<string | null>(null)
   const [processingCheckout, setProcessingCheckout] = useState(false)
+  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchCart = async () => {
     try {
+      // Get user's preferred currency from localStorage
+      const storedCurrency = localStorage.getItem('userCurrency');
+      if (storedCurrency) {
+        try {
+          setUserCurrency(JSON.parse(storedCurrency));
+        } catch (e) {
+          console.error("Failed to parse stored currency", e);
+          setUserCurrency(DEFAULT_CURRENCY);
+        }
+      }
+      
       const userPrefs = await getUserPreferences()
       if (userPrefs?.cart) {
         setCartItems(userPrefs.cart as CartItem[])
       }
     } catch (error) {
-      console.error("Failed to load cart items:", error)
+      console.error("Failed to load cart:", error)
       toast.error("Failed to load your cart. Please try again.")
     } finally {
       setLoading(false)
@@ -45,42 +60,57 @@ export default function CartItems() {
     fetchCart()
   }, [])
 
-  const handleUpdateQuantity = async (index: number, newQuantity: number) => {
-    if (newQuantity < 1) return
-
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     try {
-      const updatedItems = [...cartItems]
-      updatedItems[index].quantity = newQuantity
-      setCartItems(updatedItems)
+      setProcessingQuantity(itemId)
+      
+      if (newQuantity < 1) {
+        newQuantity = 1
+      }
+      
+      // Update quantity for specific item
+      const updatedCart = cartItems.map(item =>
+        item.productId === itemId ? { ...item, quantity: newQuantity } : item
+      )
       
       // Save to server
-      await saveCart(updatedItems)
+      await saveCart(updatedCart)
+      
+      // Update local state
+      setCartItems(updatedCart)
+      toast.success("Cart updated")
     } catch (error) {
       console.error("Failed to update cart:", error)
       toast.error("Failed to update cart. Please try again.")
       
-      // Refresh cart state from server on error
+      // Refresh cart state from server in case of error
       fetchCart()
+    } finally {
+      setProcessingQuantity(null)
     }
   }
 
-  const handleRemoveItem = async (index: number) => {
+  const handleRemoveItem = async (itemId: string) => {
     try {
-      const updatedItems = [...cartItems]
-      updatedItems.splice(index, 1)
+      setProcessingQuantity(itemId)
       
-      // Update local state
-      setCartItems(updatedItems)
+      // Create a new array without the item to remove
+      const updatedCart = cartItems.filter(item => item.productId !== itemId)
       
       // Save to server
-      await saveCart(updatedItems)
+      await saveCart(updatedCart)
+      
+      // Update local state
+      setCartItems(updatedCart)
       toast.success("Item removed from cart")
     } catch (error) {
       console.error("Failed to remove item:", error)
       toast.error("Failed to remove item. Please try again.")
       
-      // Refresh cart state from server on error
+      // Refresh cart state from server in case of error
       fetchCart()
+    } finally {
+      setProcessingQuantity(null)
     }
   }
 
@@ -88,34 +118,52 @@ export default function CartItems() {
     try {
       setProcessingCheckout(true)
       
-      // Create an order from the cart items
-      const order = {
-        items: cartItems,
-        total: calculateTotal(),
-        status: "pending",
-        createdAt: new Date().toISOString(),
+      if (!cartItems.length) {
+        toast.error("Your cart is empty")
+        return
       }
       
-      // Save the order
-      await saveOrder(order)
+      // Create a new order from the cart items
+      const newOrder = {
+        items: cartItems,
+        orderDate: new Date().toISOString(),
+        status: "processing",
+        total: calculateTotal()
+      }
       
-      // Clear the cart
+      // Save order
+      await saveOrder(newOrder)
+      
+      // Clear cart
       await saveCart([])
       setCartItems([])
       
-      toast.success("Order placed successfully!")
+      toast.success("Order placed successfully")
       router.push("/orders")
+      router.refresh()
     } catch (error) {
-      console.error("Checkout failed:", error)
-      toast.error("Checkout failed. Please try again.")
+      console.error("Failed to place order:", error)
+      toast.error("Failed to place order. Please try again.")
     } finally {
       setProcessingCheckout(false)
     }
   }
 
+  // Format price based on currency
+  const formatPrice = (price: number): string => {
+    // Apply position of currency symbol
+    return userCurrency.position === 'before'
+      ? `${userCurrency.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+  };
+
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
   }
+  
+  const getFormattedTotal = () => {
+    return formatPrice(calculateTotal());
+  };
 
   if (loading) {
     return (
@@ -130,11 +178,11 @@ export default function CartItems() {
       <Card className="w-full">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center py-12">
-            <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
+            <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
-            <p className="text-gray-500 mb-6">Add items to your cart to get started</p>
+            <p className="text-gray-500 mb-6">Add items to your cart to proceed to checkout</p>
             <Button onClick={() => router.push("/store")}>
-              Continue Shopping
+              Browse Store
             </Button>
           </div>
         </CardContent>
@@ -143,104 +191,126 @@ export default function CartItems() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Cart Items ({cartItems.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {cartItems.map((item, index) => (
-              <div key={`${item.productId}-${index}`} className="flex flex-col md:flex-row gap-4 pb-4">
-                <div className="w-full md:w-24 h-24 bg-gray-100 rounded relative overflow-hidden">
-                  {item.image ? (
-                    <Image
-                      src={item.image}
+    <div className="space-y-6">
+      <div className="grid gap-6">
+        {cartItems.map((item) => {
+          const formattedPrice = formatPrice(item.price);
+          const itemTotal = formatPrice(item.price * item.quantity);
+          
+          return (
+            <Card key={item.productId} className="overflow-hidden">
+              <div className="flex flex-col sm:flex-row">
+                {item.image && (
+                  <div className="relative h-48 sm:h-auto sm:w-48 flex-shrink-0">
+                    <Image 
+                      src={item.image} 
                       alt={item.name}
                       fill
                       className="object-cover"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ShoppingCart className="h-8 w-8 text-gray-300" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-grow">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    ${item.price.toFixed(2)} {item.color && `• ${item.color}`}
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <div className="w-20">
+                  </div>
+                )}
+                <div className="flex-grow p-4 flex flex-col">
+                  <CardHeader className="p-0 pb-2">
+                    <CardTitle className="text-lg">{item.name}</CardTitle>
+                    <p className="text-sm font-medium">{formattedPrice}</p>
+                  </CardHeader>
+                  <CardContent className="p-0 flex-grow">
+                    <p className="text-sm text-gray-500">
+                      {item.color && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                          {item.color}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {item.type}
+                      </span>
+                    </p>
+                  </CardContent>
+                  <CardFooter className="p-0 pt-4 flex flex-wrap justify-between gap-4">
+                    <div className="flex items-center">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-r-none"
+                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                        disabled={processingQuantity === item.productId || item.quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
                       <Input
                         type="number"
                         min="1"
                         value={item.quantity}
-                        onChange={(e) => handleUpdateQuantity(index, parseInt(e.target.value) || 1)}
-                        className="h-8"
+                        onChange={(e) => handleUpdateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                        className="h-8 w-12 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        disabled={processingQuantity === item.productId}
                       />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 rounded-l-none"
+                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                        disabled={processingQuantity === item.productId}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveItem(index)}
-                      className="ml-auto"
-                    >
-                      <Trash className="h-4 w-4" />
-                      <span className="sr-only">Remove</span>
-                    </Button>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm font-medium">{itemTotal}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveItem(item.productId)}
+                        disabled={processingQuantity === item.productId}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardFooter>
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </Card>
+          )
+        })}
       </div>
       
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>${calculateTotal().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <hr className="my-2" />
-              <div className="flex justify-between font-medium">
-                <span>Total</span>
-                <span>${calculateTotal().toFixed(2)}</span>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Order Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>{getFormattedTotal()}</span>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              className="w-full" 
-              onClick={handleCheckout}
-              disabled={processingCheckout}
-            >
-              {processingCheckout ? (
-                <span className="flex items-center">
-                  <span className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full"></span>
-                  Processing...
-                </span>
-              ) : (
-                "Proceed to Checkout"
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+            <div className="flex justify-between font-bold text-lg pt-4 border-t">
+              <span>Total</span>
+              <span>{getFormattedTotal()}</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            className="w-full" 
+            onClick={handleCheckout}
+            disabled={processingCheckout}
+          >
+            {processingCheckout ? (
+              <span className="flex items-center">
+                <span className="animate-spin h-4 w-4 mr-2 border-2 border-b-transparent rounded-full"></span>
+                Processing...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Complete Order
+              </span>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   )
 } 

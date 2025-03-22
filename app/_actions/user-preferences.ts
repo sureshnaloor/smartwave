@@ -5,15 +5,21 @@ import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { DEFAULT_CURRENCY } from "@/lib/currencyTypes";
 
 // Color validation schema
 const colorSchema = z.enum(["black", "blue", "silver", "green"]);
+
+// Currency code schema
+const currencySchema = z.string().min(3).max(3).default(DEFAULT_CURRENCY.code);
 
 // Item validation schemas
 const productSchema = z.object({
   productId: z.string(),
   name: z.string(),
   price: z.number().positive(),
+  currency: currencySchema.optional(), // Currency code (USD, EUR, etc.)
   type: z.string(),
   color: z.union([z.string(), z.array(z.string())]).optional(),
   quantity: z.number().int().positive().default(1),
@@ -303,70 +309,137 @@ export async function saveOrder(order: any) {
  * Get available store items
  */
 export async function getStoreItems() {
-  // Mock data for the store items
-  return {
-    cards: [
-      {
-        id: "pvc-card",
-        name: "Standard PVC Business Card",
-        price: 19.99,
-        type: "pvc_card",
-        description: "Durable plastic business cards that stand out from paper cards.",
-        image: "/images/pvc-card.jpg"
-      },
-      {
-        id: "nfc-card",
-        name: "NFC Business Card",
-        price: 29.99,
-        type: "nfc_card",
-        description: "Tap to share your contact information and connect instantly.",
-        image: "/images/nfc-card.jpg"
-      },
-      {
-        id: "color-nfc-card",
-        name: "Color NFC Business Card",
-        price: 34.99,
-        type: "color_nfc_card",
-        description: "Colorful NFC business cards that stand out and connect.",
-        color: ["black", "white", "blue", "red", "green"],
-        image: "/images/color-nfc-card.jpg"
-      },
-      {
-        id: "metallic-card",
-        name: "Metallic Business Card",
-        price: 49.99,
-        type: "metallic_card",
-        description: "Premium metal cards that make a lasting impression.",
-        image: "/images/metallic-card.jpg"
+  try {
+    // Get user's preferred currency from cookie
+    const cookieStore = cookies();
+    const countryCookie = cookieStore.get('userCountry');
+    const currencyCookie = cookieStore.get('userCurrency');
+    
+    let currency;
+    
+    // First check if we have a saved currency preference
+    if (currencyCookie && currencyCookie.value) {
+      try {
+        // Try to parse the saved currency JSON
+        currency = JSON.parse(currencyCookie.value);
+      } catch (e) {
+        console.error("Failed to parse currency cookie:", e);
       }
-    ],
-    editPlans: [
-      {
-        id: "basic-edit",
-        name: "Basic Edit Plan",
-        price: 9.99,
-        type: "basic_edit",
-        description: "Simple editing for contact information and basic design adjustments.",
-        image: "/images/basic-edit.jpg"
-      },
-      {
-        id: "standard-edit",
-        name: "Standard Edit Plan",
-        price: 19.99,
-        type: "standard_edit",
-        description: "Full design editing with up to 3 revisions and professional design assistance.",
-        image: "/images/standard-edit.jpg"
-      },
-      {
-        id: "premium-edit",
-        name: "Premium Edit Plan",
-        price: 29.99,
-        type: "premium_edit",
-        description: "Unlimited revisions with priority support and custom design consultations.",
-        image: "/images/premium-edit.jpg"
-      }
-    ]
-  };
+    }
+    
+    // If no valid currency was found in cookie, try to get it from country
+    if (!currency && countryCookie && countryCookie.value) {
+      const { getCurrencyForCountry } = await import('@/lib/currencyMapper');
+      currency = await getCurrencyForCountry(countryCookie.value);
+    }
+    
+    // If still no currency, use default
+    if (!currency) {
+      const { DEFAULT_CURRENCY } = await import('@/lib/currencyTypes');
+      currency = DEFAULT_CURRENCY;
+    }
+    
+    // Mock data for the store items (prices in base currency)
+    const storeData = {
+      cards: [
+        {
+          id: "pvc-card",
+          name: "Standard PVC Business Card",
+          price: currency.rates.pvc,
+          type: "pvc_card",
+          description: "Durable plastic business cards that stand out from paper cards.",
+          image: "/images/pvc-card.jpg"
+        },
+        {
+          id: "nfc-card",
+          name: "NFC Business Card",
+          price: currency.rates.nfc,
+          type: "nfc_card",
+          description: "Tap to share your contact information and connect instantly.",
+          image: "/images/nfc-card.jpg"
+        },
+        {
+          id: "color-nfc-card",
+          name: "Color NFC Business Card",
+          price: currency.rates.color,
+          type: "color_nfc_card",
+          description: "Colorful NFC business cards that stand out and connect.",
+          color: ["black", "white", "blue", "red", "green"],
+          image: "/images/color-nfc-card.jpg"
+        },
+        {
+          id: "metallic-card",
+          name: "Metallic Business Card",
+          price: currency.rates.premium,
+          type: "metallic_card",
+          description: "Premium metal cards that make a lasting impression.",
+          image: "/images/metallic-card.jpg"
+        }
+      ],
+      editPlans: [
+        {
+          id: "basic-edit",
+          name: "Basic Edit Plan",
+          price: currency.rates.singleEdit,
+          type: "basic_edit",
+          description: "Simple editing for contact information and basic design adjustments.",
+          image: "/images/basic-edit.jpg"
+        },
+        {
+          id: "standard-edit",
+          name: "Standard Edit Plan",
+          price: currency.rates.fiveEdits,
+          type: "standard_edit",
+          description: "Full design editing with up to 3 revisions and professional design assistance.",
+          image: "/images/standard-edit.jpg"
+        },
+        {
+          id: "premium-edit",
+          name: "Premium Edit Plan",
+          price: currency.rates.annual,
+          type: "premium_edit",
+          description: "Unlimited revisions with priority support and custom design consultations.",
+          image: "/images/premium-edit.jpg"
+        }
+      ]
+    };
+
+    // Add currency information to each item
+    const processedData = {
+      cards: storeData.cards.map(card => ({ 
+        ...card, 
+        currency: currency.code
+      })),
+      editPlans: storeData.editPlans.map(plan => ({ 
+        ...plan, 
+        currency: currency.code
+      }))
+    };
+
+    return processedData;
+  } catch (error) {
+    console.error("Error getting store items:", error);
+    // Return original data structure with default currency if there's an error
+    const { DEFAULT_CURRENCY } = await import('@/lib/currencyTypes');
+    
+    return {
+      cards: [
+        {
+          id: "pvc-card",
+          name: "Standard PVC Business Card",
+          price: DEFAULT_CURRENCY.rates.pvc,
+          currency: DEFAULT_CURRENCY.code,
+          type: "pvc_card",
+          description: "Durable plastic business cards that stand out from paper cards.",
+          image: "/images/pvc-card.jpg"
+        },
+        // Other cards with default prices
+      ],
+      editPlans: [
+        // Edit plans with default prices
+      ]
+    };
+  }
 }
 
 /**

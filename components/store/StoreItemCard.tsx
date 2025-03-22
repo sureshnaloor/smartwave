@@ -11,6 +11,7 @@ import { MinusIcon, PlusIcon, ShoppingCart, Heart, Check } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getUserPreferences, saveCart, saveWishlist } from "@/app/_actions/user-preferences"
+import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
 
 interface StoreItemCardProps {
   id: string
@@ -20,6 +21,7 @@ interface StoreItemCardProps {
   description: string
   color?: string[]
   image?: string
+  currency?: string
 }
 
 export default function StoreItemCard({
@@ -29,18 +31,33 @@ export default function StoreItemCard({
   type,
   description,
   color,
-  image
+  image,
+  currency = DEFAULT_CURRENCY.code
 }: StoreItemCardProps) {
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
-    color && color.length > 0 ? color[0] : undefined
+    Array.isArray(color) && color.length > 0 ? color[0] : undefined
   )
   const [loadingCart, setLoadingCart] = useState(false)
   const [loadingWishlist, setLoadingWishlist] = useState(false)
   const [isInCart, setIsInCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
+
+  // Get the user's preferred currency from localStorage
+  useEffect(() => {
+    const storedCurrency = localStorage.getItem('userCurrency');
+    if (storedCurrency) {
+      try {
+        setUserCurrency(JSON.parse(storedCurrency));
+      } catch (e) {
+        console.error("Failed to parse stored currency", e);
+        setUserCurrency(DEFAULT_CURRENCY);
+      }
+    }
+  }, []);
 
   // Check if item is already in cart or wishlist
   useEffect(() => {
@@ -123,6 +140,7 @@ export default function StoreItemCard({
         productId: id,
         name,
         price,
+        currency,
         type,
         description,
         quantity,
@@ -173,6 +191,7 @@ export default function StoreItemCard({
         productId: id,
         name,
         price,
+        currency,
         type,
         description,
         quantity: 1, // Wishlist items always have quantity 1
@@ -208,6 +227,14 @@ export default function StoreItemCard({
     }
   }
 
+  // Format price with appropriate currency symbol
+  const formatPrice = (price: number): string => {
+    // Apply position of currency symbol
+    return userCurrency.position === 'before'
+      ? `${userCurrency.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+  };
+
   return (
     <Card className="overflow-hidden flex flex-col h-full">
       {image && (
@@ -223,13 +250,13 @@ export default function StoreItemCard({
       )}
       <CardHeader>
         <CardTitle className="text-lg">{name}</CardTitle>
-        <p className="text-sm font-medium">${price.toFixed(2)}</p>
+        <p className="text-sm font-medium">{formatPrice(price)}</p>
       </CardHeader>
       <CardContent className="flex-grow">
         <p className="text-sm text-gray-500 mb-4">{description}</p>
 
         {/* Color selector */}
-        {color && color.length > 0 && (
+        {color && Array.isArray(color) && color.length > 0 && (
           <div className="mt-4 space-y-2">
             <Label htmlFor="color">Color</Label>
             <RadioGroup

@@ -8,12 +8,14 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Heart, ShoppingBag, Trash, Check } from "lucide-react"
 import Image from "next/image"
+import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
 
 // Ensure this matches the schema in user-preferences.ts
 interface WishlistItem {
   productId: string
   name: string
   price: number
+  currency?: string
   type: string
   quantity: number
   color?: string
@@ -28,9 +30,21 @@ export default function WishlistItems() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processingItem, setProcessingItem] = useState<string | null>(null)
+  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchUserData = async () => {
     try {
+      // Get user's preferred currency from localStorage
+      const storedCurrency = localStorage.getItem('userCurrency');
+      if (storedCurrency) {
+        try {
+          setUserCurrency(JSON.parse(storedCurrency));
+        } catch (e) {
+          console.error("Failed to parse stored currency", e);
+          setUserCurrency(DEFAULT_CURRENCY);
+        }
+      }
+      
       const userPrefs = await getUserPreferences()
       if (userPrefs?.wishlist) {
         setWishlistItems(userPrefs.wishlist as WishlistItem[])
@@ -135,6 +149,14 @@ export default function WishlistItems() {
     )
   }
 
+  // Format price based on currency
+  const formatPrice = (price: number): string => {
+    // Apply position of currency symbol
+    return userCurrency.position === 'before'
+      ? `${userCurrency.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+  };
+
   if (loading) {
     return (
       <div className="w-full h-64 flex items-center justify-center">
@@ -164,6 +186,7 @@ export default function WishlistItems() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {wishlistItems.map((item) => {
         const itemInCart = isInCart(item);
+        const formattedPrice = formatPrice(item.price);
         
         return (
           <Card key={item.productId} className="overflow-hidden flex flex-col">
@@ -179,7 +202,7 @@ export default function WishlistItems() {
             )}
             <CardHeader>
               <CardTitle className="text-lg">{item.name}</CardTitle>
-              <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+              <p className="text-sm font-medium">{formattedPrice}</p>
             </CardHeader>
             <CardContent className="flex-grow">
               <p className="text-sm text-gray-500">

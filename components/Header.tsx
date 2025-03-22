@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
+import CurrencySelector from './CurrencySelector';
 import { Menu, X } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/80">
@@ -35,6 +39,7 @@ export default function Header() {
           <div className="hidden items-center justify-between md:flex md:flex-1 md:gap-4">
             <Navigation />
             <nav className="flex items-center gap-4">
+              {isAuthenticated && <CurrencySelector />}
               <ThemeToggle />
               <Avatar />
               <AuthButton />
@@ -46,6 +51,7 @@ export default function Header() {
             <div className="absolute left-0 right-0 top-16 border-b bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900 md:hidden">
               <Navigation />
               <div className="mt-4 flex items-center justify-between border-t pt-4 dark:border-gray-700">
+                {isAuthenticated && <CurrencySelector />}
                 <ThemeToggle />
                 <Avatar />
                 <AuthButton />
