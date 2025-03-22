@@ -18,6 +18,7 @@ import { getUserPreferences } from "@/app/_actions/user-preferences";
 import Image from "next/image";
 import WishlistItems from "@/components/wishlist/WishlistItems";
 import CartItems from "@/components/cart/CartItems";
+import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes";
 
 // Types matching the schemas in user-preferences.ts
 interface WishlistItem {
@@ -28,16 +29,19 @@ interface WishlistItem {
   quantity: number;
   color?: string;
   image?: string;
+  currency?: string;
 }
 
 interface CartItem extends WishlistItem {}
+
+interface OrderItem extends CartItem {}
 
 interface Order {
   id: string;
   date: string;
   status: string;
   total: number;
-  items: CartItem[];
+  items: OrderItem[];
   shippingAddress?: {
     fullName?: string;
     address?: string;
@@ -80,10 +84,20 @@ export default function ProfilePage() {
   const formRef = useRef<HTMLFormElement>(null);
   
   // User preferences states
-  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [userDataLoading, setUserDataLoading] = useState(true);
+  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY);
+
+  // Format price with the appropriate currency symbol and position
+  const formatPrice = (price: number): string => {
+    if (!userCurrency) return `$${price.toFixed(2)}`;
+    
+    return userCurrency.position === 'before'
+      ? `${userCurrency.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+  };
 
   // Check user authentication
   useEffect(() => {
@@ -92,6 +106,20 @@ export default function ProfilePage() {
       router.push("/");
     }
   }, [status, router, mounted]);
+
+  // Load user's currency preference from localStorage
+  useEffect(() => {
+    if (mounted) {
+      try {
+        const storedCurrency = localStorage.getItem('userCurrency');
+        if (storedCurrency) {
+          setUserCurrency(JSON.parse(storedCurrency));
+        }
+      } catch (error) {
+        console.error("Failed to parse stored currency:", error);
+      }
+    }
+  }, [mounted]);
 
   // Load theme preference and user data from the database
   useEffect(() => {
@@ -341,7 +369,7 @@ export default function ProfilePage() {
                       <div className="flex flex-col flex-1 p-4">
                         <div className="flex justify-between items-start">
                           <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-medium">{formatPrice(item.price)}</p>
                         </div>
                         {item.color && (
                           <p className="text-xs text-gray-500 mt-1 capitalize">
@@ -413,7 +441,7 @@ export default function ProfilePage() {
                       <div className="flex flex-col flex-1 p-4">
                         <div className="flex justify-between items-start">
                           <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-medium">{formatPrice(item.price)}</p>
                         </div>
                         <div className="flex items-center mt-1">
                           <p className="text-xs text-gray-500">
@@ -427,7 +455,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="mt-auto flex justify-between items-center">
                           <p className="text-sm font-medium">
-                            Subtotal: ${(item.price * item.quantity).toFixed(2)}
+                            Subtotal: {formatPrice(item.price * item.quantity)}
                           </p>
                           <Button 
                             variant="link" 
@@ -448,7 +476,7 @@ export default function ProfilePage() {
               <CardFooter className="justify-between">
                 <div>
                   <p className="text-sm font-medium">
-                    Total: ${cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    Total: {formatPrice(cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -496,7 +524,7 @@ export default function ProfilePage() {
                             </p>
                           </div>
                           <div className="flex flex-col items-end">
-                            <p className="text-sm font-medium">${order.total.toFixed(2)}</p>
+                            <p className="text-sm font-medium">{formatPrice(order.total)}</p>
                             <span 
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize
                                 ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
@@ -512,13 +540,13 @@ export default function ProfilePage() {
                         <div className="mt-2">
                           <p className="text-sm font-medium mb-2">Items:</p>
                           <div className="space-y-2">
-                            {order.items.map((item, index) => (
+                            {order.items.map((item: OrderItem, index: number) => (
                               <div key={index} className="flex justify-between text-sm">
                                 <div className="flex-1">
                                   <span className="font-medium">{item.name}</span>
                                   <span className="text-gray-500 ml-2">x{item.quantity}</span>
                                 </div>
-                                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                <span>{formatPrice(item.price * item.quantity)}</span>
                               </div>
                             ))}
                           </div>
