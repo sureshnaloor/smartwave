@@ -27,49 +27,60 @@ export default function CartItems() {
   const [loading, setLoading] = useState(true)
   const [processingCheckout, setProcessingCheckout] = useState(false)
 
-  useEffect(() => {
-    const loadCartItems = async () => {
-      try {
-        const userPrefs = await getUserPreferences()
-        if (userPrefs?.cart) {
-          setCartItems(userPrefs.cart as CartItem[])
-        }
-      } catch (error) {
-        console.error("Failed to load cart items:", error)
-        toast.error("Failed to load your cart. Please try again.")
-      } finally {
-        setLoading(false)
+  const fetchCart = async () => {
+    try {
+      const userPrefs = await getUserPreferences()
+      if (userPrefs?.cart) {
+        setCartItems(userPrefs.cart as CartItem[])
       }
+    } catch (error) {
+      console.error("Failed to load cart items:", error)
+      toast.error("Failed to load your cart. Please try again.")
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadCartItems()
+  useEffect(() => {
+    fetchCart()
   }, [])
 
-  const handleUpdateQuantity = (index: number, newQuantity: number) => {
+  const handleUpdateQuantity = async (index: number, newQuantity: number) => {
     if (newQuantity < 1) return
 
-    const updatedItems = [...cartItems]
-    updatedItems[index].quantity = newQuantity
-    setCartItems(updatedItems)
-    
-    // Save to server
-    saveCart(updatedItems).catch(error => {
+    try {
+      const updatedItems = [...cartItems]
+      updatedItems[index].quantity = newQuantity
+      setCartItems(updatedItems)
+      
+      // Save to server
+      await saveCart(updatedItems)
+    } catch (error) {
       console.error("Failed to update cart:", error)
       toast.error("Failed to update cart. Please try again.")
-    })
+      
+      // Refresh cart state from server on error
+      fetchCart()
+    }
   }
 
   const handleRemoveItem = async (index: number) => {
     try {
       const updatedItems = [...cartItems]
       updatedItems.splice(index, 1)
+      
+      // Update local state
       setCartItems(updatedItems)
       
+      // Save to server
       await saveCart(updatedItems)
       toast.success("Item removed from cart")
     } catch (error) {
       console.error("Failed to remove item:", error)
       toast.error("Failed to remove item. Please try again.")
+      
+      // Refresh cart state from server on error
+      fetchCart()
     }
   }
 

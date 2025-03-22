@@ -7,33 +7,46 @@ import { LucideIcon } from 'lucide-react';
 import { 
   Mail, 
   DollarSign, 
-  IdCardIcon, 
+  IdCardIcon as IdCard, 
   Rocket,
   ShoppingBag,
-  ShoppingCart 
+  ShoppingCart,
+  Package,
+  Heart
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  requiresAuth?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { href: '/store', label: 'Store', icon: ShoppingBag },
-  { href: '/cart', label: 'Cart', icon: ShoppingCart },
-  { href: '/contact-us', label: 'Contact', icon: Mail },
-  { href: '/pricing', label: 'Pricing', icon: DollarSign },
-  { href: '/about-smartwave', label: 'About Smartwave', icon: IdCardIcon },
-  { href: '/about-xbeyond', label: 'About xBeyond', icon: Rocket },
+  { href: '/store', label: 'Store', icon: ShoppingBag, requiresAuth: true },
+  { href: '/cart', label: 'Cart', icon: ShoppingCart, requiresAuth: true },
+  { href: '/wishlist', label: 'Wishlist', icon: Heart, requiresAuth: true },
+  { href: '/orders', label: 'Orders', icon: Package, requiresAuth: true },
+  { href: '/contact-us', label: 'Contact', icon: Mail, requiresAuth: false },
+  { href: '/pricing', label: 'Pricing', icon: DollarSign, requiresAuth: false },
+  { href: '/about-smartwave', label: 'About Smartwave', icon: IdCard, requiresAuth: false },
+  { href: '/about-xbeyond', label: 'About xBeyond', icon: Rocket, requiresAuth: false },
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+
+  // Filter the navigation items based on authentication state
+  const visibleNavItems = navItems.filter(item => 
+    !item.requiresAuth || (item.requiresAuth && isAuthenticated)
+  );
 
   return (
     <nav className="flex flex-col gap-2 md:flex-row md:gap-6">
-      {navItems.map((item) => {
+      {visibleNavItems.map((item) => {
         const isActive = pathname === item.href;
         
         return (
