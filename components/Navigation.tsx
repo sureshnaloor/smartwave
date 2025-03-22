@@ -8,7 +8,9 @@ import {
   Mail, 
   DollarSign, 
   IdCardIcon, 
-  Rocket 
+  Rocket,
+  ShoppingBag,
+  ShoppingCart 
 } from 'lucide-react';
 
 interface NavItem {
@@ -18,6 +20,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { href: '/store', label: 'Store', icon: ShoppingBag },
+  { href: '/cart', label: 'Cart', icon: ShoppingCart },
   { href: '/contact-us', label: 'Contact', icon: Mail },
   { href: '/pricing', label: 'Pricing', icon: DollarSign },
   { href: '/about-smartwave', label: 'About Smartwave', icon: IdCardIcon },
