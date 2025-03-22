@@ -45,8 +45,8 @@ export async function saveThemePreference(formData: FormData) {
     // Connect to database
     const { db } = await connectToDatabase();
     
-    // Get userthemes collection
-    const collection = db.collection("userthemes");
+    // Get userpreferences collection
+    const collection = db.collection("userpreferences");
     
     // Create document to insert/update
     const themeDoc = {
@@ -102,8 +102,8 @@ export async function getThemePreference() {
     // Connect to database
     const { db } = await connectToDatabase();
     
-    // Get userthemes collection
-    const collection = db.collection("userthemes");
+    // Get userpreferences collection
+    const collection = db.collection("userpreferences");
     
     // Find user theme preference
     const userPreference = await collection.findOne<ThemePreference>(
