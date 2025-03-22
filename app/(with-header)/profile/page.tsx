@@ -9,11 +9,44 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2 } from "lucide-react";
+import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2, Package } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { saveThemePreference, getThemePreference } from "@/app/_actions/theme";
 import { toast } from "@/components/ui/use-toast";
 import { useFormStatus } from "react-dom";
+import { getUserPreferences } from "@/app/_actions/user-preferences";
+import Image from "next/image";
+import WishlistItems from "@/components/wishlist/WishlistItems";
+import CartItems from "@/components/cart/CartItems";
+
+// Types matching the schemas in user-preferences.ts
+interface WishlistItem {
+  productId: string;
+  name: string;
+  price: number;
+  type: string;
+  quantity: number;
+  color?: string;
+  image?: string;
+}
+
+interface CartItem extends WishlistItem {}
+
+interface Order {
+  id: string;
+  date: string;
+  status: string;
+  total: number;
+  items: CartItem[];
+  shippingAddress?: {
+    fullName?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+}
 
 // Submit button with loading state for theme form
 function SaveThemeButton() {
@@ -45,6 +78,12 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // User preferences states
+  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [userDataLoading, setUserDataLoading] = useState(true);
 
   // Check user authentication
   useEffect(() => {
@@ -54,25 +93,36 @@ export default function ProfilePage() {
     }
   }, [status, router, mounted]);
 
-  // Load theme preference from the database
+  // Load theme preference and user data from the database
   useEffect(() => {
-    const loadThemePreference = async () => {
+    const loadData = async () => {
       if (status === "authenticated" && session?.user?.email) {
         startTransition(async () => {
           try {
-            const result = await getThemePreference();
-            if (result.success) {
-              setSelectedTheme(result.theme);
+            // Load theme preferences
+            const themeResult = await getThemePreference();
+            if (themeResult.success) {
+              setSelectedTheme(themeResult.theme);
+            }
+            
+            // Load user preferences (cart, wishlist, orders)
+            const userPrefs = await getUserPreferences();
+            if (userPrefs) {
+              setWishlistItems(userPrefs.wishlist || []);
+              setCartItems(userPrefs.cart || []);
+              setOrders(userPrefs.orders || []);
             }
           } catch (error) {
-            console.error("Failed to load theme preference:", error);
+            console.error("Failed to load user data:", error);
+          } finally {
+            setUserDataLoading(false);
           }
         });
       }
     };
 
     if (mounted && status === "authenticated") {
-      loadThemePreference();
+      loadData();
     }
   }, [mounted, status, session?.user?.email]);
 
@@ -128,21 +178,6 @@ export default function ProfilePage() {
   if (status === "unauthenticated") {
     return null;
   }
-
-  // Sample data for demo
-  const wishlistItems = [
-    { id: 1, name: "Premium Digital Card", price: 29.99 },
-    { id: 2, name: "Executive Card Package", price: 49.99 },
-  ];
-  
-  const cartItems = [
-    { id: 3, name: "Smart Business Card", price: 19.99, quantity: 1 },
-  ];
-
-  const orders = [
-    { id: "ORD-001", date: "2023-12-15", status: "Delivered", total: 29.99 },
-    { id: "ORD-002", date: "2024-02-20", status: "Processing", total: 49.99 },
-  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -251,6 +286,7 @@ export default function ProfilePage() {
                     </div>
                     <Switch id="email-notifications" defaultChecked />
                   </div>
+                  
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="marketing-emails">Marketing Emails</Label>
@@ -263,9 +299,6 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button className="ml-auto">Save All Changes</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
         
@@ -274,145 +307,225 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Your Wishlist</CardTitle>
               <CardDescription>
-                Items you're interested in purchasing later.
+                Items you've saved for later.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {wishlistItems.length > 0 ? (
-                <ul className="divide-y">
-                  {wishlistItems.map((item) => (
-                    <li key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{item.name}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">${item.price.toFixed(2)}</p>
-                      </div>
-                      <div className="flex gap-2 mt-2 sm:mt-0">
-                        <Button variant="outline" size="sm">Move to Cart</Button>
-                        <Button variant="ghost" size="sm" className="text-red-500">Remove</Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+              {userDataLoading ? (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+              ) : wishlistItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Heart className="h-16 w-16 text-gray-300 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Your wishlist is empty</h3>
+                  <p className="text-gray-500 mb-6">Add items to your wishlist to save them for later</p>
+                  <Button onClick={() => router.push("/store")}>
+                    Browse Store
+                  </Button>
+                </div>
               ) : (
-                <div className="text-center py-8">
-                  <Heart className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
-                  <h3 className="mt-2 text-lg font-medium">Your wishlist is empty</h3>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
-                    Browse our products and add items to your wishlist.
-                  </p>
-                  <Button className="mt-4">Browse Products</Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {wishlistItems.map((item) => (
+                    <Card key={item.productId} className="flex flex-row overflow-hidden">
+                      {item.image && (
+                        <div className="relative h-24 w-24">
+                          <Image 
+                            src={item.image} 
+                            alt={item.name} 
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col flex-1 p-4">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-medium">{item.name}</h3>
+                          <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                        </div>
+                        {item.color && (
+                          <p className="text-xs text-gray-500 mt-1 capitalize">
+                            Color: {item.color}
+                          </p>
+                        )}
+                        <div className="mt-auto flex justify-end">
+                          <Button 
+                            variant="link" 
+                            size="sm" 
+                            className="h-8 px-2"
+                            onClick={() => router.push('/wishlist')}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>
+            {wishlistItems.length > 0 && (
+              <CardFooter className="justify-end">
+                <Button onClick={() => router.push('/wishlist')}>
+                  View Full Wishlist
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
         
         <TabsContent value="cart">
           <Card>
             <CardHeader>
-              <CardTitle>Shopping Cart</CardTitle>
+              <CardTitle>Your Shopping Cart</CardTitle>
               <CardDescription>
                 Items you've added to your cart.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {cartItems.length > 0 ? (
-                <div>
-                  <ul className="divide-y">
-                    {cartItems.map((item) => (
-                      <li key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            ${item.price.toFixed(2)} × {item.quantity}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                          <div className="flex items-center">
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0">-</Button>
-                            <span className="w-8 text-center">{item.quantity}</span>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0">+</Button>
-                          </div>
-                          <Button variant="ghost" size="sm" className="text-red-500">Remove</Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-6 border-t pt-6">
-                    <div className="flex justify-between text-lg font-medium">
-                      <span>Total</span>
-                      <span>${cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</span>
-                    </div>
-                    <Button className="w-full mt-4">Checkout</Button>
-                  </div>
+              {userDataLoading ? (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+              ) : cartItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
+                  <p className="text-gray-500 mb-6">Add items to your cart to checkout</p>
+                  <Button onClick={() => router.push("/store")}>
+                    Browse Store
+                  </Button>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
-                  <h3 className="mt-2 text-lg font-medium">Your cart is empty</h3>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
-                    Add items to your cart to proceed to checkout.
-                  </p>
-                  <Button className="mt-4">Browse Products</Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {cartItems.map((item) => (
+                    <Card key={item.productId} className="flex flex-row overflow-hidden">
+                      {item.image && (
+                        <div className="relative h-24 w-24">
+                          <Image 
+                            src={item.image} 
+                            alt={item.name} 
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col flex-1 p-4">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-medium">{item.name}</h3>
+                          <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+                        </div>
+                        <div className="flex items-center mt-1">
+                          <p className="text-xs text-gray-500">
+                            Qty: {item.quantity}
+                          </p>
+                          {item.color && (
+                            <p className="text-xs text-gray-500 ml-3 capitalize">
+                              Color: {item.color}
+                            </p>
+                          )}
+                        </div>
+                        <div className="mt-auto flex justify-between items-center">
+                          <p className="text-sm font-medium">
+                            Subtotal: ${(item.price * item.quantity).toFixed(2)}
+                          </p>
+                          <Button 
+                            variant="link" 
+                            size="sm" 
+                            className="h-8 px-2"
+                            onClick={() => router.push('/cart')}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>
+            {cartItems.length > 0 && (
+              <CardFooter className="justify-between">
+                <div>
+                  <p className="text-sm font-medium">
+                    Total: ${cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={() => router.push('/cart')}>
+                    View Full Cart
+                  </Button>
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
         
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Order History</CardTitle>
+              <CardTitle>Your Orders</CardTitle>
               <CardDescription>
-                View your past orders and their status.
+                View and track your orders.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {orders.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {orders.map((order) => (
-                        <tr key={order.id}>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">{order.id}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">{order.date}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              order.status === "Delivered" ? "bg-green-100 text-green-800" : 
-                              order.status === "Processing" ? "bg-blue-100 text-blue-800" : 
-                              "bg-yellow-100 text-yellow-800"
-                            }`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">${order.total.toFixed(2)}</td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-right">
-                            <Button variant="link" size="sm">View Details</Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {userDataLoading ? (
+                <div className="w-full h-64 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Package className="h-16 w-16 text-gray-300 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No orders yet</h3>
+                  <p className="text-gray-500 mb-6">Start shopping to place your first order</p>
+                  <Button onClick={() => router.push("/store")}>
+                    Browse Store
+                  </Button>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <ShoppingBag className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
-                  <h3 className="mt-2 text-lg font-medium">No orders yet</h3>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
-                    When you place an order, it will appear here.
-                  </p>
-                  <Button className="mt-4">Browse Products</Button>
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <Card key={order.id} className="overflow-hidden">
+                      <CardHeader className="p-4 pb-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-sm font-medium">Order #{order.id}</p>
+                            <p className="text-xs text-gray-500">
+                              Placed on {new Date(order.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <p className="text-sm font-medium">${order.total.toFixed(2)}</p>
+                            <span 
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize
+                                ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                                  order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                                  'bg-blue-100 text-blue-800'}`}
+                            >
+                              {order.status}
+                            </span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2">
+                        <div className="mt-2">
+                          <p className="text-sm font-medium mb-2">Items:</p>
+                          <div className="space-y-2">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <div className="flex-1">
+                                  <span className="font-medium">{item.name}</span>
+                                  <span className="text-gray-500 ml-2">x{item.quantity}</span>
+                                </div>
+                                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>

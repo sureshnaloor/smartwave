@@ -3,7 +3,7 @@ import CartItems from "@/components/cart/CartItems"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
-  title: "Shopping Cart | SmartWave",
+  title: "Shopping Cart | Smartwave",
   description: "View and manage your shopping cart",
 }
 

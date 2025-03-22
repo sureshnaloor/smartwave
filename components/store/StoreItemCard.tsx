@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { MinusIcon, PlusIcon, ShoppingCart, Heart } from "lucide-react"
+import { MinusIcon, PlusIcon, ShoppingCart, Heart, Check } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getUserPreferences, saveCart, saveWishlist } from "@/app/_actions/user-preferences"
@@ -38,6 +38,67 @@ export default function StoreItemCard({
   )
   const [loadingCart, setLoadingCart] = useState(false)
   const [loadingWishlist, setLoadingWishlist] = useState(false)
+  const [isInCart, setIsInCart] = useState(false)
+  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+
+  // Check if item is already in cart or wishlist
+  useEffect(() => {
+    const checkItemStatus = async () => {
+      try {
+        const userPrefs = await getUserPreferences()
+        
+        // Check cart
+        const inCart = (userPrefs?.cart || []).some(item => 
+          item.productId === id && 
+          (!selectedColor || item.color === selectedColor)
+        )
+        setIsInCart(inCart)
+        
+        // Check wishlist
+        const inWishlist = (userPrefs?.wishlist || []).some(item => 
+          item.productId === id && 
+          (!selectedColor || item.color === selectedColor)
+        )
+        setIsInWishlist(inWishlist)
+      } catch (error) {
+        console.error("Error checking item status:", error)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+    
+    checkItemStatus()
+  }, [id, selectedColor])
+
+  // Also update item status when color changes
+  useEffect(() => {
+    if (!initialLoading) {
+      const checkItemStatus = async () => {
+        try {
+          const userPrefs = await getUserPreferences()
+          
+          // Check cart
+          const inCart = (userPrefs?.cart || []).some(item => 
+            item.productId === id && 
+            (!selectedColor || item.color === selectedColor)
+          )
+          setIsInCart(inCart)
+          
+          // Check wishlist
+          const inWishlist = (userPrefs?.wishlist || []).some(item => 
+            item.productId === id && 
+            (!selectedColor || item.color === selectedColor)
+          )
+          setIsInWishlist(inWishlist)
+        } catch (error) {
+          console.error("Error checking item status:", error)
+        }
+      }
+      
+      checkItemStatus()
+    }
+  }, [selectedColor, initialLoading, id])
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity >= 1 && newQuantity <= 99) {
@@ -88,6 +149,7 @@ export default function StoreItemCard({
       // Save updated cart
       await saveCart(updatedCart)
       
+      setIsInCart(true)
       toast.success(`Added ${name} to cart!`)
       router.refresh()
     } catch (error) {
@@ -135,6 +197,7 @@ export default function StoreItemCard({
       // Save updated wishlist
       await saveWishlist(updatedWishlist)
       
+      setIsInWishlist(true)
       toast.success(`Added ${name} to wishlist!`)
       router.refresh()
     } catch (error) {
@@ -223,7 +286,7 @@ export default function StoreItemCard({
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button 
-          variant="default" 
+          variant={isInCart ? "secondary" : "default"}
           size="sm" 
           className="flex-1"
           onClick={handleAddToCart}
@@ -231,6 +294,11 @@ export default function StoreItemCard({
         >
           {loadingCart ? (
             <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
+          ) : isInCart ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              In Cart
+            </>
           ) : (
             <>
               <ShoppingCart className="h-4 w-4 mr-2" />
@@ -239,15 +307,17 @@ export default function StoreItemCard({
           )}
         </Button>
         <Button
-          variant="outline"
+          variant={isInWishlist ? "secondary" : "outline"}
           size="sm"
           onClick={handleAddToWishlist}
-          disabled={loadingWishlist}
+          disabled={loadingWishlist || isInCart || isInWishlist}
+          title={isInCart ? "Item already in cart" : isInWishlist ? "Item already in wishlist" : "Add to wishlist"}
+          className={isInCart ? "opacity-50 cursor-not-allowed" : ""}
         >
           {loadingWishlist ? (
             <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
           ) : (
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${isInWishlist ? "fill-current" : ""}`} />
           )}
         </Button>
       </CardFooter>

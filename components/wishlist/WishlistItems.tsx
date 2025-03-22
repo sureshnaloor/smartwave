@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { getUserPreferences, saveWishlist, saveCart } from "@/app/_actions/user-preferences"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { Heart, ShoppingBag, Trash } from "lucide-react"
+import { Heart, ShoppingBag, Trash, Check } from "lucide-react"
 import Image from "next/image"
 
 // Ensure this matches the schema in user-preferences.ts
@@ -20,28 +20,34 @@ interface WishlistItem {
   image?: string
 }
 
+interface CartItem extends WishlistItem {} 
+
 export default function WishlistItems() {
   const router = useRouter()
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processingItem, setProcessingItem] = useState<string | null>(null)
 
-  const fetchWishlist = async () => {
+  const fetchUserData = async () => {
     try {
       const userPrefs = await getUserPreferences()
       if (userPrefs?.wishlist) {
         setWishlistItems(userPrefs.wishlist as WishlistItem[])
       }
+      if (userPrefs?.cart) {
+        setCartItems(userPrefs.cart as CartItem[])
+      }
     } catch (error) {
-      console.error("Failed to load wishlist items:", error)
-      toast.error("Failed to load your wishlist. Please try again.")
+      console.error("Failed to load user data:", error)
+      toast.error("Failed to load your data. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchWishlist()
+    fetchUserData()
   }, [])
 
   const handleRemoveItem = async (productId: string) => {
@@ -62,7 +68,7 @@ export default function WishlistItems() {
       toast.error("Failed to remove item. Please try again.")
       
       // Refresh wishlist state from server on error
-      fetchWishlist()
+      fetchUserData()
     } finally {
       setProcessingItem(null)
     }
@@ -72,12 +78,8 @@ export default function WishlistItems() {
     try {
       setProcessingItem(item.productId)
       
-      // Get current cart
-      const userPrefs = await getUserPreferences()
-      const currentCart = userPrefs?.cart || []
-      
       // Check if item already exists in cart
-      const existingItemIndex = currentCart.findIndex(cartItem => 
+      const existingItemIndex = cartItems.findIndex(cartItem => 
         cartItem.productId === item.productId && 
         cartItem.color === item.color
       )
@@ -85,24 +87,52 @@ export default function WishlistItems() {
       let updatedCart
       if (existingItemIndex >= 0) {
         // Update quantity of existing item
-        updatedCart = [...currentCart]
+        updatedCart = [...cartItems]
         updatedCart[existingItemIndex].quantity += 1
+        toast.info(`Increased quantity of ${item.name} in cart!`)
       } else {
         // Add new item to cart (ensure it has quantity)
         const cartItem = { ...item, quantity: 1 }
-        updatedCart = [...currentCart, cartItem]
+        updatedCart = [...cartItems, cartItem]
+        toast.success(`Added ${item.name} to cart!`)
       }
       
       // Save updated cart
       await saveCart(updatedCart)
       
-      toast.success(`Added ${item.name} to cart!`)
+      // Update local cart state
+      setCartItems(updatedCart)
+      
+      // Remove from wishlist
+      const updatedWishlist = wishlistItems.filter(wishlistItem => 
+        wishlistItem.productId !== item.productId || 
+        wishlistItem.color !== item.color
+      )
+      
+      // Save updated wishlist
+      await saveWishlist(updatedWishlist)
+      
+      // Update local wishlist state
+      setWishlistItems(updatedWishlist)
+      
+      router.refresh()
     } catch (error) {
       console.error("Failed to add to cart:", error)
       toast.error("Failed to add item to cart. Please try again.")
+      
+      // Refresh data from server on error
+      fetchUserData()
     } finally {
       setProcessingItem(null)
     }
+  }
+
+  // Check if an item is in the cart
+  const isInCart = (item: WishlistItem) => {
+    return cartItems.some(cartItem => 
+      cartItem.productId === item.productId && 
+      cartItem.color === item.color
+    )
   }
 
   if (loading) {
@@ -132,59 +162,69 @@ export default function WishlistItems() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {wishlistItems.map((item) => (
-        <Card key={item.productId} className="overflow-hidden flex flex-col">
-          {item.image && (
-            <div className="relative h-48 w-full">
-              <Image 
-                src={item.image} 
-                alt={item.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-          <CardHeader>
-            <CardTitle className="text-lg">{item.name}</CardTitle>
-            <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
-          </CardHeader>
-          <CardContent className="flex-grow">
-            <p className="text-sm text-gray-500">
-              {item.color && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2 capitalize">
-                  {item.color}
-                </span>
-              )}
-            </p>
-          </CardContent>
-          <CardFooter className="flex gap-2">
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="flex-1"
-              onClick={() => handleAddToCart(item)}
-              disabled={processingItem === item.productId}
-            >
-              {processingItem === item.productId ? (
-                <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRemoveItem(item.productId)}
-              disabled={processingItem === item.productId}
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+      {wishlistItems.map((item) => {
+        const itemInCart = isInCart(item);
+        
+        return (
+          <Card key={item.productId} className="overflow-hidden flex flex-col">
+            {item.image && (
+              <div className="relative h-48 w-full">
+                <Image 
+                  src={item.image} 
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <CardHeader>
+              <CardTitle className="text-lg">{item.name}</CardTitle>
+              <p className="text-sm font-medium">${item.price.toFixed(2)}</p>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-sm text-gray-500">
+                {item.color && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2 capitalize">
+                    {item.color}
+                  </span>
+                )}
+              </p>
+            </CardContent>
+            <CardFooter className="flex gap-2">
+              <Button 
+                variant={itemInCart ? "secondary" : "default"}
+                size="sm" 
+                className="flex-1"
+                onClick={() => handleAddToCart(item)}
+                disabled={processingItem === item.productId || itemInCart}
+                title={itemInCart ? "Item already in cart" : "Add to cart"}
+              >
+                {processingItem === item.productId ? (
+                  <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
+                ) : itemInCart ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    In Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    Add to Cart
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRemoveItem(item.productId)}
+                disabled={processingItem === item.productId}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </div>
   )
 } 

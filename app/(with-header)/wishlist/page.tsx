@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import WishlistItems from "@/components/wishlist/WishlistItems"
 
 export const metadata: Metadata = {
-  title: "Your Wishlist | SmartWave",
+  title: "Your Wishlist | Smartwave",
   description: "View and manage your wishlist",
 }
 

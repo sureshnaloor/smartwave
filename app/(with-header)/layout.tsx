@@ -1,16 +1,17 @@
-import Header from '@/components/Header';
+import { Suspense } from "react"
+import Header from "@/components/Header"
 
 export default function WithHeaderLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-800">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="container mx-auto px-4">
+      <main className="flex-1">
         {children}
       </main>
     </div>
-  );
+  )
 } 
