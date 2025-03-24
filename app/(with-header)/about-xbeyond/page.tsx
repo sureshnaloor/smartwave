@@ -233,13 +233,12 @@ export default function AboutXBeyond() {
                   <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
                     Our flagship products,{' '}
                     <span className="font-semibold text-purple-600 dark:text-purple-400">
-                      SmartWave, SmartLink, SmartFlow,
-                      SmartTag, SmartProject
+                      SmartWave, SmartLink, SmartFlow, SmartClass,
+                      SmartTag & SmartProject  . 
                     </span>
-                    , represent our commitment to revolutionizing professional networking through 
-                    sustainable, feature-rich digital business cards. We combine cutting-edge 
-                    technology with user-friendly design to create solutions that make business 
-                    connections more efficient and environmentally conscious.
+                     represent our commitment to combine cutting-edge 
+                    technology with user-friendly design patterns and pleasant user experience to create solutions that make business 
+                    more efficient and environmentally conscious.
                   </p>
                 </div>
 

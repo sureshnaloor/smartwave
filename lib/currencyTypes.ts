@@ -30,7 +30,7 @@ export const CURRENCY_MAP: Record<string, CurrencyInfo> = {
   },
   CA: {
     code: 'CAD',
-    symbol: 'CAD',
+    symbol: 'C$',
     rates: {
       pvc: 19,
       nfc: 49.99,
@@ -86,7 +86,7 @@ export const CURRENCY_MAP: Record<string, CurrencyInfo> = {
   },
   SA: {
     code: 'SAR',
-    symbol: 'SAR',
+    symbol: '﷼',
     rates: {
       pvc: 49.99,
       nfc: 149.99,
@@ -100,7 +100,7 @@ export const CURRENCY_MAP: Record<string, CurrencyInfo> = {
   },
   AE: {
     code: 'AED',
-    symbol: 'AED',
+    symbol: 'د.إ',
     rates: {
       pvc: 49.99,
       nfc: 149.99,
