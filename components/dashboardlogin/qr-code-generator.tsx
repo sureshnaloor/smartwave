@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { QrCode, Download } from "lucide-react"
 import QRCode from 'qrcode'
 import Image from 'next/image'
-import { ProfileData } from "@/app/actions/profile"
+import { ProfileData } from "@/app/_actions/profile"
 
 interface QRCodeGeneratorProps {
   user: ProfileData;

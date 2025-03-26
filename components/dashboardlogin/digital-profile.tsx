@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Edit2, Building2, User, Share2, Link } from "lucide-react"
 import VCardEditor from "./vcard-editor"
-import { ProfileData, generateAndUpdateShortUrl } from "@/app/actions/profile"
+import { ProfileData, generateAndUpdateShortUrl } from "@/app/_actions/profile"
 import Image from "next/image"
 import { toast } from "sonner"
 

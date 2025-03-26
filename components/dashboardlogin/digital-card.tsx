@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { ProfileData } from "@/app/actions/profile"
+import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import * as htmlToImage from 'html-to-image'
 

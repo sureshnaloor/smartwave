@@ -13,7 +13,7 @@ import QRCodeGenerator from "./qr-code-generator"
 import CalendarIntegration from "./calendar-integration"
 import PaymentOptions from "./payment-options"
 import { User as UserType } from '@/app/types';
-import { getProfile, ProfileData } from '@/app/actions/profile';
+import { getProfile, ProfileData } from '@/app/_actions/profile';
 import IncompleteProfileView from './IncompleteProfileView';
 import VCardEditor from "./vcard-editor"
 import DigitalProfile from "./digital-profile"

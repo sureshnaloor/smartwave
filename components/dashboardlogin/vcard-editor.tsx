@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Edit2, Save, X, Upload } from "lucide-react"
-import { ProfileData } from "@/app/actions/profile"
+import { ProfileData } from "@/app/_actions/profile"
 import { updateVCardInfo } from "@/app/_actions/user"
 import { useFormStatus } from "react-dom"
 

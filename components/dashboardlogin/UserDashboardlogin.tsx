@@ -17,7 +17,7 @@ import QRCodeGenerator from "../dashboardlogin/qr-code-generator"
 import CalendarIntegration from "../dashboardlogin/calendar-integration"
 import PaymentOptions from "../dashboardlogin/payment-options"
 import { User } from "./types"
-import { getProfile } from "@/app/actions/profile"
+import { getProfile } from "@/app/_actions/profile"
 import { toast } from "sonner"
 
 export default function UserDashboardlogin() {

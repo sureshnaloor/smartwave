@@ -1,4 +1,4 @@
-import { getProfileByShortUrl } from "@/app/actions/profile"
+import { getProfileByShortUrl } from "@/app/_actions/profile"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"

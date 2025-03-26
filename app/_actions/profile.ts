@@ -2,9 +2,6 @@
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
 import clientPromise from '@/lib/mongodb';
-import { Profile } from '@/models/profile';
-
-
 
 const uri = process.env.MONGODB_URI || '';
 const client = clientPromise;

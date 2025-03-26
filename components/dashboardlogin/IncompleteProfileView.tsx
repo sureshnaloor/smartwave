@@ -41,7 +41,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ProfileData, saveProfile } from "@/app/actions/profile";
+import { ProfileData, saveProfile } from "@/app/_actions/profile";
 import { uploadToCloudinary } from '@/lib/cloudinary';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
