@@ -136,9 +136,26 @@ export default function ProfilePage() {
             // Load user preferences (cart, wishlist, orders)
             const userPrefs = await getUserPreferences();
             if (userPrefs) {
-              setWishlistItems(userPrefs.wishlist || []);
-              setCartItems(userPrefs.cart || []);
-              setOrders(userPrefs.orders || []);
+              // Ensure color is a string before setting state
+              const sanitizedWishlist = userPrefs.wishlist?.map(item => ({
+                ...item,
+                color: Array.isArray(item.color) ? item.color[0] : item.color
+              })) || [];
+
+              const sanitizedCart = userPrefs.cart?.map(item => ({
+                ...item,
+                color: Array.isArray(item.color) ? item.color[0] : item.color
+              })) || [];
+              
+              setWishlistItems(sanitizedWishlist);
+              setCartItems(sanitizedCart);
+              setOrders((userPrefs.orders || []).map(order => ({
+                ...order,
+                items: order.items.map(item => ({
+                  ...item,
+                  color: typeof item.color === 'string' ? item.color : Array.isArray(item.color) ? item.color[0] : undefined
+                }))
+              })));
             }
           } catch (error) {
             console.error("Failed to load user data:", error);

@@ -35,7 +35,7 @@ export async function saveThemePreference(formData: FormData) {
     // Validate theme
     const validationResult = themeSchema.safeParse({ theme });
     if (!validationResult.success) {
-      console.warn(`Invalid theme value: ${theme}`);
+      // console.warn(`Invalid theme value: ${theme}`);
       return { 
         success: false, 
         error: "Invalid theme value. Must be 'light', 'dark', or 'system'." 
@@ -74,14 +74,14 @@ export async function saveThemePreference(formData: FormData) {
     }
     
     // Only log on successful saves
-    console.log(`Theme preference saved for ${session.user.email}: ${theme}`);
+    // console.log(`Theme preference saved for ${session.user.email}: ${theme}`);
     
     // Revalidate paths that might depend on theme
     revalidatePath("/profile");
     
     return { success: true, theme };
   } catch (error) {
-    console.error("Error saving theme preference:", error);
+    // console.error("Error saving theme preference:", error);
     return { success: false, error: "Failed to save theme preference" };
   }
 }
@@ -112,9 +112,9 @@ export async function getThemePreference() {
     );
     
     // Only log when a preference is found (reduces noise)
-    if (userPreference?.theme) {
-      console.log(`Theme preference retrieved for ${session.user.email}: ${userPreference.theme}`);
-    }
+    // if (userPreference?.theme) {
+    //   console.log(`Theme preference retrieved for ${session.user.email}: ${userPreference.theme}`);
+    // }
     
     // Return theme or default to "light"
     return { 
@@ -122,7 +122,7 @@ export async function getThemePreference() {
       theme: userPreference?.theme || "light" 
     };
   } catch (error) {
-    console.error("Error getting theme preference:", error);
+    // console.error("Error getting theme preference:", error);
     return { success: false, error: "Failed to get theme preference", theme: "light" };
   }
 } 
