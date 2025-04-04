@@ -13,6 +13,7 @@ const Sustainability = dynamic(() => import("@/components/landing/Sustainability
 const CallToAction = dynamic(() => import("@/components/landing/CallToAction"), { ssr: false });
 const Testimonials = dynamic(() => import("@/components/landing/Testimonials"), { ssr: false });
 const UserDashboardlogin = dynamic(() => import("@/components/dashboardlogin/UserDashboardlogin"), { ssr: false });
+const UserOverview = dynamic(() => import("@/components/dashboard/UserOverview"), { ssr: false });
 const Footer = dynamic(() => import('@/components/Footer'), { ssr: false });
 
 // Create a separate component for the landing page content
@@ -51,8 +52,13 @@ export default function LandingPage() {
   }
 
   if (isAuthenticated) {
-    return <UserDashboardlogin />;
+    return (
+      <div className="flex flex-col w-full">
+        <UserOverview />
+        <UserDashboardlogin />
+      </div>
+    );
   }
 
   return <LandingPageContent />;
-} 
+}
