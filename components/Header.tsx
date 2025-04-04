@@ -7,8 +7,7 @@ import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
-import CurrencySelector from './CurrencySelector';
-import { Menu, X, Mail, DollarSign, ShoppingBag } from 'lucide-react';
+import { Menu, X, Mail, DollarSign, ShoppingBag, Globe} from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
 
 export default function Header() {
@@ -69,7 +68,7 @@ export default function Header() {
 
           {/* Right Section: User-related items */}
           <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated && <CurrencySelector />}
+            {isAuthenticated && <Navigation variant="country-selector" />}
             <ThemeToggle />
             <Avatar />
             <AuthButton />
@@ -78,9 +77,16 @@ export default function Header() {
           {/* Mobile Navigation */}
           {isMenuOpen && (
             <div className="absolute left-0 right-0 top-16 z-50 border-b bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900 md:hidden">
-              <Navigation />
+              <div className="flex flex-col gap-4">
+                {isAuthenticated && (
+                  <div className="flex items-center gap-2 px-2">
+                    <Globe className="h-5 w-5 text-gray-600" />
+                    <Navigation variant="country-selector" />
+                  </div>
+                )}
+                <Navigation variant="full" />
+              </div>
               <div className="mt-4 flex items-center justify-around border-t pt-4 dark:border-gray-700">
-                {isAuthenticated && <CurrencySelector />}
                 <ThemeToggle />
                 <Avatar />
                 <AuthButton />
@@ -91,4 +97,4 @@ export default function Header() {
       </div>
     </header>
   );
-} 
+}
