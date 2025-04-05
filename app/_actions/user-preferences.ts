@@ -6,13 +6,13 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { DEFAULT_CURRENCY } from "@/lib/currencyTypes";
+import { currencyConfig, DEFAULT_CURRENCY } from "@/lib/currencyConfig"; // Add DEFAULT_CURRENCY import
 
 // Color validation schema
 const colorSchema = z.enum(["black", "blue", "silver", "green"]);
 
 // Currency code schema
-const currencySchema = z.string().min(3).max(3).default(DEFAULT_CURRENCY.code);
+const currencySchema = z.string().min(3).max(3).default('USD'); // Use string literal instead of DEFAULT_CURRENCY
 
 // Item validation schemas
 const productSchema = z.object({
@@ -308,80 +308,71 @@ export async function saveOrder(order: any) {
 /**
  * Get available store items
  */
-export async function getStoreItems() {
-  const cookieStore = cookies();
-  const countryCookie = cookieStore.get('userCountry');
+export async function getStoreItems(currency: string = 'USD') {
+  const rates = currencyConfig[currency]?.rates || currencyConfig.USD.rates;
   
-  let currency;
-  
-  if (countryCookie && countryCookie.value) {
-    const { getCurrencyForCountry } = await import('@/lib/currencyMapper');
-    currency = await getCurrencyForCountry(countryCookie.value);
-  } else {
-    const { DEFAULT_CURRENCY } = await import('@/lib/currencyTypes');
-    currency = DEFAULT_CURRENCY;
-  }
-  
-  // Use currency rates for pricing
   const storeData = {
     cards: [
       {
         id: "pvc-card",
         name: "Standard PVC Business Card",
-        price: currency.rates.pvc,
+        price: rates.pvc,
         type: "pvc_card",
         description: "Durable plastic business cards that stand out from paper cards.",
+        color: ["white", "black", "transparent"],
         image: "/images/pvc-card.jpg"
       },
       {
         id: "nfc-card",
         name: "NFC Business Card",
-        price: currency.rates.nfc,
+        price: rates.nfc,
         type: "nfc_card",
-        description: "Tap to share your contact information and connect instantly.",
+        description: "Digital business card with NFC technology for instant contact sharing.",
+        color: ["white", "black"],
         image: "/images/nfc-card.jpg"
       },
       {
-        id: "color-nfc-card",
-        name: "Color NFC Business Card",
-        price: currency.rates.color,
-        type: "color_nfc_card",
-        description: "Colorful NFC business cards that stand out and connect.",
-        color: ["black", "white", "blue", "red", "green"],
+        id: "color-card",
+        name: "Color Business Card",
+        price: rates.color,
+        type: "color_card",
+        description: "Vibrant, full-color business cards that make a lasting impression.",
+        color: ["white", "black", "blue", "green"],
         image: "/images/color-nfc-card.jpg"
       },
       {
-        id: "metallic-card",
-        name: "Metallic Business Card",
-        price: currency.rates.premium,
-        type: "metallic_card",
-        description: "Premium metal cards that make a lasting impression.",
+        id: "premium-card",
+        name: "Premium Business Card",
+        price: rates.premium,
+        type: "premium_card",
+        description: "Luxury business cards with premium materials and finishes.",
+        color: ["white", "black", "silver"],
         image: "/images/metallic-card.jpg"
       }
     ],
     editPlans: [
       {
-        id: "basic-edit",
-        name: "Basic Edit Plan",
-        price: currency.rates.singleEdit,
-        type: "basic_edit",
-        description: "Simple editing for contact information and basic design adjustments.",
+        id: "single-edit",
+        name: "Single Edit Plan",
+        price: rates.singleEdit,
+        type: "edit_plan",
+        description: "One-time card design customization.",
         image: "/images/basic-edit.jpg"
       },
       {
-        id: "standard-edit",
-        name: "Standard Edit Plan",
-        price: currency.rates.fiveEdits,
-        type: "standard_edit",
-        description: "Full design editing with up to 3 revisions and professional design assistance.",
+        id: "five-edits",
+        name: "Five Edits Plan",
+        price: rates.fiveEdits,
+        type: "edit_plan",
+        description: "Package of five card design customizations.",
         image: "/images/standard-edit.jpg"
       },
       {
-        id: "premium-edit",
-        name: "Premium Edit Plan",
-        price: currency.rates.annual,
-        type: "premium_edit",
-        description: "Unlimited revisions with priority support and custom design consultations.",
+        id: "annual-plan",
+        name: "Annual Edit Plan",
+        price: rates.annual,
+        type: "edit_plan",
+        description: "Unlimited card design customizations for one year.",
         image: "/images/premium-edit.jpg"
       }
     ]

@@ -35,7 +35,7 @@ export default function StoreItems() {
   const fetchStoreItems = async () => {
     try {
       setLoading(true)
-      const data = await getStoreItems()
+      const data = await getStoreItems(selectedCountry.currency)
       setStoreData(data)
     } catch (error) {
       console.error("Failed to load store items:", error)
@@ -47,7 +47,7 @@ export default function StoreItems() {
 
   useEffect(() => {
     fetchStoreItems()
-  }, [])
+  }, [selectedCountry]) // Refetch when country/currency changes
 
   if (loading) {
     return (
