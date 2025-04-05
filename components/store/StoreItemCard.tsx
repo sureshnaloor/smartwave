@@ -12,6 +12,9 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getUserPreferences, saveCart, saveWishlist } from "@/app/_actions/user-preferences"
 import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+import PriceDisplay from '@/components/PriceDisplay';
+import { useCountry } from '@/context/CountryContext';
+import { currencyConfig } from '@/lib/currencyConfig';
 
 interface StoreItemCardProps {
   id: string
@@ -35,7 +38,8 @@ export default function StoreItemCard({
   currency = DEFAULT_CURRENCY.code
 }: StoreItemCardProps) {
   const router = useRouter()
-  const [quantity, setQuantity] = useState(1)
+  const { selectedCountry } = useCountry();
+  const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string | undefined>(
     Array.isArray(color) && color.length > 0 ? color[0] : undefined
   )
@@ -44,20 +48,13 @@ export default function StoreItemCard({
   const [isInCart, setIsInCart] = useState(false)
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
-  // Get the user's preferred currency from localStorage
-  useEffect(() => {
-    const storedCurrency = localStorage.getItem('userCurrency');
-    if (storedCurrency) {
-      try {
-        setUserCurrency(JSON.parse(storedCurrency));
-      } catch (e) {
-        console.error("Failed to parse stored currency", e);
-        setUserCurrency(DEFAULT_CURRENCY);
-      }
-    }
-  }, []);
+  const formatPrice = (price: number): string => {
+    const currencyData = currencyConfig[selectedCountry.currency] || currencyConfig.USD;
+    return currencyData.position === 'before'
+      ? `${currencyData.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${currencyData.symbol}`;
+  };
 
   // Check if item is already in cart or wishlist
   useEffect(() => {
@@ -140,7 +137,7 @@ export default function StoreItemCard({
         productId: id,
         name,
         price,
-        currency,
+        currency: selectedCountry.currency,
         type,
         description,
         quantity,
@@ -191,10 +188,10 @@ export default function StoreItemCard({
         productId: id,
         name,
         price,
-        currency,
+        currency: selectedCountry.currency,
         type,
         description,
-        quantity: 1, // Wishlist items always have quantity 1
+        quantity: 1,
         color: selectedColor,
         image
       }
@@ -227,13 +224,7 @@ export default function StoreItemCard({
     }
   }
 
-  // Format price with appropriate currency symbol
-  const formatPrice = (price: number): string => {
-    // Apply position of currency symbol
-    return userCurrency.position === 'before'
-      ? `${userCurrency.symbol}${price.toFixed(2)}`
-      : `${price.toFixed(2)} ${userCurrency.symbol}`;
-  };
+ 
 
   return (
     <Card className="overflow-hidden flex flex-col h-full">
@@ -350,4 +341,4 @@ export default function StoreItemCard({
       </CardFooter>
     </Card>
   )
-} 
+}

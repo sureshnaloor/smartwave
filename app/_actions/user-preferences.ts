@@ -309,137 +309,85 @@ export async function saveOrder(order: any) {
  * Get available store items
  */
 export async function getStoreItems() {
-  try {
-    // Get user's preferred currency from cookie
-    const cookieStore = cookies();
-    const countryCookie = cookieStore.get('userCountry');
-    const currencyCookie = cookieStore.get('userCurrency');
-    
-    let currency;
-    
-    // First check if we have a saved currency preference
-    if (currencyCookie && currencyCookie.value) {
-      try {
-        // Try to parse the saved currency JSON
-        currency = JSON.parse(currencyCookie.value);
-      } catch (e) {
-        console.error("Failed to parse currency cookie:", e);
-      }
-    }
-    
-    // If no valid currency was found in cookie, try to get it from country
-    if (!currency && countryCookie && countryCookie.value) {
-      const { getCurrencyForCountry } = await import('@/lib/currencyMapper');
-      currency = await getCurrencyForCountry(countryCookie.value);
-    }
-    
-    // If still no currency, use default
-    if (!currency) {
-      const { DEFAULT_CURRENCY } = await import('@/lib/currencyTypes');
-      currency = DEFAULT_CURRENCY;
-    }
-    
-    // Mock data for the store items (prices in base currency)
-    const storeData = {
-      cards: [
-        {
-          id: "pvc-card",
-          name: "Standard PVC Business Card",
-          price: currency.rates.pvc,
-          type: "pvc_card",
-          description: "Durable plastic business cards that stand out from paper cards.",
-          image: "/images/pvc-card.jpg"
-        },
-        {
-          id: "nfc-card",
-          name: "NFC Business Card",
-          price: currency.rates.nfc,
-          type: "nfc_card",
-          description: "Tap to share your contact information and connect instantly.",
-          image: "/images/nfc-card.jpg"
-        },
-        {
-          id: "color-nfc-card",
-          name: "Color NFC Business Card",
-          price: currency.rates.color,
-          type: "color_nfc_card",
-          description: "Colorful NFC business cards that stand out and connect.",
-          color: ["black", "white", "blue", "red", "green"],
-          image: "/images/color-nfc-card.jpg"
-        },
-        {
-          id: "metallic-card",
-          name: "Metallic Business Card",
-          price: currency.rates.premium,
-          type: "metallic_card",
-          description: "Premium metal cards that make a lasting impression.",
-          image: "/images/metallic-card.jpg"
-        }
-      ],
-      editPlans: [
-        {
-          id: "basic-edit",
-          name: "Basic Edit Plan",
-          price: currency.rates.singleEdit,
-          type: "basic_edit",
-          description: "Simple editing for contact information and basic design adjustments.",
-          image: "/images/basic-edit.jpg"
-        },
-        {
-          id: "standard-edit",
-          name: "Standard Edit Plan",
-          price: currency.rates.fiveEdits,
-          type: "standard_edit",
-          description: "Full design editing with up to 3 revisions and professional design assistance.",
-          image: "/images/standard-edit.jpg"
-        },
-        {
-          id: "premium-edit",
-          name: "Premium Edit Plan",
-          price: currency.rates.annual,
-          type: "premium_edit",
-          description: "Unlimited revisions with priority support and custom design consultations.",
-          image: "/images/premium-edit.jpg"
-        }
-      ]
-    };
-
-    // Add currency information to each item
-    const processedData = {
-      cards: storeData.cards.map(card => ({ 
-        ...card, 
-        currency: currency.code
-      })),
-      editPlans: storeData.editPlans.map(plan => ({ 
-        ...plan, 
-        currency: currency.code
-      }))
-    };
-
-    return processedData;
-  } catch (error) {
-    console.error("Error getting store items:", error);
-    // Return original data structure with default currency if there's an error
+  const cookieStore = cookies();
+  const countryCookie = cookieStore.get('userCountry');
+  
+  let currency;
+  
+  if (countryCookie && countryCookie.value) {
+    const { getCurrencyForCountry } = await import('@/lib/currencyMapper');
+    currency = await getCurrencyForCountry(countryCookie.value);
+  } else {
     const { DEFAULT_CURRENCY } = await import('@/lib/currencyTypes');
-    
-    return {
-      cards: [
-        {
-          id: "pvc-card",
-          name: "Standard PVC Business Card",
-          price: DEFAULT_CURRENCY.rates.pvc,
-          currency: DEFAULT_CURRENCY.code,
-          type: "pvc_card",
-          description: "Durable plastic business cards that stand out from paper cards.",
-          image: "/images/pvc-card.jpg"
-        },
-        // Other cards with default prices
-      ],
-      editPlans: [
-        // Edit plans with default prices
-      ]
-    };
+    currency = DEFAULT_CURRENCY;
   }
+  
+  // Use currency rates for pricing
+  const storeData = {
+    cards: [
+      {
+        id: "pvc-card",
+        name: "Standard PVC Business Card",
+        price: currency.rates.pvc,
+        type: "pvc_card",
+        description: "Durable plastic business cards that stand out from paper cards.",
+        image: "/images/pvc-card.jpg"
+      },
+      {
+        id: "nfc-card",
+        name: "NFC Business Card",
+        price: currency.rates.nfc,
+        type: "nfc_card",
+        description: "Tap to share your contact information and connect instantly.",
+        image: "/images/nfc-card.jpg"
+      },
+      {
+        id: "color-nfc-card",
+        name: "Color NFC Business Card",
+        price: currency.rates.color,
+        type: "color_nfc_card",
+        description: "Colorful NFC business cards that stand out and connect.",
+        color: ["black", "white", "blue", "red", "green"],
+        image: "/images/color-nfc-card.jpg"
+      },
+      {
+        id: "metallic-card",
+        name: "Metallic Business Card",
+        price: currency.rates.premium,
+        type: "metallic_card",
+        description: "Premium metal cards that make a lasting impression.",
+        image: "/images/metallic-card.jpg"
+      }
+    ],
+    editPlans: [
+      {
+        id: "basic-edit",
+        name: "Basic Edit Plan",
+        price: currency.rates.singleEdit,
+        type: "basic_edit",
+        description: "Simple editing for contact information and basic design adjustments.",
+        image: "/images/basic-edit.jpg"
+      },
+      {
+        id: "standard-edit",
+        name: "Standard Edit Plan",
+        price: currency.rates.fiveEdits,
+        type: "standard_edit",
+        description: "Full design editing with up to 3 revisions and professional design assistance.",
+        image: "/images/standard-edit.jpg"
+      },
+      {
+        id: "premium-edit",
+        name: "Premium Edit Plan",
+        price: currency.rates.annual,
+        type: "premium_edit",
+        description: "Unlimited revisions with priority support and custom design consultations.",
+        image: "/images/premium-edit.jpg"
+      }
+    ]
+  };
+
+  return storeData;
 }
 
 /**
@@ -728,4 +676,4 @@ export async function createOrderFromCart(formData: FormData) {
     console.error("Error creating order:", error);
     return { success: false, error: "Failed to create order" };
   }
-} 
+}

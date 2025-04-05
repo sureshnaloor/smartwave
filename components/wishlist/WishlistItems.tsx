@@ -8,43 +8,110 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Heart, ShoppingBag, Trash, Check } from "lucide-react"
 import Image from "next/image"
-import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+import { useCountry } from '@/context/CountryContext';
+import { currencyConfig } from '@/lib/currencyConfig';
 
-// Ensure this matches the schema in user-preferences.ts
 interface WishlistItem {
   productId: string
   name: string
   price: number
-  currency?: string
   type: string
   quantity: number
   color?: string
   image?: string
 }
 
-interface CartItem extends WishlistItem {} 
+interface CartItem extends WishlistItem {}
+
+// WishlistItemRow component integrated into WishlistItems
+function WishlistItemRow({
+  item,
+  formatPrice,
+  onAddToCart,
+  onRemove,
+  processingItem,
+  isInCart
+}: {
+  item: WishlistItem
+  formatPrice: (price: number) => string
+  onAddToCart: (item: WishlistItem) => Promise<void>
+  onRemove: (id: string) => Promise<void>
+  processingItem: string | null
+  isInCart: boolean
+}) {
+  const formattedPrice = formatPrice(item.price);
+
+  return (
+    <Card className="overflow-hidden flex flex-col">
+      {item.image && (
+        <div className="relative h-48 w-full">
+          <Image 
+            src={item.image} 
+            alt={item.name}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+      <CardHeader>
+        <CardTitle className="text-lg">{item.name}</CardTitle>
+        <p className="text-sm font-medium">{formattedPrice}</p>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <p className="text-sm text-gray-500">
+          {item.color && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2 capitalize">
+              {item.color}
+            </span>
+          )}
+        </p>
+      </CardContent>
+      <CardFooter className="flex gap-2">
+        <Button 
+          variant={isInCart ? "secondary" : "default"}
+          size="sm" 
+          className="flex-1"
+          onClick={() => onAddToCart(item)}
+          disabled={processingItem === item.productId || isInCart}
+          title={isInCart ? "Item already in cart" : "Add to cart"}
+        >
+          {processingItem === item.productId ? (
+            <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
+          ) : isInCart ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              In Cart
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Add to Cart
+            </>
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onRemove(item.productId)}
+          disabled={processingItem === item.productId}
+        >
+          <Trash className="h-4 w-4" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function WishlistItems() {
   const router = useRouter()
+  const { selectedCountry } = useCountry();
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processingItem, setProcessingItem] = useState<string | null>(null)
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchUserData = async () => {
     try {
-      // Get user's preferred currency from localStorage
-      const storedCurrency = localStorage.getItem('userCurrency');
-      if (storedCurrency) {
-        try {
-          setUserCurrency(JSON.parse(storedCurrency));
-        } catch (e) {
-          console.error("Failed to parse stored currency", e);
-          setUserCurrency(DEFAULT_CURRENCY);
-        }
-      }
-      
       const userPrefs = await getUserPreferences()
       if (userPrefs?.wishlist) {
         setWishlistItems(userPrefs.wishlist as WishlistItem[])
@@ -151,10 +218,10 @@ export default function WishlistItems() {
 
   // Format price based on currency
   const formatPrice = (price: number): string => {
-    // Apply position of currency symbol
-    return userCurrency.position === 'before'
-      ? `${userCurrency.symbol}${price.toFixed(2)}`
-      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+    const currencyData = currencyConfig[selectedCountry.currency] || currencyConfig.INR;
+    return currencyData.position === 'before'
+      ? `${currencyData.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${currencyData.symbol}`;
   };
 
   if (loading) {
@@ -184,70 +251,17 @@ export default function WishlistItems() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {wishlistItems.map((item) => {
-        const itemInCart = isInCart(item);
-        const formattedPrice = formatPrice(item.price);
-        
-        return (
-          <Card key={item.productId} className="overflow-hidden flex flex-col">
-            {item.image && (
-              <div className="relative h-48 w-full">
-                <Image 
-                  src={item.image} 
-                  alt={item.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <CardHeader>
-              <CardTitle className="text-lg">{item.name}</CardTitle>
-              <p className="text-sm font-medium">{formattedPrice}</p>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-sm text-gray-500">
-                {item.color && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2 capitalize">
-                    {item.color}
-                  </span>
-                )}
-              </p>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button 
-                variant={itemInCart ? "secondary" : "default"}
-                size="sm" 
-                className="flex-1"
-                onClick={() => handleAddToCart(item)}
-                disabled={processingItem === item.productId || itemInCart}
-                title={itemInCart ? "Item already in cart" : "Add to cart"}
-              >
-                {processingItem === item.productId ? (
-                  <span className="animate-spin h-4 w-4 border-2 border-b-transparent rounded-full" />
-                ) : itemInCart ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    In Cart
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="h-4 w-4 mr-2" />
-                    Add to Cart
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveItem(item.productId)}
-                disabled={processingItem === item.productId}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        );
-      })}
+      {wishlistItems.map((item) => (
+        <WishlistItemRow
+          key={item.productId}
+          item={item}
+          formatPrice={formatPrice}
+          onAddToCart={handleAddToCart}
+          onRemove={handleRemoveItem}
+          processingItem={processingItem}
+          isInCart={isInCart(item)}
+        />
+      ))}
     </div>
-  )
-} 
+  );
+}

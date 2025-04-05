@@ -9,41 +9,123 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { ShoppingBag, Trash, Plus, Minus, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
-import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+import { useCountry } from '@/context/CountryContext';
+import { currencyConfig } from '@/lib/currencyConfig';
 
-// Ensure this matches the schema in user-preferences.ts
 interface CartItem {
   productId: string
   name: string
   price: number
-  currency?: string
   type: string
   quantity: number
   color?: string
   image?: string
 }
 
+// CartItem component integrated into CartItems
+function CartItemRow({
+  item,
+  formatPrice,
+  onUpdateQuantity,
+  onRemove,
+  processingQuantity
+}: {
+  item: CartItem
+  formatPrice: (price: number) => string
+  onUpdateQuantity: (id: string, quantity: number) => Promise<void>
+  onRemove: (id: string) => Promise<void>
+  processingQuantity: string | null
+}) {
+  const formattedPrice = formatPrice(item.price);
+  const itemTotal = formatPrice(item.price * item.quantity);
+
+  return (
+    <Card key={item.productId} className="overflow-hidden">
+      <div className="flex flex-col sm:flex-row">
+        {item.image && (
+          <div className="relative h-48 sm:h-auto sm:w-48 flex-shrink-0">
+            <Image 
+              src={item.image} 
+              alt={item.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+        <div className="flex-grow p-4 flex flex-col">
+          <CardHeader className="p-0 pb-2">
+            <CardTitle className="text-lg">{item.name}</CardTitle>
+            <p className="text-sm font-medium">{formattedPrice}</p>
+          </CardHeader>
+          <CardContent className="p-0 flex-grow">
+            <p className="text-sm text-gray-500">
+              {item.color && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+                  {item.color}
+                </span>
+              )}
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {item.type}
+              </span>
+            </p>
+          </CardContent>
+          <CardFooter className="p-0 pt-4 flex flex-wrap justify-between gap-4">
+            <div className="flex items-center">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-r-none"
+                onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}
+                disabled={processingQuantity === item.productId || item.quantity <= 1}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Input
+                type="number"
+                min="1"
+                value={item.quantity}
+                onChange={(e) => onUpdateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                className="h-8 w-12 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                disabled={processingQuantity === item.productId}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-l-none"
+                onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+                disabled={processingQuantity === item.productId}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium">{itemTotal}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onRemove(item.productId)}
+                disabled={processingQuantity === item.productId}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardFooter>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function CartItems() {
   const router = useRouter()
+  const { selectedCountry } = useCountry();
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processingQuantity, setProcessingQuantity] = useState<string | null>(null)
   const [processingCheckout, setProcessingCheckout] = useState(false)
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchCart = async () => {
     try {
-      // Get user's preferred currency from localStorage
-      const storedCurrency = localStorage.getItem('userCurrency');
-      if (storedCurrency) {
-        try {
-          setUserCurrency(JSON.parse(storedCurrency));
-        } catch (e) {
-          console.error("Failed to parse stored currency", e);
-          setUserCurrency(DEFAULT_CURRENCY);
-        }
-      }
-      
       const userPrefs = await getUserPreferences()
       if (userPrefs?.cart) {
         setCartItems(userPrefs.cart as CartItem[])
@@ -151,10 +233,10 @@ export default function CartItems() {
 
   // Format price based on currency
   const formatPrice = (price: number): string => {
-    // Apply position of currency symbol
-    return userCurrency.position === 'before'
-      ? `${userCurrency.symbol}${price.toFixed(2)}`
-      : `${price.toFixed(2)} ${userCurrency.symbol}`;
+    const currencyData = currencyConfig[selectedCountry.currency] || currencyConfig.INR;
+    return currencyData.position === 'before'
+      ? `${currencyData.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${currencyData.symbol}`;
   };
 
   const calculateTotal = () => {
@@ -193,86 +275,16 @@ export default function CartItems() {
   return (
     <div className="space-y-6">
       <div className="grid gap-6">
-        {cartItems.map((item) => {
-          const formattedPrice = formatPrice(item.price);
-          const itemTotal = formatPrice(item.price * item.quantity);
-          
-          return (
-            <Card key={item.productId} className="overflow-hidden">
-              <div className="flex flex-col sm:flex-row">
-                {item.image && (
-                  <div className="relative h-48 sm:h-auto sm:w-48 flex-shrink-0">
-                    <Image 
-                      src={item.image} 
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex-grow p-4 flex flex-col">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-lg">{item.name}</CardTitle>
-                    <p className="text-sm font-medium">{formattedPrice}</p>
-                  </CardHeader>
-                  <CardContent className="p-0 flex-grow">
-                    <p className="text-sm text-gray-500">
-                      {item.color && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
-                          {item.color}
-                        </span>
-                      )}
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {item.type}
-                      </span>
-                    </p>
-                  </CardContent>
-                  <CardFooter className="p-0 pt-4 flex flex-wrap justify-between gap-4">
-                    <div className="flex items-center">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 rounded-r-none"
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                        disabled={processingQuantity === item.productId || item.quantity <= 1}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handleUpdateQuantity(item.productId, parseInt(e.target.value) || 1)}
-                        className="h-8 w-12 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        disabled={processingQuantity === item.productId}
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 rounded-l-none"
-                        onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                        disabled={processingQuantity === item.productId}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm font-medium">{itemTotal}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveItem(item.productId)}
-                        disabled={processingQuantity === item.productId}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </div>
-              </div>
-            </Card>
-          )
-        })}
+        {cartItems.map((item) => (
+          <CartItemRow
+            key={item.productId}
+            item={item}
+            formatPrice={formatPrice}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemove={handleRemoveItem}
+            processingQuantity={processingQuantity}
+          />
+        ))}
       </div>
       
       <Card>
@@ -313,4 +325,4 @@ export default function CartItems() {
       </Card>
     </div>
   )
-} 
+}

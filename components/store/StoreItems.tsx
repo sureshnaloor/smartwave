@@ -8,6 +8,7 @@ import { getStoreItems } from "@/app/_actions/user-preferences"
 import StoreItemCard from "@/components/store/StoreItemCard"
 import { toast } from "sonner"
 import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+import { useCountry } from '@/context/CountryContext'
 
 interface StoreItem {
   id: string
@@ -27,25 +28,13 @@ interface StoreData {
 
 export default function StoreItems() {
   const router = useRouter()
+  const { selectedCountry } = useCountry();
   const [storeData, setStoreData] = useState<StoreData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchStoreItems = async () => {
     try {
       setLoading(true)
-      
-      // Get user's preferred currency from localStorage (client-side)
-      const storedCurrency = localStorage.getItem('userCurrency');
-      if (storedCurrency) {
-        try {
-          setUserCurrency(JSON.parse(storedCurrency));
-        } catch (e) {
-          console.error("Failed to parse stored currency", e);
-          setUserCurrency(DEFAULT_CURRENCY);
-        }
-      }
-      
       const data = await getStoreItems()
       setStoreData(data)
     } catch (error) {
@@ -98,7 +87,7 @@ export default function StoreItems() {
               currency={item.currency || DEFAULT_CURRENCY.code}
               type={item.type}
               description={item.description}
-              color={item.color}
+              color={typeof item.color === 'string' ? [item.color] : item.color}
               image={item.image}
             />
           ))}
@@ -123,4 +112,4 @@ export default function StoreItems() {
       </TabsContent>
     </Tabs>
   )
-} 
+}

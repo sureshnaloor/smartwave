@@ -128,11 +128,9 @@ export const CURRENCY_MAP: Record<string, CurrencyInfo> = {
   }
 };
 
-export const DEFAULT_CURRENCY: CurrencyInfo = {
-  code: 'USD',
-  symbol: '$',
-  rates: {
-    pvc: 19,
+export const CURRENCY_RATES = {
+  USD: {
+    pvc: 29.99,
     nfc: 49.99,
     color: 99.99,
     premium: 149.99,
@@ -140,5 +138,22 @@ export const DEFAULT_CURRENCY: CurrencyInfo = {
     fiveEdits: 2.99,
     singleEdit: 0.99
   },
+  INR: {
+    pvc: 999,
+    nfc: 1999,
+    color: 99.99,
+    premium: 149.99,
+    annual: 9.99,
+    fiveEdits: 2.99,
+    singleEdit: 0.99
+  },
   position: 'before'
+};
+
+export const DEFAULT_CURRENCY = {
+  code: 'USD',
+  symbol: '$',
+  position: 'before',
+  name: 'US Dollar',
+  rates: CURRENCY_RATES.USD
 };

@@ -8,6 +8,8 @@ import { getUserPreferences } from "@/app/_actions/user-preferences"
 import { toast } from "sonner"
 import { PackageCheck, ShoppingBag } from "lucide-react"
 import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+import { useCountry } from '@/context/CountryContext'
+import { currencyConfig } from '@/lib/currencyConfig'
 import Image from "next/image"
 import { format } from "date-fns"
 
@@ -40,24 +42,13 @@ interface Order {
 
 export default function OrderItems() {
   const router = useRouter()
+  const { selectedCountry } = useCountry();
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
-  const [userCurrency, setUserCurrency] = useState<CurrencyInfo>(DEFAULT_CURRENCY)
 
   const fetchOrders = async () => {
     try {
-      // Get user's preferred currency from localStorage
-      const storedCurrency = localStorage.getItem('userCurrency');
-      if (storedCurrency) {
-        try {
-          setUserCurrency(JSON.parse(storedCurrency));
-        } catch (e) {
-          console.error("Failed to parse stored currency", e);
-          setUserCurrency(DEFAULT_CURRENCY);
-        }
-      }
-      
       const userPrefs = await getUserPreferences()
       if (userPrefs?.orders) {
         setOrders(userPrefs.orders as Order[])
@@ -70,6 +61,13 @@ export default function OrderItems() {
     }
   }
 
+  const formatPrice = (price: number): string => {
+    const currencyData = currencyConfig[selectedCountry.currency] || currencyConfig.USD;
+    return currencyData.position === 'before'
+      ? `${currencyData.symbol}${price.toFixed(2)}`
+      : `${price.toFixed(2)} ${currencyData.symbol}`;
+  };
+
   useEffect(() => {
     fetchOrders()
   }, [])
@@ -80,14 +78,6 @@ export default function OrderItems() {
       [orderId]: !prev[orderId]
     }))
   }
-
-  // Format price based on currency
-  const formatPrice = (price: number): string => {
-    // Apply position of currency symbol
-    return userCurrency.position === 'before'
-      ? `${userCurrency.symbol}${price.toFixed(2)}`
-      : `${price.toFixed(2)} ${userCurrency.symbol}`;
-  };
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
@@ -235,4 +225,4 @@ export default function OrderItems() {
       ))}
     </div>
   )
-} 
+}

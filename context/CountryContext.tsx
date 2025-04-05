@@ -21,13 +21,13 @@ const CountryContext = createContext<CountryContextType | undefined>(undefined);
 export function CountryProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [selectedCountry, setSelectedCountry] = useState<Country>({
-    code: 'IN',
-    name: 'India',
-    currency: 'INR',
-    flag: '🇮🇳'
+    code: 'US',
+    name: 'United States',
+    currency: 'USD',
+    flag: '🇺🇸'
   });
 
-  // Load user's country preference on mount
+  // Load user's country preference on mount or when auth status changes
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/user-preferences/country')
@@ -35,10 +35,24 @@ export function CountryProvider({ children }: { children: React.ReactNode }) {
         .then(data => {
           if (data.country) {
             setSelectedCountry(data.country);
+          } else {
+            // If no preference is set, use default USD
+            setSelectedCountry({
+              code: 'US',
+              name: 'United States',
+              currency: 'USD',
+              flag: '🇺🇸'
+            });
           }
         })
         .catch(() => {
-          // Silently fail - will use default country
+          // On error, use default USD
+          setSelectedCountry({
+            code: 'US',
+            name: 'United States',
+            currency: 'USD',
+            flag: '🇺🇸'
+          });
         });
     }
   }, [status]);
