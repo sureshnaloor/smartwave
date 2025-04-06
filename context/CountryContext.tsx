@@ -11,9 +11,18 @@ export type Country = {
   flag: string;
 };
 
+export const countries = [
+  { code: 'IN', name: 'India', currency: 'INR', flag: '🇮🇳' },
+  { code: 'SA', name: 'KSA', currency: 'SAR', flag: '🇸🇦' },
+  { code: 'US', name: 'USA', currency: 'USD', flag: '🇺🇸' },
+  { code: 'AE', name: 'UAE', currency: 'AED', flag: '🇦🇪' },
+  { code: 'BH', name: 'Bahrain', currency: 'BHD', flag: '🇧🇭' },
+] as const;
+
 type CountryContextType = {
   selectedCountry: Country;
   setCountry: (country: Country) => Promise<void>;
+  countries: typeof countries;  // Add countries to the context type
 };
 
 const CountryContext = createContext<CountryContextType | undefined>(undefined);
@@ -80,7 +89,7 @@ export function CountryProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <CountryContext.Provider value={{ selectedCountry, setCountry }}>
+    <CountryContext.Provider value={{ selectedCountry, setCountry, countries }}>
       {children}
     </CountryContext.Provider>
   );

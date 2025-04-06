@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCountry } from '@/context/CountryContext';
+import CountrySelector from "@/components/shared/CountrySelector"
 
 interface NavItem {
   href: string;
@@ -39,46 +40,20 @@ const navItems: NavItem[] = [
   }
 ];
 
-// Add country options
-const countries = [
-  { code: 'IN', name: 'India', currency: 'INR', flag: '🇮🇳' },
-  { code: 'SA', name: 'KSA', currency: 'SAR', flag: '🇸🇦' },
-  { code: 'US', name: 'USA', currency: 'USD', flag: '🇺🇸' },
-  { code: 'AE', name: 'UAE', currency: 'AED', flag: '🇦🇪' },
-  { code: 'BH', name: 'Bahrain', currency: 'BHD', flag: '🇧🇭' },
-];
+// Remove the countries array from here as it's now in CountryContext
 
 export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'country-selector' }) {
-  const pathname = usePathname();
-  const { status } = useSession();
-  const isAuthenticated = status === 'authenticated';
-  const { selectedCountry, setCountry } = useCountry();
+  const pathname = usePathname()
+  const { status } = useSession()
+  const isAuthenticated = status === 'authenticated'
 
   // Show only country selector if variant is 'country-selector'
   if (variant === 'country-selector') {
     return (
       <nav className="flex items-center">
-        {isAuthenticated && (
-          <div className="relative">
-            <select
-              value={selectedCountry.code}
-              onChange={(e) => {
-                const country = countries.find(c => c.code === e.target.value);
-                if (country) setCountry(country);
-              }}
-              className="appearance-none bg-transparent text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer pr-6"
-            >
-              {countries.map((country) => (
-                <option key={country.code} value={country.code}>
-                  {country.flag} {country.name}
-                </option>
-              ))}
-            </select>
-            <Globe className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-          </div>
-        )}
+        {isAuthenticated && <CountrySelector />}
       </nav>
-    );
+    )
   }
 
   // Rest of the existing navigation code for full variant

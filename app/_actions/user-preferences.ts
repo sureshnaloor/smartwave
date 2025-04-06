@@ -668,3 +668,71 @@ export async function createOrderFromCart(formData: FormData) {
     return { success: false, error: "Failed to create order" };
   }
 }
+
+export async function updateUserPreferences(
+  userId: string,
+  countryCode: string,
+  currency: string
+) {
+  try {
+    const { db } = await connectToDatabase();
+
+    // Check for existing wishlist, cart, and orders
+    const userPreferences = await db.collection("userPreferences").findOne({ userId });
+    
+    if (userPreferences) {
+      // Check for active orders
+      const hasActiveOrder = await db.collection("orders").findOne({
+        userId,
+        status: { $in: ["pending", "processing"] }
+      });
+
+      if (hasActiveOrder) {
+        return {
+          success: false,
+          message: "Cannot change country while you have orders being processed"
+        };
+      }
+
+      // Check for items in wishlist
+      if (userPreferences.wishlist?.length > 0) {
+        return {
+          success: false,
+          message: "Please clear your wishlist before changing country"
+        };
+      }
+
+      // Check for items in cart
+      if (userPreferences.cart?.length > 0) {
+        return {
+          success: false,
+          message: "Please clear your cart before changing country"
+        };
+      }
+    }
+
+    // If all checks pass, update the preferences
+    const result = await db.collection("userPreferences").updateOne(
+      { userId },
+      {
+        $set: {
+          countryCode,
+          currency,
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    return {
+      success: true,
+      message: "Preferences updated successfully"
+    };
+  } catch (error) {
+    console.error("Failed to update user preferences:", error);
+    return {
+      success: false,
+      message: "Failed to update preferences"
+    };
+  }
+}
