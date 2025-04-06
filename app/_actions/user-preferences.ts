@@ -56,12 +56,15 @@ export type WishlistItem = z.infer<typeof wishlistItemSchema>;
 export type Order = z.infer<typeof orderSchema>;
 
 // User preferences structure
+// Add to the UserPreferences type
 export type UserPreferences = {
   email: string;
   wishlist?: WishlistItem[];
   cart?: CartItem[];
   orders?: Order[];
   theme?: string;
+  marketingEmails?: boolean;  // Add this
+  promotionalEmails?: boolean;  // Add this
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -734,5 +737,46 @@ export async function updateUserPreferences(
       success: false,
       message: "Failed to update preferences"
     };
+  }
+}
+
+// Add this new function after other export functions
+export async function saveEmailPreferences(preferences: { 
+  marketingEmails?: boolean; 
+  promotionalEmails?: boolean; 
+}) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const { db } = await connectToDatabase();
+    
+    const result = await db.collection("userpreferences").updateOne(
+      { email: session.user.email },
+      { 
+        $set: {
+          ...preferences,
+          updatedAt: new Date()
+        },
+        $setOnInsert: { 
+          email: session.user.email,
+          createdAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+
+    if (!result.acknowledged) {
+      throw new Error("Database operation not acknowledged");
+    }
+
+    revalidatePath("/profile");
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to save email preferences:", error);
+    return { success: false, error: "Failed to save preferences" };
   }
 }
