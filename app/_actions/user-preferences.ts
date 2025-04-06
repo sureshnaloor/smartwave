@@ -57,6 +57,20 @@ export type Order = z.infer<typeof orderSchema>;
 
 // User preferences structure
 // Add to the UserPreferences type
+export type ShippingAddress = {
+  id: string;
+  fullName: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  mobileNumber: string;  // Required
+  phoneNumber?: string;  // Optional landline
+  isDefault: boolean;
+};
+
 export type UserPreferences = {
   email: string;
   wishlist?: WishlistItem[];
@@ -67,14 +81,75 @@ export type UserPreferences = {
   promotionalEmails?: boolean;  // Add this
   createdAt?: Date;
   updatedAt?: Date;
+  shippingAddresses?: ShippingAddress[];
 };
+
+// Add new function to manage shipping addresses
+export async function saveShippingAddress(address: Omit<ShippingAddress, 'id'>) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const { db } = await connectToDatabase();
+    const collection = db.collection("userpreferences");
+
+    const newAddress = {
+      ...address,
+      id: `addr_${Date.now()}`,
+    };
+
+    // First, check if the user has any shipping addresses
+    const userPreference = await collection.findOne(
+      { email: session.user.email },
+      { projection: { shippingAddresses: 1 } }
+    );
+
+    let updateOperation;
+    if (!userPreference?.shippingAddresses) {
+      // If no shipping addresses exist, initialize the array
+      updateOperation = {
+        $set: { 
+          shippingAddresses: [newAddress],
+          updatedAt: new Date()
+        },
+        $setOnInsert: { 
+          email: session.user.email,
+          createdAt: new Date()
+        }
+      };
+    } else {
+      // If shipping addresses exist, push to the array
+      updateOperation = {
+        $push: { shippingAddresses: newAddress },
+        $set: { updatedAt: new Date() }
+      };
+    }
+
+    const result = await collection.updateOne(
+      { email: session.user.email },
+      updateOperation as any,
+      { upsert: true }
+    );
+
+    if (!result.acknowledged) {
+      throw new Error("Database operation not acknowledged");
+    }
+
+    revalidatePath("/profile");
+    return { success: true, address: newAddress };
+  } catch (error) {
+    console.error("Error saving shipping address:", error);
+    return { success: false, error: "Failed to save shipping address" };
+  }
+}
 
 /**
  * Get all user preferences from the database
  */
 export async function getUserPreferences() {
   try {
-    // Get authenticated user
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return { 
@@ -82,38 +157,35 @@ export async function getUserPreferences() {
         error: "User not authenticated",
         wishlist: [],
         cart: [],
-        orders: []
+        orders: [],
+        shippingAddresses: []
       };
     }
     
-    // Connect to database
     const { db } = await connectToDatabase();
-    
-    // Get userpreferences collection
     const collection = db.collection("userpreferences");
     
-    // Find user preferences
     const userPreference = await collection.findOne<UserPreferences>(
       { email: session.user.email },
       { projection: { _id: 0 } }
     );
     
     if (!userPreference) {
-      // No preferences found, return empty arrays
       return {
         success: true,
         wishlist: [],
         cart: [],
-        orders: []
+        orders: [],
+        shippingAddresses: []
       };
     }
     
-    // Return preferences or default to empty arrays
     return { 
       success: true, 
       wishlist: userPreference.wishlist || [],
       cart: userPreference.cart || [],
-      orders: userPreference.orders || []
+      orders: userPreference.orders || [],
+      shippingAddresses: userPreference.shippingAddresses || []
     };
   } catch (error) {
     console.error("Error getting user preferences:", error);
@@ -122,7 +194,8 @@ export async function getUserPreferences() {
       error: "Failed to get user preferences",
       wishlist: [],
       cart: [],
-      orders: []
+      orders: [],
+      shippingAddresses: []
     };
   }
 }

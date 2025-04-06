@@ -19,6 +19,9 @@ import CartItems from "@/components/cart/CartItems";
 import OrderItems from "@/components/order/OrderItems";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { saveEmailPreferences } from "@/app/_actions/user-preferences";
+import { Truck } from "lucide-react"; // Add to imports
+import AddressForm from "@/components/shipping/AddressForm";
+import ShippingAddresses from "@/components/shipping/ShippingAddresses";
 
 // Submit button with loading state for theme form
 function SaveThemeButton() {
@@ -119,7 +122,7 @@ export default function ProfilePage() {
       </div>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
+        <TabsList className="grid w-full grid-cols-5 mb-8">  {/* Changed from grid-cols-4 */}
           <TabsTrigger value="settings" className="flex gap-2 items-center">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Settings</span>
@@ -135,6 +138,10 @@ export default function ProfilePage() {
           <TabsTrigger value="orders" className="flex gap-2 items-center">
             <ShoppingBag className="h-4 w-4" />
             <span className="hidden sm:inline">Orders</span>
+          </TabsTrigger>
+          <TabsTrigger value="shipping" className="flex gap-2 items-center">
+            <Truck className="h-4 w-4" />
+            <span className="hidden sm:inline">Shipping</span>
           </TabsTrigger>
         </TabsList>
 
@@ -281,6 +288,19 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
           <Suspense fallback={<LoadingSpinner />}>
             <OrderItems />
           </Suspense>
+        </TabsContent>
+
+        {/* // In  TabsContent for shipping */}
+        <TabsContent value="shipping">
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping Addresses</CardTitle>
+              <CardDescription>Manage your shipping addresses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ShippingAddresses />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
