@@ -145,6 +145,66 @@ export async function saveShippingAddress(address: Omit<ShippingAddress, 'id'>) 
   }
 }
 
+export async function updateShippingAddress(addressId: string, addressData: Omit<ShippingAddress, 'id'>) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const { db } = await connectToDatabase();
+    const collection = db.collection("userpreferences");
+
+    // First, find the document and check if the address exists
+    const userPreference = await collection.findOne(
+      { 
+        email: session.user.email,
+        "shippingAddresses.id": addressId 
+      }
+    );
+
+    if (!userPreference) {
+      return { success: false, error: "Address not found" };
+    }
+
+    const result = await collection.updateOne(
+      { 
+        email: session.user.email,
+        "shippingAddresses.id": addressId 
+      },
+      { 
+        $set: { 
+          "shippingAddresses.$": {
+            ...addressData,
+            id: addressId
+          },
+          updatedAt: new Date()
+        }
+      }
+    );
+
+    if (!result.matchedCount) {
+      return { success: false, error: "Address not found" };
+    }
+
+    if (!result.modifiedCount) {
+      return { success: false, error: "No changes made to the address" };
+    }
+
+    revalidatePath("/profile");
+    return { 
+      success: true,
+      message: "Address updated successfully"
+    };
+  } catch (error) {
+    console.error("Error updating shipping address:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to update shipping address" 
+    };
+  }
+}
+
 /**
  * Get all user preferences from the database
  */
@@ -851,5 +911,38 @@ export async function saveEmailPreferences(preferences: {
   } catch (error) {
     console.error("Failed to save email preferences:", error);
     return { success: false, error: "Failed to save preferences" };
+  }
+}
+
+// Add this new function
+export async function deleteShippingAddress(addressId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const { db } = await connectToDatabase();
+    const collection = db.collection("userpreferences");
+
+    const result = await collection.updateOne(
+      { email: session.user.email },
+      { 
+        $pull: { 
+          shippingAddresses: { id: addressId } 
+        } as any,
+        $set: { updatedAt: new Date() }
+      }
+    );
+
+    if (!result.acknowledged) {
+      throw new Error("Database operation not acknowledged");
+    }
+
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting shipping address:", error);
+    return { success: false, error: "Failed to delete shipping address" };
   }
 }

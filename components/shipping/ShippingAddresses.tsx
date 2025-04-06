@@ -9,6 +9,7 @@ import { getUserPreferences } from "@/app/_actions/user-preferences";
 import type { ShippingAddress } from "@/app/_actions/user-preferences";
 import { toast } from "@/components/ui/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";  // Add this import
+import { deleteShippingAddress } from "@/app/_actions/user-preferences";
 
 export default function ShippingAddresses() {
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
@@ -42,6 +43,27 @@ export default function ShippingAddresses() {
   if (isLoading) {
     return <LoadingSpinner />;
   }
+
+  const handleDelete = async (addressId: string) => {
+    try {
+      const result = await deleteShippingAddress(addressId);
+      if (result.success) {
+        toast({
+          title: "Address Deleted",
+          description: "Shipping address has been removed successfully.",
+        });
+        loadAddresses(); // Refresh the list
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete shipping address",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -83,6 +105,7 @@ export default function ShippingAddresses() {
                     variant="outline"
                     size="sm"
                     className="text-red-600 hover:text-red-700"
+                    onClick={() => handleDelete(address.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

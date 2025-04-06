@@ -6,22 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
-import { saveShippingAddress } from "@/app/_actions/user-preferences";
+import { saveShippingAddress, updateShippingAddress } from "@/app/_actions/user-preferences";
 import { Loader2 } from "lucide-react";
+import type { ShippingAddress } from "@/app/_actions/user-preferences";
 
 interface AddressFormProps {
-  address?: {
-    fullName: string;
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    mobileNumber: string;
-    phoneNumber?: string;
-    isDefault: boolean;
-  } | null;  // Add this prop
+  address?: ShippingAddress | null;  // Update to use ShippingAddress type
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -40,6 +30,9 @@ export default function AddressForm({ address, onSuccess, onCancel }: AddressFor
             setIsDefault(value as boolean);
             return;
           }
+          if (key === 'id') {
+            return; // Skip the id field
+          }
           const input = form.elements.namedItem(key) as HTMLInputElement;
           if (input && value !== undefined) {
             input.value = value.toString();
@@ -55,7 +48,7 @@ export default function AddressForm({ address, onSuccess, onCancel }: AddressFor
 
     try {
       const formData = new FormData(e.currentTarget);
-      const address = {
+      const addressData = {
         fullName: formData.get('fullName') as string,
         addressLine1: formData.get('addressLine1') as string,
         addressLine2: formData.get('addressLine2') as string || undefined,
@@ -65,14 +58,22 @@ export default function AddressForm({ address, onSuccess, onCancel }: AddressFor
         country: formData.get('country') as string,
         mobileNumber: formData.get('mobileNumber') as string,
         phoneNumber: formData.get('phoneNumber') as string || undefined,
-        isDefault: formData.get('isDefault') === 'true',
+        isDefault: isDefault,
       };
 
-      const result = await saveShippingAddress(address);
+      let result;
+      if (address?.id) {
+        result = await updateShippingAddress(address.id, addressData);
+      } else {
+        result = await saveShippingAddress(addressData);
+      }
+
       if (result.success) {
         toast({
-          title: "Address Saved",
-          description: "Your shipping address has been saved successfully.",
+          title: address?.id ? "Address Updated" : "Address Saved",
+          description: address?.id 
+            ? "Your shipping address has been updated successfully."
+            : "Your shipping address has been saved successfully.",
         });
         onSuccess?.();
       } else {
@@ -81,7 +82,7 @@ export default function AddressForm({ address, onSuccess, onCancel }: AddressFor
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save shipping address",
+        description: error instanceof Error ? error.message : "Failed to save shipping address",
         variant: "destructive",
       });
     } finally {
