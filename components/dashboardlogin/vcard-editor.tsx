@@ -140,6 +140,38 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
           </Button>
         </div>
 
+        {/* Add Image Display Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 border-b pb-4 sm:pb-6">
+          <div>
+            <Label className="text-xs sm:text-sm text-gray-500">Profile Photo</Label>
+            {user.photo ? (
+              <div className="mt-2">
+                <img 
+                  src={user.photo} 
+                  alt="Profile" 
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-gray-200"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">No profile photo</p>
+            )}
+          </div>
+          <div>
+            <Label className="text-xs sm:text-sm text-gray-500">Company Logo</Label>
+            {user.companyLogo ? (
+              <div className="mt-2">
+                <img 
+                  src={user.companyLogo} 
+                  alt="Company Logo" 
+                  className="w-24 h-24 rounded-lg object-contain bg-white p-2 border-2 border-gray-200"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">No company logo</p>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <Label className="text-xs sm:text-sm text-gray-500">Name</Label>
@@ -404,4 +436,4 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
       </div>
     </form>
   )
-} 
+}

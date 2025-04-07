@@ -18,6 +18,9 @@ import IncompleteProfileView from './IncompleteProfileView';
 import VCardEditor from "./vcard-editor"
 import DigitalProfile from "./digital-profile"
 
+// Add this import at the top with other imports
+import { toast } from "sonner"
+
 interface CompletedProfileViewProps {
   userEmail?: string;
 }
@@ -160,35 +163,65 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your vCard to easily share your contact information with others.
                 </p>
+                // Inside the vCard download button onClick handler, update the vCard generation:
                 <Button 
                   className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm"
-                  onClick={() => {
-                    // Generate vCard data
-                    const vCardData = [
-                      'BEGIN:VCARD',
-                      'VERSION:3.0',
-                      `FN:${profileData.name}`,
-                      `N:${profileData.lastName || ''};${profileData.firstName || ''};${profileData.middleName || ''};;`,
-                      `TITLE:${profileData.title || ''}`,
-                      `ORG:${profileData.company || ''}`,
-                      `EMAIL;type=WORK:${profileData.workEmail || ''}`,
-                      `TEL;type=WORK:${profileData.workPhone || ''}`,
-                      `TEL;type=CELL:${profileData.mobile || ''}`,
-                      `ADR;type=WORK:;;${profileData.workStreet || ''};${profileData.workCity || ''};${profileData.workState || ''};${profileData.workZipcode || ''};${profileData.workCountry || ''}`,
-                      profileData.website ? `URL:${profileData.website}` : '',
-                      'END:VCARD'
-                    ].filter(Boolean).join('\n');
-
-                    // Create and trigger download
-                    const blob = new Blob([vCardData], { type: 'text/vcard' });
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${profileData.name.replace(/\s+/g, '-')}.vcf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
+                  onClick={async () => {
+                    try {
+                      // Convert image URLs to base64
+                      let photoBase64 = '';
+                      let logoBase64 = '';
+                  
+                      if (profileData.photo) {
+                        const photoResponse = await fetch(profileData.photo);
+                        const photoBlob = await photoResponse.blob();
+                        photoBase64 = await new Promise((resolve) => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => resolve(reader.result as string);
+                          reader.readAsDataURL(photoBlob);
+                        });
+                      }
+                  
+                      if (profileData.companyLogo) {
+                        const logoResponse = await fetch(profileData.companyLogo);
+                        const logoBlob = await logoResponse.blob();
+                        logoBase64 = await new Promise((resolve) => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => resolve(reader.result as string);
+                          reader.readAsDataURL(logoBlob);
+                        });
+                      }
+                  
+                      // Generate vCard data with photo and logo
+                      const vCardData = [
+                        'BEGIN:VCARD',
+                        'VERSION:3.0',
+                        `FN:${profileData.name}`,
+                        `N:${profileData.lastName || ''};${profileData.firstName || ''};${profileData.middleName || ''};;`,
+                        `TITLE:${profileData.title || ''}`,
+                        `ORG:${profileData.company || ''}`,
+                        `EMAIL;type=WORK:${profileData.workEmail || ''}`,
+                        `TEL;type=WORK:${profileData.workPhone || ''}`,
+                        `TEL;type=CELL:${profileData.mobile || ''}`,
+                        `ADR;type=WORK:;;${profileData.workStreet || ''};${profileData.workCity || ''};${profileData.workState || ''};${profileData.workZipcode || ''};${profileData.workCountry || ''}`,
+                        profileData.website ? `URL:${profileData.website}` : '',
+                        photoBase64 ? `PHOTO;ENCODING=b;TYPE=JPEG:${photoBase64.split(',')[1]}` : '',
+                        logoBase64 ? `LOGO;ENCODING=b;TYPE=JPEG:${logoBase64.split(',')[1]}` : '',
+                        'END:VCARD'
+                      ].filter(Boolean).join('\n');
+                      const blob = new Blob([vCardData], { type: 'text/vcard' });
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `${profileData.name.replace(/\s+/g, '-')}.vcf`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                      console.error('Error generating vCard:', error);
+                      toast.error("Failed to generate vCard with images. Please try again.");
+                    }
                   }}
                 >
                   <Download className="mr-2 h-3 w-3 md:h-4 md:w-4" />
@@ -310,4 +343,4 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       {renderProfileContent()}
     </div>
   );
-} 
+}

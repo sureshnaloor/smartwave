@@ -44,13 +44,13 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
         resolve()
         return
       }
-
+  
       const ctx = canvas.getContext('2d')
       if (!ctx) {
         resolve()
         return
       }
-
+  
       const img = document.createElement('img')
       img.crossOrigin = "anonymous"
       img.onload = () => {
@@ -60,21 +60,29 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
         const actualLogoSize = displayLogoSize * dpiScale // Actual size for higher DPI
         const logoX = (canvas.width - displayLogoSize) / 2
         const logoY = (canvas.height - displayLogoSize) / 2
-
+  
+        // Add padding (20% of logo size) for white background
+        const padding = displayLogoSize * 0.2
+        const backgroundSize = displayLogoSize + (padding * 2)
+        const backgroundX = logoX - padding
+        const backgroundY = logoY - padding
+  
         // Create a temporary canvas for high-res logo
         const logoCanvas = document.createElement('canvas')
         logoCanvas.width = actualLogoSize
         logoCanvas.height = actualLogoSize
         const logoCtx = logoCanvas.getContext('2d')
         if (!logoCtx) return
-
+  
         // Draw logo at higher resolution
         logoCtx.drawImage(img, 0, 0, actualLogoSize, actualLogoSize)
-
-        // Create a white background for the logo
+  
+        // Create a white background with rounded corners for the logo
         ctx.fillStyle = 'white'
-        ctx.fillRect(logoX - 2, logoY - 2, displayLogoSize + 4, displayLogoSize + 4)
-
+        ctx.beginPath()
+        ctx.roundRect(backgroundX, backgroundY, backgroundSize, backgroundSize, 8)
+        ctx.fill()
+  
         // Draw the high-res logo scaled down
         ctx.drawImage(logoCanvas, logoX, logoY, displayLogoSize, displayLogoSize)
         setLogoLoaded(true)
