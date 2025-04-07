@@ -1,8 +1,8 @@
 import { getProfileByShortUrl } from "@/app/_actions/profile"
 import { notFound } from "next/navigation"
-import Image from "next/image"
 import { DigitalProfile } from "@/components/digitalprofile/digitalprofile"
-import { User, Mail, Phone, Globe, MapPin, Building2, Linkedin, Twitter, Facebook, Instagram, Youtube } from "lucide-react"
+import { ProfileActions } from "@/components/publicprofile/ProfileActions"
+import { ProfileData } from "@/app/_actions/profile"
 
 export default async function PublicProfilePage({
   params,
@@ -17,7 +17,15 @@ export default async function PublicProfilePage({
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-     <DigitalProfile profileData={{...profile, dates: [{}], locations: []}} />
+      <div className="container mx-auto px-4">
+        {/* <ProfileActions profile={profile} /> */}
+        <DigitalProfile 
+          profileData={{
+            ...profile,
+           
+          }}
+        />
+      </div>
     </div>
   )
-} 
+}
