@@ -170,76 +170,106 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     generateQR()
   }, [currentTheme, user])
 
+  // Update the print dimensions constants (300 DPI for high quality)
+  const PRINT_CARD_WIDTH = 1050  // 3.5 inches * 300dpi
+  const PRINT_CARD_HEIGHT = 600  // 2 inches * 300dpi
+  
+  // Update the downloadBusinessCard function
   const downloadBusinessCard = async () => {
-    if (!frontRef.current || !backRef.current || isDownloading) return
+    if (!frontRef.current || !backRef.current || isDownloading) return;
     
-    setIsDownloading(true)
+    setIsDownloading(true);
     try {
-      // Configure options for high-quality print
+      // Store original states
+      const originalShowFront = showFront;
+      const originalFrontVisibility = frontRef.current.style.visibility;
+      const originalBackVisibility = backRef.current.style.visibility;
+      const originalFrontDisplay = frontRef.current.style.display;
+      const originalBackDisplay = backRef.current.style.display;
+  
+      // Configure options for exact dimensions
       const options = {
         width: PRINT_CARD_WIDTH,
         height: PRINT_CARD_HEIGHT,
         quality: 1,
-        pixelRatio: 3,
+        pixelRatio: 1,
         skipAutoScale: true,
-        backgroundColor: currentTheme === 'minimal' ? '#f7f3eb' : 
-                       currentTheme === 'dark' ? '#111827' : '#2563eb',
+        canvasWidth: PRINT_CARD_WIDTH,
+        canvasHeight: PRINT_CARD_HEIGHT,
+      };
+  
+      // Capture style for both sides
+      const captureStyle = `
+        width: ${PRINT_CARD_WIDTH}px !important;
+        height: ${PRINT_CARD_HEIGHT}px !important;
+        transform: none !important;
+        transition: none !important;
+        position: absolute !important;
+        visibility: visible !important;
+        display: block !important;
+        opacity: 1 !important;
+      `;
+  
+      // Prepare front side for capture
+      frontRef.current.style.cssText += captureStyle;
+      frontRef.current.style.transform = 'none';
+      frontRef.current.classList.remove('hidden');
+      
+      // Capture front
+      const frontImage = await htmlToImage.toJpeg(frontRef.current, {
+        ...options,
         style: {
-          transform: 'none',
+          // Remove spread of options.style since it doesn't exist in the options type
           background: currentTheme === 'minimal' ? '#f7f3eb' : 
                      currentTheme === 'dark' ? 'radial-gradient(ellipse at top right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
                      'linear-gradient(to right, rgb(37, 99, 235), rgb(220, 38, 38))'
         }
-      }
-
-      // Show front side temporarily for capture
-      const originalShowFront = showFront
-      setShowFront(true)
-      await new Promise(resolve => setTimeout(resolve, 100)) // Wait for state update
-
-      // Capture front side
-      const frontImage = await htmlToImage.toJpeg(frontRef.current, options)
-      const frontLink = document.createElement('a')
-      frontLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_front.jpg`
-      frontLink.href = frontImage
-      frontLink.click()
-
-      // Small delay between downloads
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // Show back side for capture
-      setShowFront(false)
-      await new Promise(resolve => setTimeout(resolve, 100)) // Wait for state update
-
-      // Update background for back side
-      const backOptions = {
+      });
+  
+      // Prepare back side for capture
+      backRef.current.style.cssText += captureStyle;
+      backRef.current.style.transform = 'none';
+      backRef.current.classList.remove('hidden');
+  
+      // Capture back
+      const backImage = await htmlToImage.toJpeg(backRef.current, {
         ...options,
-        backgroundColor: currentTheme === 'minimal' ? '#f0ece4' : 
-                        currentTheme === 'dark' ? '#111827' : '#dc2626',
         style: {
-          transform: 'none',
+// Remove spread of options.style since it's not defined in the options type
           background: currentTheme === 'minimal' ? '#f0ece4' : 
-                      currentTheme === 'dark' ? 'radial-gradient(ellipse at top left, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
-                      'linear-gradient(to right, rgb(220, 38, 38), rgb(37, 99, 235))'
+                     currentTheme === 'dark' ? 'radial-gradient(ellipse at top left, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
+                     'linear-gradient(to right, rgb(220, 38, 38), rgb(37, 99, 235))'
         }
-      }
-
-      // Capture back side
-      const backImage = await htmlToImage.toJpeg(backRef.current, backOptions)
-      const backLink = document.createElement('a')
-      backLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_back.jpg`
-      backLink.href = backImage
-      backLink.click()
-
-      // Restore original state
-      setShowFront(originalShowFront)
-
+      });
+  
+      // Download front
+      const frontLink = document.createElement('a');
+      frontLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_front.jpg`;
+      frontLink.href = frontImage;
+      frontLink.click();
+  
+      // Small delay between downloads
+      await new Promise(resolve => setTimeout(resolve, 500));
+  
+      // Download back
+      const backLink = document.createElement('a');
+      backLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_back.jpg`;
+      backLink.href = backImage;
+      backLink.click();
+  
+      // Restore original states
+      frontRef.current.style.visibility = originalFrontVisibility;
+      backRef.current.style.visibility = originalBackVisibility;
+      frontRef.current.style.display = originalFrontDisplay;
+      backRef.current.style.display = originalBackDisplay;
+      setShowFront(originalShowFront);
+  
     } catch (error) {
-      console.error('Error generating business card images:', error)
+      console.error('Error generating business card images:', error);
     } finally {
-      setIsDownloading(false)
+      setIsDownloading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
