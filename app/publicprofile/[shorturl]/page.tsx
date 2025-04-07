@@ -1,8 +1,7 @@
 import { getProfileByShortUrl } from "@/app/_actions/profile"
 import { notFound } from "next/navigation"
 import { DigitalProfile } from "@/components/digitalprofile/digitalprofile"
-import { ProfileActions } from "@/components/publicprofile/ProfileActions"
-import { ProfileData } from "@/app/_actions/profile"
+
 
 export default async function PublicProfilePage({
   params,
