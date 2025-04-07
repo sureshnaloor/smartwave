@@ -163,7 +163,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your vCard to easily share your contact information with others.
                 </p>
-                // Inside the vCard download button onClick handler, update the vCard generation:
+               {/* Inside the vCard download button onClick handler, update the vCard generation: */}
                 <Button 
                   className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm"
                   onClick={async () => {
