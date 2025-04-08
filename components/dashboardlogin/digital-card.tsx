@@ -137,7 +137,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       'END:VCARD'
     ].filter(Boolean).join('\n')
 
-    console.log('Generated vCard data:', vCardData) // For debugging
+    // console.log('Generated vCard data:', vCardData) // For debugging
     return vCardData
   }
 
@@ -145,7 +145,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   useEffect(() => {
     const generateQR = async () => {
       const vCardData = generateVCardData()
-      console.log('Generating QR code with vCard data:', vCardData)
+      // console.log('Generating QR code with vCard data:', vCardData)
       
       try {
         const qrOptions = {
@@ -160,10 +160,10 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         }
 
         const url = await QRCode.toDataURL(vCardData, qrOptions)
-        console.log('QR code generated successfully')
+        // console.log('QR code generated successfully')
         setQrDataUrl(url)
       } catch (err) {
-        console.error("Error generating QR code:", err)
+        // console.error("Error generating QR code:", err)
       }
     }
 
@@ -265,7 +265,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       setShowFront(originalShowFront);
   
     } catch (error) {
-      console.error('Error generating business card images:', error);
+      // console.error('Error generating business card images:', error);
     } finally {
       setIsDownloading(false);
     }
@@ -414,7 +414,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                         alt="QR Code"
                         className="w-full h-full"
                         onError={(e) => {
-                          console.error('QR code image failed to load')
+                          // console.error('QR code image failed to load')
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'
                         }}

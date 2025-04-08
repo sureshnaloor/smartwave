@@ -28,7 +28,7 @@ const withErrorHandling = async <T>(operation: () => Promise<T>, fallback: T | n
   try {
     return await operation();
   } catch (error) {
-    console.error('MongoDB adapter error:', error);
+    // console.error('MongoDB adapter error:', error);
     return fallback;
   }
 };
@@ -38,7 +38,7 @@ const withVoidErrorHandling = async (operation: () => Promise<void>): Promise<vo
   try {
     await operation();
   } catch (error) {
-    console.error('MongoDB adapter error:', error);
+    // console.error('MongoDB adapter error:', error);
   }
 };
 

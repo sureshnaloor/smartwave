@@ -40,7 +40,7 @@ export function ThemeProvider({
           setTheme(result.theme as Theme);
         }
       } catch (error) {
-        console.error("Failed to load theme preference:", error);
+        // console.error("Failed to load theme preference:", error);
       }
     };
 

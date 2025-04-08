@@ -89,7 +89,7 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
         resolve()
       }
       img.onerror = () => {
-        console.error("Error loading logo")
+        // console.error("Error loading logo")
         resolve()
       }
       img.src = logoUrl
@@ -124,7 +124,7 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
 
         setQrDataUrl(canvas.toDataURL('image/png'))
       } catch (err) {
-        console.error("Error generating QR code:", err)
+        // console.error("Error generating QR code:", err)
       }
     }
 

@@ -38,7 +38,7 @@ export default function StoreItems() {
       const data = await getStoreItems(selectedCountry.currency)
       setStoreData(data)
     } catch (error) {
-      console.error("Failed to load store items:", error)
+      // console.error("Failed to load store items:", error)
       toast.error("Failed to load store items. Please refresh the page.")
     } finally {
       setLoading(false)

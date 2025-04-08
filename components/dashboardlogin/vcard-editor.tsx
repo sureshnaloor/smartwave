@@ -59,7 +59,7 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
         setCompanyLogoUrl(data.secure_url)
       }
     } catch (error) {
-      console.error('Error uploading image:', error)
+      // console.error('Error uploading image:', error)
       setError(error instanceof Error ? error.message : 'Failed to upload image')
     } finally {
       setUploading(false)
@@ -73,10 +73,10 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
       formData.append('companyLogo', companyLogoUrl)
 
       // Log the user object and form data
-      console.log('Current user data:', user)
-      console.log('Form data userEmail:', formData.get('userEmail'))
-      console.log('Photo URL:', photoUrl)
-      console.log('Company Logo URL:', companyLogoUrl)
+      // console.log('Current user data:', user)
+      // console.log('Form data userEmail:', formData.get('userEmail'))
+      // console.log('Photo URL:', photoUrl)
+      // console.log('Company Logo URL:', companyLogoUrl)
 
       const result = await updateVCardInfo(formData)
       if (result.success) {
@@ -120,7 +120,7 @@ export default function VCardEditor({ user, onUpdate }: VCardEditorProps) {
         setError(result.error || "Failed to update contact information")
       }
     } catch (error) {
-      console.error("Error updating vCard info:", error)
+      // console.error("Error updating vCard info:", error)
       setError(error instanceof Error ? error.message : "Failed to update contact information")
     }
   }

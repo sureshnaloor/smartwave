@@ -82,7 +82,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       setIsEditing(false);
       router.refresh();
     } catch (error) {
-      console.error('Error updating profile:', error);
+      // console.error('Error updating profile:', error);
     }
   };
 
@@ -219,7 +219,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
                       document.body.removeChild(link);
                       window.URL.revokeObjectURL(url);
                     } catch (error) {
-                      console.error('Error generating vCard:', error);
+                      // console.error('Error generating vCard:', error);
                       toast.error("Failed to generate vCard with images. Please try again.");
                     }
                   }}

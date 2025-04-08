@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
             image: user.image,
           };
         } catch (error) {
-          console.error("Error during authentication:", error);
+          // console.error("Error during authentication:", error);
           return null;
         }
       },

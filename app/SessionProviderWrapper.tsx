@@ -29,9 +29,9 @@ export default function SessionProviderWrapper({ children }: { children: ReactNo
           }
         });
         
-        console.log('Auth state cleaned');
+        // console.log('Auth state cleaned');
       } catch (e) {
-        console.error('Error cleaning auth state:', e);
+        // console.error('Error cleaning auth state:', e);
       }
     };
 
@@ -40,7 +40,7 @@ export default function SessionProviderWrapper({ children }: { children: ReactNo
       if (event.reason?.message?.includes('JWE') || 
           event.reason?.message?.includes('JWT') ||
           event.reason?.message?.includes('session')) {
-        console.warn('Auth error detected, clearing session state');
+        // console.warn('Auth error detected, clearing session state');
         handleError();
         // Reload the page to get a fresh session
         window.location.reload();
@@ -51,7 +51,7 @@ export default function SessionProviderWrapper({ children }: { children: ReactNo
 
     // Check for URL indicators of auth issues
     if (window.location.search.includes('error=')) {
-      console.warn('Auth error detected in URL, cleaning session state');
+      // console.warn('Auth error detected in URL, cleaning session state');
       handleError();
     }
 

@@ -36,7 +36,7 @@ export async function getUserProfile(userEmail: string) {
 
     return { success: true, profile }
   } catch (error) {
-    console.error("Error fetching user profile:", error)
+    // console.error("Error fetching user profile:", error)
     throw error
   }
 }
@@ -47,9 +47,9 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
     const db = client.db('smartwave')  // Explicitly use smartwave database
     
     // Log database info
-    console.log('Connected to database:', db.databaseName)
+    // console.log('Connected to database:', db.databaseName)
     const collections = await db.listCollections().toArray()
-    console.log('Available collections:', collections.map(c => c.name))
+    // console.log('Available collections:', collections.map(c => c.name))
     
     const userEmail = formData.get('userEmail') as string
     if (!userEmail) {
@@ -76,9 +76,9 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
       companyLogo: formData.get('companyLogo') as string,
     }
 
-    console.log('Starting vCard update')
-    console.log('Received userEmail:', userEmail)
-    console.log('Update data received:', data)
+    // console.log('Starting vCard update')
+    // console.log('Received userEmail:', userEmail)
+    // console.log('Update data received:', data)
 
     // Update only the provided fields
     const updateData: { [key: string]: string } = {}
@@ -93,19 +93,19 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
     
     // Log the total count and sample to verify collection access
     const totalProfiles = await collection.countDocuments()
-    console.log('Total profiles in collection:', totalProfiles)
+    // console.log('Total profiles in collection:', totalProfiles)
     
     // Try to find the profile with exact query
     const query = { userEmail: userEmail }
-    console.log('Searching with query:', query)
+    // console.log('Searching with query:', query)
     
     const profile = await collection.findOne(query)
-    console.log('Found profile:', profile ? 'Yes' : 'No')
+    // console.log('Found profile:', profile ? 'Yes' : 'No')
 
     if (!profile) {
       // If not found, let's see what emails are in the database
       const allProfiles = await collection.find({}).toArray()
-      console.log('All profiles in collection:', allProfiles)
+      // console.log('All profiles in collection:', allProfiles)
       throw new Error("Profile not found. Please check database connection and collection name.")
     }
 
@@ -116,7 +116,7 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
     )
 
     if (!updateResult.matchedCount) {
-      console.error('Update failed - no profile matched the query')
+      // console.error('Update failed - no profile matched the query')
       throw new Error("Failed to update contact information.")
     }
 
@@ -125,7 +125,7 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
 
     return { success: true }
   } catch (error) {
-    console.error("Error in updateVCardInfo:", error)
+    // console.error("Error in updateVCardInfo:", error)
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Failed to update contact information" 

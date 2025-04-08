@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         },
         (error, result) => {
           if (error) {
-            console.error('Cloudinary upload error:', error);
+            // console.error('Cloudinary upload error:', error);
             reject(error);
           } else {
             resolve(result);
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(uploadResponse);
   } catch (error) {
-    console.error('Error in upload route:', error);
+    // console.error('Error in upload route:', error);
     return NextResponse.json(
       { error: 'Failed to upload file' },
       { status: 500 }

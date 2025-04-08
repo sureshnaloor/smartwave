@@ -52,10 +52,10 @@ export type ProfileData = {
 
 export async function saveProfile(data: Partial<ProfileData>, userEmail: string) {
   try {
-    console.log('saveProfile called with:', { userEmail, dataFields: Object.keys(data) });
+    // console.log('saveProfile called with:', { userEmail, dataFields: Object.keys(data) });
 
     if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
-      console.error('Invalid userEmail in saveProfile:', { userEmail });
+      // console.error('Invalid userEmail in saveProfile:', { userEmail });
       return { 
         success: false, 
         error: 'User email is required' 
@@ -73,11 +73,11 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       updatedAt: now,
     };
 
-    console.log('Checking existing profile for user:', userEmail);
+    // console.log('Checking existing profile for user:', userEmail);
     const existingProfile = await db.collection('profiles').findOne({ userEmail });
 
     if (existingProfile) {
-      console.log('Updating existing profile for user:', userEmail);
+      // console.log('Updating existing profile for user:', userEmail);
       await db.collection('profiles').updateOne(
         { userEmail },
         { 
@@ -86,7 +86,7 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
         }
       );
     } else {
-      console.log('Creating new profile for user:', userEmail);
+      // console.log('Creating new profile for user:', userEmail);
       await db.collection('profiles').insertOne({
         ...profileData,
         createdAt: now,
@@ -98,11 +98,11 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
     revalidatePath(`/profile/${userEmail}`);
     return { success: true };
   } catch (error) {
-    console.error('Profile save error:', {
-      error,
-      userEmail,
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    // console.error('Profile save error:', {
+    //   error,
+    //   userEmail,
+    //   stack: error instanceof Error ? error.stack : undefined
+    // });
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to save profile' 
@@ -113,25 +113,25 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
 export async function getProfile(userEmail: string): Promise<ProfileData | null> {
   try {
     if (!userEmail) {
-      console.error('No userEmail provided to getProfile');
+      // console.error('No userEmail provided to getProfile');
       return null;
     }
 
     const client = await clientPromise;
     const db = client.db('smartwave');
     
-    console.log(`Fetching profile for user: ${userEmail}`);
+    // console.log(`Fetching profile for user: ${userEmail}`);
     const profile = await db.collection('profiles').findOne({ userEmail });
     
     if (!profile) {
-      console.log(`No profile found for user: ${userEmail}`);
+      // console.log(`No profile found for user: ${userEmail}`);
       return null;
     }
 
-    console.log(`Profile found for user: ${userEmail}`);
+    // console.log(`Profile found for user: ${userEmail}`);
     return profile as ProfileData;
   } catch (error) {
-    console.error('Failed to get profile:', error);
+    // console.error('Failed to get profile:', error);
     return null;
   }
 }
@@ -145,7 +145,7 @@ export async function deleteProfile(userEmail: string) {
     revalidatePath('/dashboard');
     return { success: true };
   } catch (error) {
-    console.error('Failed to delete profile:', error);
+    // console.error('Failed to delete profile:', error);
     return { success: false, error: 'Failed to delete profile' };
   }
 }
@@ -155,18 +155,18 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
     const client = await clientPromise;
     const db = client.db('smartwave');
     
-    console.log(`Fetching profile by shortURL: ${shorturl}`);
+    // console.log(`Fetching profile by shortURL: ${shorturl}`);
     const profile = await db.collection('profiles').findOne({ shorturl });
     
     if (!profile) {
-      console.log(`No profile found for shortURL: ${shorturl}`);
+      // console.log(`No profile found for shortURL: ${shorturl}`);
       return null;
     }
 
-    console.log(`Profile found for shortURL: ${shorturl}`);
+    // console.log(`Profile found for shortURL: ${shorturl}`);
     return profile as ProfileData;
   } catch (error) {
-    console.error('Failed to get profile by shortURL:', error);
+    // console.error('Failed to get profile by shortURL:', error);
     return null;
   }
 }
@@ -195,7 +195,7 @@ export async function generateAndUpdateShortUrl(userEmail: string) {
     revalidatePath('/dashboard');
     return { success: true, shorturl };
   } catch (error) {
-    console.error('Failed to generate short URL:', error);
+    // console.error('Failed to generate short URL:', error);
     return { success: false, error: 'Failed to generate short URL' };
   }
 } 

@@ -81,7 +81,7 @@ export default function ProfilePage() {
           });
         }
       } catch (error) {
-        console.error("Error saving theme:", error);
+        // console.error("Error saving theme:", error);
         toast({
           title: "Error",
           description: "An unexpected error occurred while saving your theme preference.",
@@ -218,7 +218,7 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
                             });
                           }
                         } catch (error) {
-                          console.error("Error saving email preferences:", error);
+                          // console.error("Error saving email preferences:", error);
                           toast({
                             title: "Error",
                             description: "An unexpected error occurred",
@@ -256,7 +256,7 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
                             });
                           }
                         } catch (error) {
-                          console.error("Error saving email preferences:", error);
+                          // console.error("Error saving email preferences:", error);
                           toast({
                             title: "Error",
                             description: "An unexpected error occurred",

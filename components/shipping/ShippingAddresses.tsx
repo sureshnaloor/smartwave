@@ -29,7 +29,7 @@ export default function ShippingAddresses() {
         setAddresses(result.shippingAddresses);
       }
     } catch (error) {
-      console.error("Error loading addresses:", error);
+      // console.error("Error loading addresses:", error);
       toast({
         title: "Error",
         description: "Failed to load shipping addresses",

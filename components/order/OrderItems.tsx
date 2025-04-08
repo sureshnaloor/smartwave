@@ -54,7 +54,7 @@ export default function OrderItems() {
         setOrders(userPrefs.orders as Order[])
       }
     } catch (error) {
-      console.error("Failed to load orders:", error)
+      // console.error("Failed to load orders:", error)
       toast.error("Failed to load your orders. Please try again.")
     } finally {
       setLoading(false)

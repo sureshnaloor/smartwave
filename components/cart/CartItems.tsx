@@ -131,7 +131,7 @@ export default function CartItems() {
         setCartItems(userPrefs.cart as CartItem[])
       }
     } catch (error) {
-      console.error("Failed to load cart:", error)
+      // console.error("Failed to load cart:", error)
       toast.error("Failed to load your cart. Please try again.")
     } finally {
       setLoading(false)
@@ -162,7 +162,7 @@ export default function CartItems() {
       setCartItems(updatedCart)
       toast.success("Cart updated")
     } catch (error) {
-      console.error("Failed to update cart:", error)
+      // console.error("Failed to update cart:", error)
       toast.error("Failed to update cart. Please try again.")
       
       // Refresh cart state from server in case of error
@@ -186,7 +186,7 @@ export default function CartItems() {
       setCartItems(updatedCart)
       toast.success("Item removed from cart")
     } catch (error) {
-      console.error("Failed to remove item:", error)
+      // console.error("Failed to remove item:", error)
       toast.error("Failed to remove item. Please try again.")
       
       // Refresh cart state from server in case of error
@@ -224,7 +224,7 @@ export default function CartItems() {
       router.push("/orders")
       router.refresh()
     } catch (error) {
-      console.error("Failed to place order:", error)
+      // console.error("Failed to place order:", error)
       toast.error("Failed to place order. Please try again.")
     } finally {
       setProcessingCheckout(false)

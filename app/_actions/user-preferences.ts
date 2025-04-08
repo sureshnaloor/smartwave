@@ -140,7 +140,7 @@ export async function saveShippingAddress(address: Omit<ShippingAddress, 'id'>) 
     revalidatePath("/profile");
     return { success: true, address: newAddress };
   } catch (error) {
-    console.error("Error saving shipping address:", error);
+    // console.error("Error saving shipping address:", error);
     return { success: false, error: "Failed to save shipping address" };
   }
 }
@@ -197,7 +197,7 @@ export async function updateShippingAddress(addressId: string, addressData: Omit
       message: "Address updated successfully"
     };
   } catch (error) {
-    console.error("Error updating shipping address:", error);
+    // console.error("Error updating shipping address:", error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Failed to update shipping address" 
@@ -248,7 +248,7 @@ export async function getUserPreferences() {
       shippingAddresses: userPreference.shippingAddresses || []
     };
   } catch (error) {
-    console.error("Error getting user preferences:", error);
+    // console.error("Error getting user preferences:", error);
     return { 
       success: false, 
       error: "Failed to get user preferences",
@@ -274,7 +274,7 @@ export async function saveWishlist(wishlistItems: WishlistItem[]) {
     // Validate wishlist
     const validationResult = z.array(wishlistItemSchema).safeParse(wishlistItems);
     if (!validationResult.success) {
-      console.warn(`Invalid wishlist data`);
+      // console.warn(`Invalid wishlist data`);
       return { 
         success: false, 
         error: "Invalid wishlist data" 
@@ -312,7 +312,7 @@ export async function saveWishlist(wishlistItems: WishlistItem[]) {
     
     return { success: true, wishlist: wishlistItems };
   } catch (error) {
-    console.error("Error saving wishlist:", error);
+    // console.error("Error saving wishlist:", error);
     return { success: false, error: "Failed to save wishlist" };
   }
 }
@@ -331,7 +331,7 @@ export async function saveCart(cartItems: CartItem[]) {
     // Validate cart
     const validationResult = z.array(cartItemSchema).safeParse(cartItems);
     if (!validationResult.success) {
-      console.warn(`Invalid cart data`);
+      // console.warn(`Invalid cart data`);
       return { 
         success: false, 
         error: "Invalid cart data" 
@@ -370,7 +370,7 @@ export async function saveCart(cartItems: CartItem[]) {
     
     return { success: true, cart: cartItems };
   } catch (error) {
-    console.error("Error saving cart:", error);
+    // console.error("Error saving cart:", error);
     return { success: false, error: "Failed to save cart" };
   }
 }
@@ -436,7 +436,7 @@ export async function saveOrder(order: any) {
     
     return { success: true, order: newOrder };
   } catch (error) {
-    console.error("Error saving order:", error);
+    // console.error("Error saving order:", error);
     return { success: false, error: "Failed to save order" };
   }
 }
@@ -551,7 +551,7 @@ export async function addToWishlist(formData: FormData) {
     // Validate item
     const validationResult = wishlistItemSchema.safeParse(item);
     if (!validationResult.success) {
-      console.warn(`Invalid item data`);
+      // console.warn(`Invalid item data`);
       return { 
         success: false, 
         error: "Invalid item data" 
@@ -611,7 +611,7 @@ export async function addToWishlist(formData: FormData) {
     
     return { success: true, wishlist: newWishlist };
   } catch (error) {
-    console.error("Error adding to wishlist:", error);
+    // console.error("Error adding to wishlist:", error);
     return { success: false, error: "Failed to add item to wishlist" };
   }
 }
@@ -650,7 +650,7 @@ export async function addToCart(formData: FormData) {
     // Validate item
     const validationResult = cartItemSchema.safeParse(item);
     if (!validationResult.success) {
-      console.warn(`Invalid item data`);
+      // console.warn(`Invalid item data`);
       return { 
         success: false, 
         error: "Invalid item data" 
@@ -709,7 +709,7 @@ export async function addToCart(formData: FormData) {
     
     return { success: true, cart: newCart };
   } catch (error) {
-    console.error("Error adding to cart:", error);
+    // console.error("Error adding to cart:", error);
     return { success: false, error: "Failed to add item to cart" };
   }
 }
@@ -800,7 +800,7 @@ export async function createOrderFromCart(formData: FormData) {
     
     return { success: true, order };
   } catch (error) {
-    console.error("Error creating order:", error);
+    // console.error("Error creating order:", error);
     return { success: false, error: "Failed to create order" };
   }
 }
@@ -865,7 +865,7 @@ export async function updateUserPreferences(
       message: "Preferences updated successfully"
     };
   } catch (error) {
-    console.error("Failed to update user preferences:", error);
+    // console.error("Failed to update user preferences:", error);
     return {
       success: false,
       message: "Failed to update preferences"
@@ -909,7 +909,7 @@ export async function saveEmailPreferences(preferences: {
     
     return { success: true };
   } catch (error) {
-    console.error("Failed to save email preferences:", error);
+    // console.error("Failed to save email preferences:", error);
     return { success: false, error: "Failed to save preferences" };
   }
 }
@@ -942,7 +942,7 @@ export async function deleteShippingAddress(addressId: string) {
     revalidatePath("/profile");
     return { success: true };
   } catch (error) {
-    console.error("Error deleting shipping address:", error);
+    // console.error("Error deleting shipping address:", error);
     return { success: false, error: "Failed to delete shipping address" };
   }
 }

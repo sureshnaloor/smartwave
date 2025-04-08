@@ -32,7 +32,7 @@ export default function Store() {
         const items = await getStoreItems()
         setStoreItems(items)
       } catch (error) {
-        console.error("Failed to fetch store items:", error)
+        // console.error("Failed to fetch store items:", error)
         toast.error("Failed to load store items. Please try again.")
       } finally {
         setLoading(false)

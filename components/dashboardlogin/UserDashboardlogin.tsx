@@ -66,19 +66,19 @@ export default function UserDashboardlogin() {
 
   useEffect(() => {
     // Log session state
-    console.log('UserDashboard Session State:', { 
-      status,
-      hasSession: !!session,
-      userEmail: session?.user?.email,
-      isAuthenticated: status === 'authenticated' 
-    });
+    // console.log('UserDashboard Session State:', { 
+    //   status,
+    //   hasSession: !!session,
+    //   userEmail: session?.user?.email,
+    //   isAuthenticated: status === 'authenticated' 
+    // });
 
     const fetchUserData = async () => {
       if (status === 'authenticated' && session?.user?.email) {
         try {
           setIsLoading(true);
           const profileData = await getProfile(session.user.email);
-          console.log('Profile data fetched:', profileData);
+          // console.log('Profile data fetched:', profileData);
           
           if (profileData) {
             // Map ProfileData to User type
@@ -124,10 +124,10 @@ export default function UserDashboardlogin() {
             setIsProfileComplete(true);
           } else {
             setIsProfileComplete(false);
-            console.log('No profile data found for user');
+            // console.log('No profile data found for user');
           }
         } catch (error) {
-          console.error('Error fetching profile:', error);
+          // console.error('Error fetching profile:', error);
           toast.error('Failed to load profile data');
           setIsProfileComplete(false);
         } finally {
@@ -156,7 +156,7 @@ export default function UserDashboardlogin() {
   }
 
   if (status !== 'authenticated' || !session?.user?.email) {
-    console.error('Not authenticated in UserDashboard:', { status, email: session?.user?.email });
+    // console.error('Not authenticated in UserDashboard:', { status, email: session?.user?.email });
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

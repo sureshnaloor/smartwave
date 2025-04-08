@@ -120,7 +120,7 @@ export default function WishlistItems() {
         setCartItems(userPrefs.cart as CartItem[])
       }
     } catch (error) {
-      console.error("Failed to load user data:", error)
+      // console.error("Failed to load user data:", error)
       toast.error("Failed to load your data. Please try again.")
     } finally {
       setLoading(false)
@@ -145,7 +145,7 @@ export default function WishlistItems() {
       await saveWishlist(updatedItems)
       toast.success("Item removed from wishlist")
     } catch (error) {
-      console.error("Failed to remove item:", error)
+      // console.error("Failed to remove item:", error)
       toast.error("Failed to remove item. Please try again.")
       
       // Refresh wishlist state from server on error
@@ -198,7 +198,7 @@ export default function WishlistItems() {
       
       router.refresh()
     } catch (error) {
-      console.error("Failed to add to cart:", error)
+      // console.error("Failed to add to cart:", error)
       toast.error("Failed to add item to cart. Please try again.")
       
       // Refresh data from server on error

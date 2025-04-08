@@ -5,7 +5,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 if (!process.env.MONGODB_DB) {
-  console.warn('MONGODB_DB not specified, defaulting to "smartwave"');
+  // console.warn('MONGODB_DB not specified, defaulting to "smartwave"');
 }
 
 const uri = process.env.MONGODB_URI;
@@ -53,12 +53,12 @@ export async function connectToDatabase() {
     
     // Test the connection with a ping
     await db.command({ ping: 1 });
-    console.log(`Connected to MongoDB database: ${dbName}`);
+    // console.log(`Connected to MongoDB database: ${dbName}`);
     
     cachedDb = db;
     return { client, db };
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
+    // console.error('Failed to connect to MongoDB:', error);
     // Clear cached connection on error to force a reconnect on next try
     cachedDb = null as any;
     throw new Error('Unable to connect to MongoDB');

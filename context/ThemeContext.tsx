@@ -37,7 +37,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             setTheme(savedTheme as 'light' | 'dark');
             applyTheme(savedTheme as 'light' | 'dark');
         } catch (error) {
-            console.error('Error reading theme from localStorage:', error);
+            // console.error('Error reading theme from localStorage:', error);
             // Use system preference as fallback
             const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             setTheme(systemTheme);
@@ -83,10 +83,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
                     localStorage.setItem('theme', dbTheme);
                 } else if (result.error && result.error !== 'User not authenticated') {
                     // Handle other errors, but not authentication errors which are expected sometimes
-                    console.error('Error getting theme preference:', result.error);
+                    // console.error('Error getting theme preference:', result.error);
                 }
             } catch (error) {
-                console.error('Failed to load theme from database:', error);
+                // console.error('Failed to load theme from database:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -130,11 +130,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
                 if (!result.success) {
                     // Don't show error for auth issues - just log them
                     if (result.error !== 'User not authenticated') {
-                        console.error('Failed to save theme preference:', result.error);
+                        // console.error('Failed to save theme preference:', result.error);
                     }
                 }
             } catch (error) {
-                console.error('Error saving theme preference to database:', error);
+                // console.error('Error saving theme preference to database:', error);
             }
         }
     };

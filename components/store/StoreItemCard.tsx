@@ -76,7 +76,7 @@ export default function StoreItemCard({
         )
         setIsInWishlist(inWishlist)
       } catch (error) {
-        console.error("Error checking item status:", error)
+        // console.error("Error checking item status:", error)
       } finally {
         setInitialLoading(false)
       }
@@ -106,7 +106,7 @@ export default function StoreItemCard({
           )
           setIsInWishlist(inWishlist)
         } catch (error) {
-          console.error("Error checking item status:", error)
+          // console.error("Error checking item status:", error)
         }
       }
       
@@ -168,7 +168,7 @@ export default function StoreItemCard({
       toast.success(`Added ${name} to cart!`)
       router.refresh()
     } catch (error) {
-      console.error("Failed to add to cart:", error)
+      // console.error("Failed to add to cart:", error)
       toast.error("Failed to add item to cart. Please try again.")
     } finally {
       setLoadingCart(false)
@@ -217,7 +217,7 @@ export default function StoreItemCard({
       toast.success(`Added ${name} to wishlist!`)
       router.refresh()
     } catch (error) {
-      console.error("Failed to add to wishlist:", error)
+      // console.error("Failed to add to wishlist:", error)
       toast.error("Failed to add item to wishlist. Please try again.")
     } finally {
       setLoadingWishlist(false)
