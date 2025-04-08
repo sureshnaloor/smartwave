@@ -13,15 +13,29 @@ export default async function PublicProfilePage({
     notFound()
   }
 
+  // Add the missing required properties
+  const enrichedProfile = {
+    ...profile,
+    dates: {
+      birthday: profile.birthday || undefined,
+      workAnniversary: undefined,
+      weddingAnniversary: undefined
+    },
+    locations: {
+      work: {
+        lat: 0,  // Default to 0 instead of undefined
+        lng: 0,  // Default to 0 instead of undefined
+        label: `${profile.workStreet || ''}, ${profile.workCity || ''}`
+      },
+      home: undefined
+    }
+} // Remove type assertion since ProfileData interface is not defined
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
-        {/* <ProfileActions profile={profile} /> */}
         <DigitalProfile 
-          profileData={{
-            ...profile, 
-           
-          }}
+          profileData={enrichedProfile}
         />
       </div>
     </div>

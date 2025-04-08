@@ -11,10 +11,10 @@ import { MinusIcon, PlusIcon, ShoppingCart, Heart, Check } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getUserPreferences, saveCart, saveWishlist } from "@/app/_actions/user-preferences"
-import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
-import PriceDisplay from '@/components/PriceDisplay';
+// import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+
 import { useCountry } from '@/context/CountryContext';
-import { currencyConfig } from '@/lib/currencyConfig';
+import { currencyConfig, DEFAULT_CURRENCY} from '@/lib/currencyConfig';
 
 interface StoreItemCardProps {
   id: string
@@ -25,6 +25,7 @@ interface StoreItemCardProps {
   color?: string[]
   image?: string
   currency?: string
+  showColorSelector?: boolean
 }
 
 export default function StoreItemCard({

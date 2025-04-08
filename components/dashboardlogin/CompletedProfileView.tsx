@@ -3,16 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation"
-import Image from "next/image"
+
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Download, User, ChevronRight, Mail, Phone } from "lucide-react"
+import { Download, } from "lucide-react"
 import DigitalCard from "./digital-card"
 import QRCodeGenerator from "./qr-code-generator"
 import CalendarIntegration from "./calendar-integration"
 import PaymentOptions from "./payment-options"
-import { User as UserType } from '@/app/types';
 import { getProfile, ProfileData } from '@/app/_actions/profile';
 import IncompleteProfileView from './IncompleteProfileView';
 import VCardEditor from "./vcard-editor"

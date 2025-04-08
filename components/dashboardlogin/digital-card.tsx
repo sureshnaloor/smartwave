@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2 } from "lucide-react"
-import { Card } from "@/components/ui/card"
 import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import * as htmlToImage from 'html-to-image'
@@ -12,11 +11,6 @@ import * as htmlToImage from 'html-to-image'
 // Standard business card dimensions (3.5 x 2 inches) at 4x scale
 const CARD_WIDTH = 1344 // 3.5 inches * 96px/inch * 4
 const CARD_HEIGHT = 768 // 2 inches * 96px/inch * 4
-const CARD_ASPECT_RATIO = CARD_WIDTH / CARD_HEIGHT
-
-// Standard business card dimensions (3.5 x 2 inches) at 300dpi for high quality print
-const PRINT_CARD_WIDTH = 1050 // 3.5 inches * 300dpi
-const PRINT_CARD_HEIGHT = 600 // 2 inches * 300dpi
 
 type Theme = 'smartwave' | 'minimal' | 'dark'
 

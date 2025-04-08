@@ -1,21 +1,12 @@
 "use client"
 import { useSession } from "next-auth/react"
 import { useState, useEffect } from "react"
-import Image from "next/image"
+
 import Footer from "@/components/Footer"
 import CompletedProfileView from "./CompletedProfileView"
 import IncompleteProfileView from "./IncompleteProfileView"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Download, User as UserIcon, ChevronRight } from "lucide-react"
-import ProfileForm from "../dashboardlogin/profile-form"
-import DigitalCard from "../dashboardlogin/digital-card"
-import QRCodeGenerator from "../dashboardlogin/qr-code-generator"
-import CalendarIntegration from "../dashboardlogin/calendar-integration"
-import PaymentOptions from "../dashboardlogin/payment-options"
+
+
 import { User } from "./types"
 import { getProfile } from "@/app/_actions/profile"
 import { toast } from "sonner"
@@ -65,14 +56,7 @@ export default function UserDashboardlogin() {
   })
 
   useEffect(() => {
-    // Log session state
-    // console.log('UserDashboard Session State:', { 
-    //   status,
-    //   hasSession: !!session,
-    //   userEmail: session?.user?.email,
-    //   isAuthenticated: status === 'authenticated' 
-    // });
-
+  
     const fetchUserData = async () => {
       if (status === 'authenticated' && session?.user?.email) {
         try {

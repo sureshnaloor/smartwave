@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,13 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CreditCard, Smartphone, DollarSign } from "lucide-react"
 
-export default function PaymentOptions({ user }) {
+export default function PaymentOptions({ user }: { user: { name: string; email: string } }) {
   const [activePaymentMethods, setActivePaymentMethods] = useState({
     upi: false,
     stripe: false,
   })
 
-  const togglePaymentMethod = (method) => {
+  const togglePaymentMethod = (method: 'upi' | 'stripe') => {
     setActivePaymentMethods((prev) => ({
       ...prev,
       [method]: !prev[method],

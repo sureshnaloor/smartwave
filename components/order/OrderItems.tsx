@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { getUserPreferences } from "@/app/_actions/user-preferences"
 import { toast } from "sonner"
 import { PackageCheck, ShoppingBag } from "lucide-react"
-import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
+
 import { useCountry } from '@/context/CountryContext'
 import { currencyConfig } from '@/lib/currencyConfig'
 import Image from "next/image"
