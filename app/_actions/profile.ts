@@ -1,10 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
-import clientPromise from '@/lib/mongodb';
-
-const uri = process.env.MONGODB_URI || '';
-const client = clientPromise;
+import clientPromise from '@/lib/mongodb'
 
 export type ProfileData = {
   _id?: ObjectId;

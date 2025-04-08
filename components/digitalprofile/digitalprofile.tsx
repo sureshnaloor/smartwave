@@ -146,7 +146,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         const url = await QRCode.toDataURL(vCardData, qrOptions)
         setQrDataUrl(url)
       } catch (err) {
-        console.error("Error generating QR code:", err)
+        // console.error("Error generating QR code:", err)
       }
     }
 
@@ -196,7 +196,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error generating vCard:', error);
+      // console.error('Error generating vCard:', error);
     }
   }
 

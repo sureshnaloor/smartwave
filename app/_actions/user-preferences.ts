@@ -5,12 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { currencyConfig, DEFAULT_CURRENCY } from "@/lib/currencyConfig"; // Add DEFAULT_CURRENCY import
-
-// Color validation schema
-const colorSchema = z.enum(["black", "blue", "silver", "green"]);
-
 // Currency code schema
 const currencySchema = z.string().min(3).max(3).default('USD'); // Use string literal instead of DEFAULT_CURRENCY
 

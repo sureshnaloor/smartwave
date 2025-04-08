@@ -2,7 +2,6 @@ import { getProfileByShortUrl } from "@/app/_actions/profile"
 import { notFound } from "next/navigation"
 import { DigitalProfile } from "@/components/digitalprofile/digitalprofile"
 
-
 export default async function PublicProfilePage({
   params,
 }: {
@@ -20,7 +19,7 @@ export default async function PublicProfilePage({
         {/* <ProfileActions profile={profile} /> */}
         <DigitalProfile 
           profileData={{
-            ...profile,
+            ...profile, 
            
           }}
         />

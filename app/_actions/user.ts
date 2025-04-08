@@ -76,10 +76,6 @@ export async function updateVCardInfo(formData: FormData): Promise<{ success: bo
       companyLogo: formData.get('companyLogo') as string,
     }
 
-    // console.log('Starting vCard update')
-    // console.log('Received userEmail:', userEmail)
-    // console.log('Update data received:', data)
-
     // Update only the provided fields
     const updateData: { [key: string]: string } = {}
     Object.entries(data).forEach(([key, value]) => {

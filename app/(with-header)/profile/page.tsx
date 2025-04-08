@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2 } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { saveThemePreference, getThemePreference } from "@/app/_actions/theme";
@@ -20,7 +20,7 @@ import OrderItems from "@/components/order/OrderItems";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { saveEmailPreferences } from "@/app/_actions/user-preferences";
 import { Truck } from "lucide-react"; // Add to imports
-import AddressForm from "@/components/shipping/AddressForm";
+
 import ShippingAddresses from "@/components/shipping/ShippingAddresses";
 
 // Submit button with loading state for theme form
