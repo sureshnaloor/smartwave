@@ -24,10 +24,11 @@ interface OrderItem {
   image?: string
 }
 
+// Update the Order interface status types
 interface Order {
   id: string
   date: string
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+  status: "address_added" | "paid" | "processing" | "in_transit" | "delivered"
   items: OrderItem[]
   total: number
   shippingAddress?: {
@@ -79,23 +80,42 @@ export default function OrderItems() {
     }))
   }
 
+  // Update the status color function
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "processing":
+      case "address_added":
         return "bg-blue-100 text-blue-800"
-      case "shipped":
+      case "paid":
+        return "bg-green-100 text-green-800"
+      case "processing":
+        return "bg-yellow-100 text-yellow-800"
+      case "in_transit":
         return "bg-purple-100 text-purple-800"
       case "delivered":
-        return "bg-green-100 text-green-800"
-      case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-gray-100 text-gray-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
   }
 
+  // Update the status display text
+  const getStatusText = (status: Order["status"]) => {
+    switch (status) {
+      case "address_added":
+        return "Shipping Address Added"
+      case "paid":
+        return "Payment Completed"
+      case "processing":
+        return "Processing"
+      case "in_transit":
+        return "Under Transit"
+      case "delivered":
+        return "Delivered"
+      default:
+        return "Unknown Status"
+    }
+  }
+  
   if (loading) {
     return (
       <div className="w-full h-64 flex items-center justify-center">
@@ -133,9 +153,10 @@ export default function OrderItems() {
                   {order.date ? format(new Date(order.date), 'MMM d, yyyy') : 'No date'}
                 </p>
               </div>
+              
               <div className="flex items-center gap-4">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {getStatusText(order.status)}
                 </span>
                 <p className="font-medium">{formatPrice(order.total)}</p>
               </div>
@@ -210,17 +231,7 @@ export default function OrderItems() {
             )}
           </CardContent>
           
-          <CardFooter className="border-t bg-gray-50">
-            <div className="w-full flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/store")}
-              >
-                Buy Again
-              </Button>
-            </div>
-          </CardFooter>
+         
         </Card>
       ))}
     </div>

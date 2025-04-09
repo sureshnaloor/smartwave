@@ -11,6 +11,7 @@ import { ShoppingBag, Trash, Plus, Minus, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { useCountry } from '@/context/CountryContext';
 import { currencyConfig } from '@/lib/currencyConfig';
+import ShippingAddresses  from "@/components/shipping/ShippingAddresses"
 
 interface CartItem {
   productId: string
@@ -138,10 +139,25 @@ export default function CartItems() {
     }
   }
 
+  // Add new state for shipping address
+  const [hasShippingAddress, setHasShippingAddress] = useState(false);
+  const [showShippingForm, setShowShippingForm] = useState(false);
+  
+  // Add check for shipping address in useEffect
   useEffect(() => {
-    fetchCart()
-  }, [])
-
+    fetchCart();
+    checkShippingAddress();
+  }, []);
+  
+  const checkShippingAddress = async () => {
+    try {
+      const userPrefs = await getUserPreferences();
+      setHasShippingAddress(!!userPrefs?.shippingAddresses?.length);
+    } catch (error) {
+      toast.error("Failed to check shipping address");
+    }
+  };
+  
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     try {
       setProcessingQuantity(itemId)
@@ -195,42 +211,6 @@ export default function CartItems() {
       setProcessingQuantity(null)
     }
   }
-
-  const handleCheckout = async () => {
-    try {
-      setProcessingCheckout(true)
-      
-      if (!cartItems.length) {
-        toast.error("Your cart is empty")
-        return
-      }
-      
-      // Create a new order from the cart items
-      const newOrder = {
-        items: cartItems,
-        orderDate: new Date().toISOString(),
-        status: "processing",
-        total: calculateTotal()
-      }
-      
-      // Save order
-      await saveOrder(newOrder)
-      
-      // Clear cart
-      await saveCart([])
-      setCartItems([])
-      
-      toast.success("Order placed successfully")
-      router.push("/orders")
-      router.refresh()
-    } catch (error) {
-      // console.error("Failed to place order:", error)
-      toast.error("Failed to place order. Please try again.")
-    } finally {
-      setProcessingCheckout(false)
-    }
-  }
-
   // Format price based on currency
   const formatPrice = (price: number): string => {
     const currencyData = currencyConfig[selectedCountry.currency] || currencyConfig.INR;
@@ -245,6 +225,45 @@ export default function CartItems() {
   
   const getFormattedTotal = () => {
     return formatPrice(calculateTotal());
+  };
+
+  const handleCheckout = async () => {
+    try {
+      setProcessingCheckout(true);
+      
+      if (!cartItems.length) {
+        toast.error("Your cart is empty");
+        return;
+      }
+  
+      if (!hasShippingAddress) {
+        setShowShippingForm(true);
+        return;
+      }
+  
+      if (selectedCountry.code !== 'IN') {
+        toast.error("Payment gateway is currently available only in India");
+        return;
+      }
+      
+      const newOrder = {
+        items: cartItems,
+        orderDate: new Date().toISOString(),
+        status: "address_added",
+        total: calculateTotal()
+      }
+      
+      await saveOrder(newOrder);
+      await saveCart([]);
+      setCartItems([]);
+  
+      toast.success("Order created successfully");
+      router.push("/payment");
+    } catch (error) {
+      toast.error("Failed to create order. Please try again.");
+    } finally {
+      setProcessingCheckout(false);
+    }
   };
 
   if (loading) {
@@ -287,6 +306,17 @@ export default function CartItems() {
         ))}
       </div>
       
+      {showShippingForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Shipping Address</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ShippingAddresses />
+          </CardContent>
+        </Card>
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle>Order Summary</CardTitle>
@@ -307,7 +337,7 @@ export default function CartItems() {
           <Button 
             className="w-full" 
             onClick={handleCheckout}
-            disabled={processingCheckout}
+            disabled={processingCheckout || !cartItems.length || selectedCountry.code !== 'IN'}
           >
             {processingCheckout ? (
               <span className="flex items-center">
@@ -326,3 +356,6 @@ export default function CartItems() {
     </div>
   )
 }
+
+// Move handleCheckout here, before any return statements
+  
