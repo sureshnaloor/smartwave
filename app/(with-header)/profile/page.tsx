@@ -94,11 +94,11 @@ export default function ProfilePage() {
   // Handle theme selection change
   const handleThemeChange = (value: string) => {
     setSelectedTheme(value);
-    if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      formData.set('theme', value);
-      handleThemeFormSubmit(formData);
-    }
+      if (formRef.current) {
+        const formData = new FormData(formRef.current);
+        formData.set('theme', value);
+        handleThemeFormSubmit(formData);
+      }
   };
 
   if (status === "loading" || !mounted) {
@@ -144,7 +144,7 @@ export default function ProfilePage() {
             <span className="hidden sm:inline">Shipping</span>
           </TabsTrigger>
         </TabsList>
-
+        
         <TabsContent value="settings">
           <Card>
             <CardHeader>
@@ -165,9 +165,9 @@ export default function ProfilePage() {
                     <p className="text-sm text-gray-500">{session?.user?.email}</p>
                     <p className="text-xs text-gray-400">Google Account</p>
                   </div>
-                </div>
-              </div>
-
+                      </div>
+                    </div>
+                    
               {/* Theme Preferences */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Theme Preferences</h3>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                   {/* ... existing theme form content ... */}
                 </form>
               </div>
-
+              
               {/* Email Preferences */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Email Preferences</h3>
@@ -271,19 +271,19 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
             </CardContent>
           </Card>
         </TabsContent>
-
+        
         <TabsContent value="wishlist">
           <Suspense fallback={<LoadingSpinner />}>
             <WishlistItems />
           </Suspense>
         </TabsContent>
-
+        
         <TabsContent value="cart">
           <Suspense fallback={<LoadingSpinner />}>
             <CartItems />
           </Suspense>
         </TabsContent>
-
+        
         <TabsContent value="orders">
           <Suspense fallback={<LoadingSpinner />}>
             <OrderItems />
@@ -305,4 +305,4 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
       </Tabs>
     </div>
   );
-}
+} 

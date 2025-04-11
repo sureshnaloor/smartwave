@@ -14,7 +14,7 @@ const Footer = () => {
             <span className="block sm:inline">
               {" "}Crafted by{" "}
               <span className="italic text-cyan-500 dark:text-cyan-400">
-                ExBeyond Inc
+                xBeyond LLP
               </span>
               .
             </span>

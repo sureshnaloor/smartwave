@@ -5,7 +5,7 @@ import Image from "next/image"
 
 export default function PricingHero() {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-background pt-24 pb-32">
+    <div className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-background pt-12 pb-3">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -13,7 +13,7 @@ export default function PricingHero() {
         className="container mx-auto px-4"
       >
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold mb-6">
             Smart Business Cards for the Digital Age
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">

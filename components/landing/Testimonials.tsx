@@ -4,21 +4,21 @@ import { CldImage } from 'next-cloudinary';
 const testimonials = [
   {
     quote: "SmartWave has completely transformed how I network. The digital cards are professional and impressive!",
-    author: "Sarah Johnson",
+    author: "Aizel Johnson",
     title: "Marketing Director",
     company: "Tech Innovations",
     image: "smartwave/techlady_glxzl7"
   },
   {
     quote: "The AI-powered features make creating and updating my business card effortless. Highly recommended!",
-    author: "Michael Chen",
+    author: "Harish Aiyengar",
     title: "Software Engineer",
     company: "Digital Solutions Inc",
     image: "smartwave/techindian_bkhy5u"
   },
   {
     quote: "As a sustainability advocate, I love how SmartWave helps reduce paper waste while maintaining professionalism.",
-    author: "Emma Rodriguez",
+    author: "Ahmed Al Aiman",
     title: "Environmental Consultant",
     company: "Green Future",
     image: "smartwave/techsaudi_uwvmnf"

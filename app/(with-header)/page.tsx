@@ -7,6 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Dynamically import components with no SSR to prevent hydration issues
 const Hero = dynamic(() => import("@/components/landing/Hero"), { ssr: false });
+const Processflow = dynamic(() => import("@/components/landing/Processflow"), { ssr: false });
 const Features = dynamic(() => import("@/components/landing/Features"), { ssr: false });
 const AiShowcase = dynamic(() => import("@/components/landing/AiShowcase"), { ssr: false });
 const Sustainability = dynamic(() => import("@/components/landing/Sustainability"), { ssr: false });
@@ -22,6 +23,7 @@ const LandingPageContent = () => {
   return useMemo(() => (
     <div className="flex flex-col w-full">
       <Hero />
+      <Processflow />
       <Features />
       <AiShowcase />
       <Sustainability />

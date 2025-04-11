@@ -4,6 +4,7 @@ import PricingTiers from "@/components/pricing/PricingTiers"
 import PricingFeatures from "@/components/pricing/PricingFeatures"
 import PricingCommunity from "@/components/pricing/PricingCommunity"
 import PricingCTA from "@/components/pricing/PricingCTA"
+import PricingNewStyle from "@/components/pricing/pricingnewstyle"
 
 export const metadata: Metadata = {
   title: "Pricing | Smartwave",
@@ -14,7 +15,8 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen">
       <PricingHero />
-      <PricingTiers />
+      {/* <PricingTiers /> */}
+      <PricingNewStyle />
       <PricingFeatures />
       <PricingCommunity />
       <PricingCTA />

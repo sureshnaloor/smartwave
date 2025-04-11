@@ -110,7 +110,7 @@ export default function PricingCommunity() {
           </motion.div>
         </div>
 
-        <h3 className="text-2xl font-semibold text-center mb-12">Flexible Edit Plans</h3>
+        {/* <h3 className="text-2xl font-semibold text-center mb-12">Flexible Edit Plans</h3>
         <div className="grid md:grid-cols-3 gap-8">
           {editPlans.map((plan) => (
             <Card key={plan.name} className={`p-8 ${plan.popular ? 'border-primary shadow-lg' : ''}`}>
@@ -137,7 +137,7 @@ export default function PricingCommunity() {
               </Link>
             </Card>
           ))}
-        </div>
+        </div> */}
       </div>
     </div>
   )
