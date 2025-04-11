@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Suspense } from "react"
+import Checkoutcomponent from "@/components/checkout/Checkout"
 
 export const metadata: Metadata = {
   title: "Payment | Smartwave",
@@ -7,6 +8,14 @@ export const metadata: Metadata = {
 }
 
 export default function PaymentPage() {
+  // Sample cart items for testing
+  const sampleCartItems = {
+    productId: "PROD_001",
+    price: 999,
+    currency: "INR",
+    quantity:3,
+  };
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-8">Payment</h1>
@@ -15,6 +24,11 @@ export default function PaymentPage() {
       </div>}>
         <div className="text-center py-12">
           <p className="text-gray-600">Payment Gateway Integration Coming Soon</p>
+          <Checkoutcomponent cartItems={[{
+            type: sampleCartItems.productId,
+            price: sampleCartItems.price,
+            quantity: sampleCartItems.quantity
+          }]} />
         </div>
       </Suspense>
     </div>

@@ -231,7 +231,16 @@ export default function OrderItems() {
             )}
           </CardContent>
           
-         
+          {order.status === "address_added" && (
+            <CardFooter>
+              <Button 
+                className="w-full"
+                onClick={() => router.push(`/payment?orderId=${order.id}`)}
+              >
+                Proceed to Payment
+              </Button>
+            </CardFooter>
+          )}
         </Card>
       ))}
     </div>

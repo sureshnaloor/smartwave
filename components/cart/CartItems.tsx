@@ -258,7 +258,7 @@ export default function CartItems() {
       setCartItems([]);
   
       toast.success("Order created successfully");
-      router.push("/payment");
+      router.push("/orders"); // Changed from "/payment" to "/orders"
     } catch (error) {
       toast.error("Failed to create order. Please try again.");
     } finally {

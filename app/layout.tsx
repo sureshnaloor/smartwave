@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import './styles/animations.css';
 import { Providers } from "./providers";
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           {children}
+          <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
         </Providers>
       </body>
     </html>
