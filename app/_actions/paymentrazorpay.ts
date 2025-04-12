@@ -37,10 +37,10 @@ export async function createOrder(formData: FormData) {
       amount: amountInPaise,
       currency: 'INR',
       receipt: `order_${Date.now()}`,
-      payment_capture: true, // Auto-capture payment
+      payment_capture: true,
     });
 
-    // Store order in MongoDB
+    // Store order in MongoDB using the provided cart items
     const { db } = await connectToDatabase();
     
     const orderData = {
@@ -48,7 +48,7 @@ export async function createOrder(formData: FormData) {
       amount: amountInPaise,
       currency: 'INR',
       createdAt: new Date(),
-      items: cartItems,
+      items: cartItems, // Using the cart items from the request
       status: 'created',
       paymentStatus: 'pending',
       shippingDetails: shippingDetails || null
@@ -56,7 +56,6 @@ export async function createOrder(formData: FormData) {
     
     await db.collection('orders').insertOne(orderData);
 
-    // Return order details to client
     return {
       success: true,
       id: order.id,
@@ -144,12 +143,14 @@ export async function getOrderDetails(orderId: string) {
         status: order.status,
         items: order.items,
         shippingDetails: order.shippingDetails ? {
-          name: order.shippingDetails.name,
-          address: order.shippingDetails.address,
+          fullName: order.shippingDetails.fullName,
+          addressLine1: order.shippingDetails.addressLine1,
+          addressLine2: order.shippingDetails.addressLine2,
           city: order.shippingDetails.city,
           state: order.shippingDetails.state,
           postalCode: order.shippingDetails.postalCode,
-          country: order.shippingDetails.country
+          country: order.shippingDetails.country,
+          mobileNumber: order.shippingDetails.mobileNumber
         } : null
       }
     };

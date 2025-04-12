@@ -1,20 +1,38 @@
 import { Metadata } from "next"
 import { Suspense } from "react"
 import Checkoutcomponent from "@/components/checkout/Checkout"
+import { getUserPreferences } from "@/app/_actions/user-preferences"
+import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "Payment | Smartwave",
   description: "Complete your payment",
 }
 
-export default function PaymentPage() {
-  // Sample cart items for testing, remove after testing
-  const sampleCartItems = {
-    productId: "PROD_001",
-    price: 999,
-    currency: "INR",
-    quantity:3,
-  };
+interface PageProps {
+  searchParams: { orderId?: string }
+}
+
+export default async function PaymentPage({ searchParams }: PageProps) {
+  const orderId = searchParams.orderId;
+  
+  if (!orderId) {
+    redirect('/cart?error=missing_order_id');
+  }
+
+  // Get user preferences to fetch order from orders array
+  const userPrefs = await getUserPreferences();
+  
+  if (!userPrefs.success) {
+    redirect('/auth/signin?error=authentication_required');
+  }
+
+  // Find the specific order from user's orders
+  const order = userPrefs.orders?.find(order => order.id === orderId);
+  
+  if (!order) {
+    redirect('/orders?error=order_not_found');
+  }
 
   return (
     <div className="container mx-auto py-10">
@@ -23,12 +41,13 @@ export default function PaymentPage() {
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
       </div>}>
         <div className="text-center py-12">
-          {/* <p className="text-gray-600">Payment Gateway Integration Coming Soon</p> */}
-          <Checkoutcomponent cartItems={[{
-            type: sampleCartItems.productId,
-            price: sampleCartItems.price,
-            quantity: sampleCartItems.quantity
-          }]} />
+          <Checkoutcomponent 
+            cartItems={order.items.map(item => ({
+              type: item.type,
+              price: item.price,
+              quantity: item.quantity
+            }))} 
+          />
         </div>
       </Suspense>
     </div>
