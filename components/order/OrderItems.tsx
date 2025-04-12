@@ -28,7 +28,7 @@ interface OrderItem {
 interface Order {
   id: string
   date: string
-  status: "address_added" | "paid" | "processing" | "in_transit" | "delivered"
+  status: "address_added" | "payment_made" | "processing" | "in_transit" | "delivered"
   items: OrderItem[]
   total: number
   shippingAddress?: {
@@ -85,7 +85,7 @@ export default function OrderItems() {
     switch (status) {
       case "address_added":
         return "bg-blue-100 text-blue-800"
-      case "paid":
+      case "payment_made":
         return "bg-green-100 text-green-800"
       case "processing":
         return "bg-yellow-100 text-yellow-800"
@@ -103,7 +103,7 @@ export default function OrderItems() {
     switch (status) {
       case "address_added":
         return "Shipping Address Added"
-      case "paid":
+      case "payment_made":
         return "Payment Completed"
       case "processing":
         return "Processing"

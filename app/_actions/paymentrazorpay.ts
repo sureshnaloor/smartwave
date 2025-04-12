@@ -31,36 +31,58 @@ export async function createOrder(formData: FormData) {
     // Calculate amount in smallest currency unit (paise for INR)
     const amountInPaise = Math.round(amount * 100);
     
+    // Connect to database and find pending order
+    const { db } = await connectToDatabase();
+    const userPref = await db.collection('userpreferences').findOne({
+      'orders.status': 'address_added'
+    });
+
+    if (!userPref || !userPref.orders) {
+      throw new Error('No pending order found');
+    }
+
+    // Get the most recent order with status 'address_added'
+    const pendingOrder = userPref.orders.find((order: { status: string }) => order.status === 'address_added');
+    if (!pendingOrder) {
+      throw new Error('No pending order found');
+    }
+    
     // Create order in Razorpay
     const razorpay = getRazorpayInstance();
-    const order = await razorpay.orders.create({
+    const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency: 'INR',
-      receipt: `order_${Date.now()}`,
+      receipt: pendingOrder.id,
       payment_capture: true,
     });
 
-    // Store order in MongoDB using the provided cart items
-    const { db } = await connectToDatabase();
-    
-    const orderData = {
-      orderId: order.id,
+    // Create razorpayPayment object
+    const razorpayPayment = {
+      orderId: razorpayOrder.id,
+      originalOrderId: pendingOrder.id,
       amount: amountInPaise,
       currency: 'INR',
       createdAt: new Date(),
-      items: cartItems, // Using the cart items from the request
+      items: cartItems,
       status: 'created',
       paymentStatus: 'pending',
       shippingDetails: shippingDetails || null
     };
-    
-    await db.collection('orders').insertOne(orderData);
+
+    // Update userpreferences with razorpay payment info
+    await db.collection('userpreferences').updateOne(
+      { 'orders.id': pendingOrder.id },
+      { 
+        $push: { 'razorpayPayments': razorpayPayment }
+      }
+    );
 
     return {
       success: true,
-      id: order.id,
+      id: razorpayOrder.id,
+      originalOrderId: pendingOrder.id,
       amount: amountInPaise,
-      currency: order.currency,
+      currency: razorpayOrder.currency,
     };
   } catch (error) {
     console.error('Create order error:', error);
@@ -82,12 +104,19 @@ export async function verifyPayment(formData: FormData) {
       throw new Error('Missing required fields');
     }
 
+    // Connect to database and find payment details
     const { db } = await connectToDatabase();
-    
-    // Find the order first
-    const order = await db.collection('orders').findOne({ orderId: orderId });
-    if (!order) {
+    const userPref = await db.collection('userpreferences').findOne({
+      'razorpayPayments.orderId': orderId
+    });
+
+    if (!userPref) {
       throw new Error('Order not found');
+    }
+
+    const razorpayPayment = userPref.razorpayPayments.find((p: { orderId: string }) => p.orderId === orderId);
+    if (!razorpayPayment) {
+      throw new Error('Payment details not found');
     }
 
     // Verify signature
@@ -99,45 +128,50 @@ export async function verifyPayment(formData: FormData) {
 
     const isAuthentic = expectedSignature === signature;
 
-    // Update order status based on verification result
-    const updateData = {
-      paymentId: paymentId,
-      paymentSignature: signature,
-      updatedAt: new Date(),
-      ...(isAuthentic 
-        ? {
-            paymentStatus: 'completed',
-            status: 'payment_completed',
-            paymentVerifiedAt: new Date()
+    if (isAuthentic) {
+      // Update both razorpayPayment and order status
+      await db.collection('userpreferences').updateOne(
+        { 
+          'razorpayPayments.orderId': orderId,
+          'orders.id': razorpayPayment.originalOrderId 
+        },
+        { 
+          $set: {
+            'razorpayPayments.$.paymentId': paymentId,
+            'razorpayPayments.$.paymentSignature': signature,
+            'razorpayPayments.$.paymentStatus': 'completed',
+            'razorpayPayments.$.status': 'payment_completed',
+            'razorpayPayments.$.paymentVerifiedAt': new Date(),
+            'razorpayPayments.$.updatedAt': new Date(),
+            'orders.$.status': 'payment_made'
           }
-        : {
-            paymentStatus: 'failed',
-            status: 'payment_failed',
-            verificationError: 'Invalid signature'
-          }
-      )
-    };
+        }
+      );
 
-    const result = await db.collection('orders').updateOne(
-      { orderId: orderId },
-      { $set: updateData }
+      return {
+        success: true,
+        orderId: orderId,
+        originalOrderId: razorpayPayment.originalOrderId,
+        paymentId: paymentId,
+        status: 'payment_completed'
+      };
+    }
+
+    // Handle failed payment
+    await db.collection('userpreferences').updateOne(
+      { 'razorpayPayments.orderId': orderId },
+      { 
+        $set: {
+          'razorpayPayments.$.paymentId': paymentId,
+          'razorpayPayments.$.paymentStatus': 'failed',
+          'razorpayPayments.$.status': 'payment_failed',
+          'razorpayPayments.$.verificationError': 'Invalid signature',
+          'razorpayPayments.$.updatedAt': new Date()
+        }
+      }
     );
 
-    if (result.modifiedCount === 0) {
-      throw new Error('Failed to update order status');
-    }
-
-    if (!isAuthentic) {
-      return { error: 'Invalid payment signature' };
-    }
-
-    // Return success response
-    return {
-      success: true,
-      orderId: orderId,
-      paymentId: paymentId,
-      status: 'payment_completed'
-    };
+    return { error: 'Invalid payment signature' };
 
   } catch (error) {
     console.error('Verify payment error:', error);
@@ -155,30 +189,45 @@ export async function getOrderDetails(orderId: string) {
   try {
     const { db } = await connectToDatabase();
     
-    const order = await db.collection('orders').findOne({ orderId: orderId });
+    // Find order in userpreferences collection
+    const userPref = await db.collection('userpreferences').findOne({
+      $or: [
+        { 'razorpayPayments.orderId': orderId },
+        { 'orders.id': orderId }
+      ]
+    });
     
-    if (!order) {
+    if (!userPref) {
       return { error: 'Order not found' };
+    }
+
+    // Find the specific order/payment
+    const razorpayPayment = userPref.razorpayPayments?.find((p: { orderId: string }) => p.orderId === orderId);
+    const order = userPref.orders?.find((o: { id: string }) => o.id === orderId);
+    
+    const orderDetails = razorpayPayment || order;
+    if (!orderDetails) {
+      return { error: 'Order details not found' };
     }
     
     // Return order details without sensitive information
     return { 
       success: true, 
       order: {
-        orderId: order.orderId,
-        amount: order.amount,
-        currency: order.currency,
-        status: order.status,
-        items: order.items,
-        shippingDetails: order.shippingDetails ? {
-          fullName: order.shippingDetails.fullName,
-          addressLine1: order.shippingDetails.addressLine1,
-          addressLine2: order.shippingDetails.addressLine2,
-          city: order.shippingDetails.city,
-          state: order.shippingDetails.state,
-          postalCode: order.shippingDetails.postalCode,
-          country: order.shippingDetails.country,
-          mobileNumber: order.shippingDetails.mobileNumber
+        orderId: razorpayPayment?.orderId || order?.id,
+        amount: orderDetails.amount,
+        currency: orderDetails.currency,
+        status: orderDetails.status,
+        items: orderDetails.items,
+        shippingDetails: orderDetails.shippingDetails ? {
+          fullName: orderDetails.shippingDetails.fullName,
+          addressLine1: orderDetails.shippingDetails.addressLine1,
+          addressLine2: orderDetails.shippingDetails.addressLine2,
+          city: orderDetails.shippingDetails.city,
+          state: orderDetails.shippingDetails.state,
+          postalCode: orderDetails.shippingDetails.postalCode,
+          country: orderDetails.shippingDetails.country,
+          mobileNumber: orderDetails.shippingDetails.mobileNumber
         } : null
       }
     };
