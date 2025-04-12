@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default function PaymentPage() {
-  // Sample cart items for testing
+  // Sample cart items for testing, remove after testing
   const sampleCartItems = {
     productId: "PROD_001",
     price: 999,
@@ -18,12 +18,12 @@ export default function PaymentPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">Payment</h1>
+      <h1 className="text-xl font-bold mb-6">Payment</h1>
       <Suspense fallback={<div className="w-full h-64 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
       </div>}>
         <div className="text-center py-12">
-          <p className="text-gray-600">Payment Gateway Integration Coming Soon</p>
+          {/* <p className="text-gray-600">Payment Gateway Integration Coming Soon</p> */}
           <Checkoutcomponent cartItems={[{
             type: sampleCartItems.productId,
             price: sampleCartItems.price,

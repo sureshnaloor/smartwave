@@ -127,7 +127,7 @@ export default function Checkout({ cartItems }: { cartItems: Array<{ type: strin
 
   return (
     <div className="checkout-container">
-      <h2>Checkout</h2>
+      <h2>Checkout page of Razorpay</h2>
       
       {isPhysicalGoods && !isShippingComplete && (
         <div className="shipping-section">
@@ -151,7 +151,7 @@ export default function Checkout({ cartItems }: { cartItems: Array<{ type: strin
 
       {(!isPhysicalGoods || isShippingComplete) && (
         <div className="payment-section">
-          <h3>Payment</h3>
+          <h3>Payment check is ok now, proceed</h3>
           <button 
             onClick={handlePayment}
             className="pay-button"
