@@ -70,52 +70,80 @@ export async function createOrder(formData: FormData) {
 
 export async function verifyPayment(formData: FormData) {
   try {
-    // Parse form data
     const formDataValue = formData.get('data');
     if (!formDataValue) {
-        throw new Error('Form data is missing');
+      throw new Error('Form data is missing');
     }
+    
     const data = JSON.parse(formDataValue.toString());
     const { orderId, paymentId, signature } = data;
 
-    // Validate request data
     if (!orderId || !paymentId || !signature) {
-      return { error: 'Missing required fields' };
+      throw new Error('Missing required fields');
     }
 
-    // Verify the payment signature
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
-    hmac.update(`${orderId}|${paymentId}`);
-    const generatedSignature = hmac.digest('hex');
-
-    if (generatedSignature !== signature) {
-      return { error: 'Invalid payment signature' };
-    }
-
-    // Update order status in MongoDB
     const { db } = await connectToDatabase();
     
+    // Find the order first
+    const order = await db.collection('orders').findOne({ orderId: orderId });
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Verify signature
+    const body = orderId + "|" + paymentId;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || '')
+      .update(body.toString())
+      .digest("hex");
+
+    const isAuthentic = expectedSignature === signature;
+
+    // Update order status based on verification result
+    const updateData = {
+      paymentId: paymentId,
+      paymentSignature: signature,
+      updatedAt: new Date(),
+      ...(isAuthentic 
+        ? {
+            paymentStatus: 'completed',
+            status: 'payment_completed',
+            paymentVerifiedAt: new Date()
+          }
+        : {
+            paymentStatus: 'failed',
+            status: 'payment_failed',
+            verificationError: 'Invalid signature'
+          }
+      )
+    };
+
     const result = await db.collection('orders').updateOne(
       { orderId: orderId },
-      { 
-        $set: { 
-          paymentId: paymentId,
-          paymentStatus: 'completed',
-          status: 'paid',
-          updatedAt: new Date()
-        } 
-      }
+      { $set: updateData }
     );
 
     if (result.modifiedCount === 0) {
-      return { error: 'Order not found' };
+      throw new Error('Failed to update order status');
+    }
+
+    if (!isAuthentic) {
+      return { error: 'Invalid payment signature' };
     }
 
     // Return success response
-    return { success: true };
+    return {
+      success: true,
+      orderId: orderId,
+      paymentId: paymentId,
+      status: 'payment_completed'
+    };
+
   } catch (error) {
     console.error('Verify payment error:', error);
-    return { error: 'Failed to verify payment' };
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to verify payment'
+    };
   }
 }
 

@@ -97,21 +97,31 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
         name: 'Smartwave',
         description: `Order ${response.id}`,
         order_id: response.id,
-        handler: function(paymentResponse: { razorpay_payment_id: string; razorpay_signature: string }) {
-          if ('id' in response && typeof response.id === 'string') {
+        handler: async function(response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          try {
+            // Create form data for verification
             const formData = new FormData();
-            formData.append('razorpay_payment_id', paymentResponse.razorpay_payment_id);
-            formData.append('razorpay_signature', paymentResponse.razorpay_signature);
-            formData.append('orderId', response.id);
-            verifyPayment(formData).then(() => {
+            formData.append('data', JSON.stringify({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature
+            }));
+    
+            const result = await verifyPayment(formData);
+    
+            if (result.success) {
               toast.success('Payment successful!');
-              router.push('/dashboard');
-            }).catch((error) => {
-              console.error('Payment verification failed:', error);
-              toast.error('Payment verification failed');
-            });
-          } else {
-            throw new Error('Invalid response format');
+              router.push('/orders');
+            } else {
+              throw new Error(result.error || 'Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification failed:', error);
+            toast.error('Payment verification failed');
           }
         },
         prefill: {
