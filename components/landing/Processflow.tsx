@@ -1,5 +1,6 @@
 import { CheckCircle2, Share2, Edit, CreditCard, Smartphone, QrCode, Wifi } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 const ProcessFlow = () => {
   const steps = [
@@ -333,13 +334,15 @@ const ProcessFlow = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          <motion.button 
-            className="px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Get Started Now
-          </motion.button>
+          <Link href="/auth/signup">
+            <motion.button 
+              className="px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Get Started Now
+            </motion.button>
+          </Link>
         </motion.div>
       </div>
     </div>

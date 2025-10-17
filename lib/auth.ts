@@ -13,17 +13,15 @@ export const authOptions: NextAuthOptions = {
   adapter: adapter,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: "jwt", // Use JWT strategy for better compatibility
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {
-    // Explicitly set JWT encryption options
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    // Using auto encode/decode (default)
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/auth/signin", // Use existing auth pages
+    error: "/auth/error",
   },
   providers: [
     // Primary provider - Google
@@ -93,6 +91,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
+        token.image = user.image;
       }
       
       if (account) {
@@ -103,9 +103,11 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       // Add token data to session
-      if (session.user) {
+      if (session.user && token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.image = token.image as string;
         session.user.provider = token.provider as string;
       }
       return session;

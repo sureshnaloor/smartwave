@@ -20,15 +20,15 @@ export default function CallToAction() {
             Join thousands of professionals who have already made the switch to digital business cards.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/pricing">
+            <Link href="/auth/signup">
               <Button 
                 size="lg" 
                 className="w-full sm:w-auto bg-white text-blue-600 hover:bg-gray-100"
               >
-                Get Started Now
+                Sign Up Free
               </Button>
             </Link>
-            <Link href="/contact">
+            <Link href="/contact-us">
               <Button 
                 variant="outline" 
                 size="lg"

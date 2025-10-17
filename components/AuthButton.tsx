@@ -1,31 +1,30 @@
 'use client';
 
-import { LogIn } from 'lucide-react';
-import { signIn, useSession } from 'next-auth/react';
+import { LogIn, UserPlus } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AuthButton() {
   const { data: session, status } = useSession();
-
-  const handleSignIn = async () => {
-    // Direct Google sign-in since it's pre-verified in your setup
-    await signIn('google', {
-      callbackUrl: '/',
-    });
-  };
 
   // Don't render anything while checking authentication status or if user is logged in
   if (status === 'loading' || session) return null;
   
   return (
-    <button
-      onClick={handleSignIn}
-      className="p-2 rounded-full
-        hover:bg-gray-100 dark:hover:bg-gray-800
-        transition-all duration-200
-        focus:outline-none"
-      aria-label="Sign in"
-    >
-      <LogIn className="w-5 h-5 text-gray-600 dark:text-gray-400 hover:translate-x-1 transition-transform" />
-    </button>
+    <div className="flex items-center gap-2">
+      <Link href="/auth/signin">
+        <Button variant="ghost" size="sm" className="hidden sm:flex">
+          <LogIn className="w-4 h-4 mr-2" />
+          Sign In
+        </Button>
+      </Link>
+      <Link href="/auth/signup">
+        <Button size="sm">
+          <UserPlus className="w-4 h-4 mr-2" />
+          Sign Up
+        </Button>
+      </Link>
+    </div>
   );
 } 

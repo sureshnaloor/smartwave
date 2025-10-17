@@ -28,7 +28,7 @@ const withErrorHandling = async <T>(operation: () => Promise<T>, fallback: T | n
   try {
     return await operation();
   } catch (error) {
-    // console.error('MongoDB adapter error:', error);
+    console.error('MongoDB adapter error:', error);
     return fallback;
   }
 };
@@ -38,7 +38,7 @@ const withVoidErrorHandling = async (operation: () => Promise<void>): Promise<vo
   try {
     await operation();
   } catch (error) {
-    // console.error('MongoDB adapter error:', error);
+    console.error('MongoDB adapter error:', error);
   }
 };
 
@@ -60,15 +60,23 @@ const adapter: Adapter = {
       }
       
       // Create new user if doesn't exist
-      const user = await db.collection('users').insertOne({
-        ...profile,
+      const userData = {
+        email: profile.email,
+        name: profile.name,
+        image: profile.image,
+        emailVerified: profile.emailVerified || new Date(), // Google users are email verified
         createdAt: new Date(),
-      });
+        updatedAt: new Date(),
+      };
+      
+      const user = await db.collection('users').insertOne(userData);
       
       return { 
         id: user.insertedId.toString(), 
-        ...profile, 
-        emailVerified: profile.emailVerified || null,
+        email: userData.email,
+        name: userData.name,
+        image: userData.image,
+        emailVerified: userData.emailVerified,
       };
     }, null) as any;
   },

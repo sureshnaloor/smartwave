@@ -68,9 +68,9 @@ export default function Hero() {
             Create stunning digital business cards and vCards powered by AI. Share your professional profile instantly and make lasting impressions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/pricing">
+            <Link href="/auth/signup">
               <Button size="lg" className="w-full sm:w-auto">
-                Get Started
+                Get Started Free
               </Button>
             </Link>
             <Link href="/about-smartwave">

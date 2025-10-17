@@ -9,29 +9,32 @@ export default function SessionProviderWrapper({ children }: { children: ReactNo
     const handleError = () => {
       try {
         // Delete any corrupted tokens from localStorage
-        if (localStorage.getItem('next-auth.csrf-token')) {
-          localStorage.removeItem('next-auth.csrf-token');
-        }
+        const keysToRemove = [
+          'next-auth.csrf-token',
+          'next-auth.callback-url',
+          'next-auth.state',
+          'next-auth.session-token'
+        ];
         
-        if (localStorage.getItem('next-auth.callback-url')) {
-          localStorage.removeItem('next-auth.callback-url');
-        }
-        
-        if (localStorage.getItem('next-auth.state')) {
-          localStorage.removeItem('next-auth.state');
-        }
+        keysToRemove.forEach(key => {
+          if (localStorage.getItem(key)) {
+            localStorage.removeItem(key);
+          }
+        });
 
         // Clear any corrupted session cookies 
         document.cookie.split(';').forEach(cookie => {
           const [name] = cookie.trim().split('=');
-          if (name.includes('next-auth')) {
+          if (name.includes('next-auth') || name.includes('authjs')) {
             document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
           }
         });
         
-        // console.log('Auth state cleaned');
+        console.log('Auth state cleaned due to JWT error');
       } catch (e) {
-        // console.error('Error cleaning auth state:', e);
+        console.error('Error cleaning auth state:', e);
       }
     };
 
@@ -39,11 +42,14 @@ export default function SessionProviderWrapper({ children }: { children: ReactNo
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       if (event.reason?.message?.includes('JWE') || 
           event.reason?.message?.includes('JWT') ||
-          event.reason?.message?.includes('session')) {
-        // console.warn('Auth error detected, clearing session state');
+          event.reason?.message?.includes('session') ||
+          event.reason?.message?.includes('Invalid Compact JWE')) {
+        console.warn('JWT/Session error detected, clearing session state');
         handleError();
         // Reload the page to get a fresh session
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     };
 
