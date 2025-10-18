@@ -7,7 +7,7 @@ import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
-import { Menu, X, Mail, DollarSign, ShoppingBag, Globe} from 'lucide-react';
+import { Menu, X, Mail, DollarSign, ShoppingBag, Globe, BookOpen} from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
 
 export default function Header() {
@@ -49,6 +49,15 @@ export default function Header() {
 
           {/* Center Section: Main Navigation Items */}
           <div className="hidden md:flex items-center justify-center space-x-6">
+            {isAuthenticated && (
+              <Link 
+                href="/guide-me" 
+                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <BookOpen className="h-5 w-5" />
+                <span>Guide Me</span>
+              </Link>
+            )}
             <Link 
               href="/contact-us" 
               className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"

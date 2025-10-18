@@ -10,7 +10,8 @@ import {
   DollarSign, 
   ShoppingBag,
   Info,
-  Globe // Add Globe icon for country selector
+  Globe, // Add Globe icon for country selector
+  BookOpen // Add BookOpen icon for guide
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCountry } from '@/context/CountryContext';
@@ -25,6 +26,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { href: '/guide-me', label: 'Guide Me', icon: BookOpen, requiresAuth: true },
   { href: '/store', label: 'Store', icon: ShoppingBag, requiresAuth: true },
   { href: '/contact-us', label: 'Contact', icon: Mail, requiresAuth: false },
   { href: '/pricing', label: 'Pricing', icon: DollarSign, requiresAuth: false },

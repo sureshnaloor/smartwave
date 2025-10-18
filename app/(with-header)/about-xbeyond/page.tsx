@@ -168,7 +168,7 @@ export default function AboutXBeyond() {
               Ready to Transform Your Digital Presence?
             </h2>
             <Link
-              href="/contact"
+              href="/auth/signup"
               className="inline-flex items-center gap-2 px-8 py-4 
                 bg-white text-purple-600 hover:bg-gray-100
                 dark:bg-gray-800 dark:text-purple-400 dark:hover:bg-gray-700

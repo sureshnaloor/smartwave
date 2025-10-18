@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -37,6 +38,7 @@ const LandingPageContent = () => {
 export default function LandingPage() {
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   // Only run mounting effect once
   useEffect(() => {
@@ -48,18 +50,21 @@ export default function LandingPage() {
     return status === 'authenticated' && session?.user?.email;
   }, [status, session?.user?.email]);
 
+  // Redirect authenticated users to guide-me page
+  useEffect(() => {
+    if (mounted && isAuthenticated) {
+      router.push('/guide-me');
+    }
+  }, [mounted, isAuthenticated, router]);
+
   // Handle loading and content rendering
   if (!mounted || status === 'loading') {
     return <LoadingSpinner />;
   }
 
+  // If authenticated, show loading while redirecting
   if (isAuthenticated) {
-    return (
-      <div className="flex flex-col w-full">
-        <UserOverview />
-        <UserDashboardlogin />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return <LandingPageContent />;

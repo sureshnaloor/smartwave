@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
-import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2 } from "lucide-react";
+import { User, ShoppingCart, Heart, Settings, ShoppingBag, Loader2, UserCheck, LayoutDashboard } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { saveThemePreference, getThemePreference } from "@/app/_actions/theme";
 import { toast } from "@/components/ui/use-toast";
@@ -22,6 +22,8 @@ import { saveEmailPreferences } from "@/app/_actions/user-preferences";
 import { Truck } from "lucide-react"; // Add to imports
 
 import ShippingAddresses from "@/components/shipping/ShippingAddresses";
+import UserDashboardlogin from "@/components/dashboardlogin/UserDashboardlogin";
+import UserOverview from "@/components/dashboard/UserOverview";
 
 // Submit button with loading state for theme form
 function SaveThemeButton() {
@@ -121,8 +123,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-8">  {/* Changed from grid-cols-4 */}
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full grid-cols-7 mb-8">  {/* Changed from grid-cols-5 */}
+          <TabsTrigger value="dashboard" className="flex gap-2 items-center">
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="profile-setup" className="flex gap-2 items-center">
+            <UserCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
           <TabsTrigger value="settings" className="flex gap-2 items-center">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Settings</span>
@@ -144,6 +154,18 @@ export default function ProfilePage() {
             <span className="hidden sm:inline">Shipping</span>
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="dashboard">
+          <Suspense fallback={<LoadingSpinner />}>
+            <UserOverview />
+          </Suspense>
+        </TabsContent>
+        
+        <TabsContent value="profile-setup">
+          <Suspense fallback={<LoadingSpinner />}>
+            <UserDashboardlogin />
+          </Suspense>
+        </TabsContent>
         
         <TabsContent value="settings">
           <Card>

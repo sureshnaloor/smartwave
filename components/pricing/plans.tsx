@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
 import { currencyConfig, ProductType } from "@/lib/currencyConfig";
+import Link from "next/link";
 
 const PricingCards = () => {
   const { selectedCountry } = useCountry();
@@ -115,12 +116,14 @@ const PricingCards = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button 
-                className={`w-full ${plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""}`}
-                variant={plan.popular ? "default" : "outline"}
-              >
-                {plan.cta}
-              </Button>
+              <Link href={plan.name === "Free Forever" ? "/auth/signup" : "/auth/signup"}>
+                <Button 
+                  className={`w-full ${plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""}`}
+                  variant={plan.popular ? "default" : "outline"}
+                >
+                  {plan.cta}
+                </Button>
+              </Link>
             </CardFooter>
           </Card>
         ))}

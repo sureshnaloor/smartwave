@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react";
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-blue-200 to-indigo-200  dark:from-gray-900 dark:to-gray-950 pt-32 pb-24">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 -z-10">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
           <path
             fill="rgba(255,255,255,0.3)"
