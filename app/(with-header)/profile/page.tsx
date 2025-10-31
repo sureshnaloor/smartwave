@@ -55,6 +55,11 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const themeTimerRef = useRef<number | null>(null);
+  const [marketingPending, setMarketingPending] = useState(false);
+  const [promoPending, setPromoPending] = useState(false);
+  const marketingTimerRef = useRef<number | null>(null);
+  const promoTimerRef = useRef<number | null>(null);
 
   // Check user authentication
   useEffect(() => {
@@ -96,11 +101,17 @@ export default function ProfilePage() {
   // Handle theme selection change
   const handleThemeChange = (value: string) => {
     setSelectedTheme(value);
-      if (formRef.current) {
-        const formData = new FormData(formRef.current);
-        formData.set('theme', value);
-        handleThemeFormSubmit(formData);
-      }
+    if (!formRef.current) return;
+    if (themeTimerRef.current) {
+      window.clearTimeout(themeTimerRef.current);
+    }
+    themeTimerRef.current = window.setTimeout(() => {
+      if (!formRef.current) return;
+      const formData = new FormData(formRef.current);
+      formData.set('theme', value);
+      handleThemeFormSubmit(formData);
+      themeTimerRef.current = null;
+    }, 1000) as unknown as number;
   };
 
   if (status === "loading" || !mounted) {
@@ -224,29 +235,38 @@ export default function ProfilePage() {
                     <Switch
                       id="marketing-emails"
                       checked={false}
-                      onCheckedChange={async (checked) => {
-                        try {
-const result = await saveEmailPreferences({ marketingEmails: checked });
-                          if (result.success) {
-                            toast({
-                              title: "Preferences Updated",
-                              description: "Your email preferences have been saved.",
-                            });
-                          } else {
+                      disabled={marketingPending}
+                      onCheckedChange={(checked) => {
+                        if (marketingTimerRef.current) {
+                          window.clearTimeout(marketingTimerRef.current);
+                        }
+                        setMarketingPending(true);
+                        marketingTimerRef.current = window.setTimeout(async () => {
+                          try {
+                            const result = await saveEmailPreferences({ marketingEmails: checked });
+                            if (result.success) {
+                              toast({
+                                title: "Preferences Updated",
+                                description: "Your email preferences have been saved.",
+                              });
+                            } else {
+                              toast({
+                                title: "Error",
+                                description: "Failed to update email preferences",
+                                variant: "destructive",
+                              });
+                            }
+                          } catch (error) {
                             toast({
                               title: "Error",
-                              description: "Failed to update email preferences",
+                              description: "An unexpected error occurred",
                               variant: "destructive",
                             });
+                          } finally {
+                            setMarketingPending(false);
+                            marketingTimerRef.current = null;
                           }
-                        } catch (error) {
-                          // console.error("Error saving email preferences:", error);
-                          toast({
-                            title: "Error",
-                            description: "An unexpected error occurred",
-                            variant: "destructive",
-                          });
-                        }
+                        }, 1000) as unknown as number;
                       }}
                     />
                   </div>
@@ -262,29 +282,38 @@ const result = await saveEmailPreferences({ marketingEmails: checked });
                     <Switch
                       id="promotional-emails"
                       checked={false}
-                      onCheckedChange={async (checked) => {
-                        try {
-                          const result = await saveEmailPreferences({ promotionalEmails: checked });
-                          if (result.success) {
-                            toast({
-                              title: "Preferences Updated",
-                              description: "Your email preferences have been saved.",
-                            });
-                          } else {
+                      disabled={promoPending}
+                      onCheckedChange={(checked) => {
+                        if (promoTimerRef.current) {
+                          window.clearTimeout(promoTimerRef.current);
+                        }
+                        setPromoPending(true);
+                        promoTimerRef.current = window.setTimeout(async () => {
+                          try {
+                            const result = await saveEmailPreferences({ promotionalEmails: checked });
+                            if (result.success) {
+                              toast({
+                                title: "Preferences Updated",
+                                description: "Your email preferences have been saved.",
+                              });
+                            } else {
+                              toast({
+                                title: "Error",
+                                description: "Failed to update email preferences",
+                                variant: "destructive",
+                              });
+                            }
+                          } catch (error) {
                             toast({
                               title: "Error",
-                              description: "Failed to update email preferences",
+                              description: "An unexpected error occurred",
                               variant: "destructive",
                             });
+                          } finally {
+                            setPromoPending(false);
+                            promoTimerRef.current = null;
                           }
-                        } catch (error) {
-                          // console.error("Error saving email preferences:", error);
-                          toast({
-                            title: "Error",
-                            description: "An unexpected error occurred",
-                            variant: "destructive",
-                          });
-                        }
+                        }, 1000) as unknown as number;
                       }}
                     />
                   </div>

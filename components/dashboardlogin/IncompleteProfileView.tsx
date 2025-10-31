@@ -43,6 +43,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ProfileData, saveProfile } from "@/app/_actions/profile";
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -150,6 +152,9 @@ export default function IncompleteProfileView({
   isEditing = false,
 }: IncompleteProfileViewProps): JSX.Element {
   const [progress, setProgress] = useState(0);
+  const [isDirty, setIsDirty] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [lastAutoSaveAt, setLastAutoSaveAt] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("personal");
   const [formData, setFormData] = useState<FormData>(() => {
     if (initialData) {
@@ -236,6 +241,73 @@ export default function IncompleteProfileView({
 
   const [tempFiles, setTempFiles] = useState<Record<string, TempFileData>>({});
 
+  // Warn only when navigating away from profile page (not tab switches)
+  useUnsavedChanges({ isDirty, profilePathStartsWith: "/profile" });
+
+  // Build server-ready profile data excluding photo fields
+  const buildProfileData = (data: FormData): Partial<ProfileData> => {
+    const fullName = [data.firstName, data.middleName, data.lastName].filter(Boolean).join(" ").trim();
+    const workAddress = [
+      data.workStreet,
+      data.workDistrict,
+      data.workCity,
+      data.workState,
+      data.workZipcode,
+      data.workCountry,
+    ].filter(Boolean).join(", ");
+
+    const profileData: Partial<ProfileData> = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      middleName: data.middleName,
+      // Exclude photo & companyLogo from autosave per requirement
+      birthday: data.birthday,
+      title: data.title,
+      company: data.company,
+      workEmail: data.workEmail,
+      personalEmail: data.personalEmail,
+      mobile: data.mobile,
+      workPhone: data.workPhone,
+      fax: data.fax,
+      homePhone: data.homePhone,
+      workStreet: data.workStreet,
+      workDistrict: data.workDistrict,
+      workCity: data.workCity,
+      workState: data.workState,
+      workZipcode: data.workZipcode,
+      workCountry: data.workCountry,
+      homeStreet: data.homeStreet,
+      homeDistrict: data.homeDistrict,
+      homeCity: data.homeCity,
+      homeState: data.homeState,
+      homeZipcode: data.homeZipcode,
+      homeCountry: data.homeCountry,
+      website: data.website,
+      linkedin: data.linkedin,
+      twitter: data.twitter,
+      facebook: data.facebook,
+      instagram: data.instagram,
+      youtube: data.youtube,
+      notes: data.notes,
+      name: fullName,
+      workAddress,
+      userEmail,
+      isPremium: initialData?.isPremium || false,
+    };
+
+    return profileData;
+  };
+
+  // Debounced autosave for non-photo fields
+  const { schedule, isSaving } = useDebouncedSave<Partial<ProfileData>>(async (data) => {
+    if (!userEmail) return;
+    const result = await saveProfile(data, userEmail);
+    if (result.success) {
+      setIsDirty(false);
+      setLastAutoSaveAt(Date.now());
+    }
+  }, 1000);
+
   // Update the progress calculation
   useEffect(() => {
     const OPTIONAL_FIELDS = [
@@ -276,6 +348,23 @@ export default function IncompleteProfileView({
 
     setProgress(totalProgress);
   }, [formData]);
+
+  // Capture blur events at container level to trigger autosave (exclude file inputs)
+  const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    // Skip if file input (photo/companyLogo)
+    if ((target as HTMLInputElement).type === 'file') return;
+    if (!userEmail) return;
+    const fieldId = (target as HTMLInputElement).id as keyof FormData;
+    if (fieldId && (MANDATORY_FIELDS as readonly string[]).includes(fieldId as string)) {
+      const val = (target as HTMLInputElement).value || '';
+      setErrors((prev) => ({ ...prev, [fieldId]: val.trim() === '' ? 'This field is required' : undefined }));
+    }
+    // Schedule autosave with current form data
+    const data = buildProfileData(formData);
+    setIsDirty(true);
+    schedule(data);
+  };
 
   const handleSubmit = async () => {
     if (!userEmail) {
@@ -589,6 +678,7 @@ export default function IncompleteProfileView({
             />
             <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
           </div>
+          {errors.firstName && <p className="text-xs text-red-600">{errors.firstName}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName" className="flex items-center gap-2">
@@ -610,6 +700,7 @@ export default function IncompleteProfileView({
             />
             <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
           </div>
+          {errors.lastName && <p className="text-xs text-red-600">{errors.lastName}</p>}
         </div>
 
         <div className="space-y-2">
@@ -671,6 +762,7 @@ export default function IncompleteProfileView({
             />
             <Briefcase className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
+          {errors.title && <p className="text-xs text-red-600">{errors.title}</p>}
         </div>
 
         <div className="space-y-2">
@@ -690,6 +782,7 @@ export default function IncompleteProfileView({
             />
             <Building2 className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
+          {errors.company && <p className="text-xs text-red-600">{errors.company}</p>}
         </div>
 
         <div className="space-y-2 md:col-span-2">
@@ -710,6 +803,7 @@ export default function IncompleteProfileView({
             />
             <Mail className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
+          {errors.workEmail && <p className="text-xs text-red-600">{errors.workEmail}</p>}
         </div>
       </div>
 
@@ -731,7 +825,7 @@ export default function IncompleteProfileView({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" onBlur={handleContainerBlur}>
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-xl font-bold text-blue-600 mb-2">
           {isEditing ? 'Edit Your Profile' : 'Complete Your Profile'}
@@ -745,7 +839,11 @@ export default function IncompleteProfileView({
         <div className="mb-6">
           <div className="flex justify-between text-sm mb-1">
             <span>Profile Completion</span>
-            <span>{progress}%</span>
+            <span className="flex items-center gap-2">
+              {progress}%
+              {isSaving && <span className="text-xs text-blue-600">Saving…</span>}
+              {!isSaving && lastAutoSaveAt && <span className="text-xs text-green-600">Saved</span>}
+            </span>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
@@ -802,6 +900,7 @@ export default function IncompleteProfileView({
                       />
                       <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.mobile && <p className="text-xs text-red-600">{errors.mobile}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -917,6 +1016,7 @@ export default function IncompleteProfileView({
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.workStreet && <p className="text-xs text-red-600">{errors.workStreet}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workDistrict" className="flex items-center gap-2">
@@ -953,6 +1053,7 @@ export default function IncompleteProfileView({
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.workCity && <p className="text-xs text-red-600">{errors.workCity}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workState" className="flex items-center gap-2">
@@ -971,6 +1072,7 @@ export default function IncompleteProfileView({
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.workState && <p className="text-xs text-red-600">{errors.workState}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workZipcode" className="flex items-center gap-2">
@@ -989,6 +1091,7 @@ export default function IncompleteProfileView({
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.workZipcode && <p className="text-xs text-red-600">{errors.workZipcode}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workCountry" className="flex items-center gap-2">
@@ -1007,6 +1110,7 @@ export default function IncompleteProfileView({
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
+                  {errors.workCountry && <p className="text-xs text-red-600">{errors.workCountry}</p>}
                   </div>
                 </div>
 
@@ -1345,7 +1449,8 @@ export default function IncompleteProfileView({
         </div>
       </div>
 
-      {/* Benefits and FAQ section */}
+      {/* Benefits and FAQ section - hidden completely while editing */}
+      {!isEditing && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-xl font-semibold text-blue-600 mb-4">
@@ -1442,6 +1547,7 @@ export default function IncompleteProfileView({
           </Accordion>
         </div>
       </div>
+      )}
     </div>
   );
 }

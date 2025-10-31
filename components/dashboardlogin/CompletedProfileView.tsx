@@ -22,9 +22,10 @@ import { toast } from "sonner"
 
 interface CompletedProfileViewProps {
   userEmail?: string;
+  onEditModeChange?: (isEditing: boolean) => void;
 }
 
-export default function CompletedProfileView({ userEmail: propUserEmail }: CompletedProfileViewProps) {
+export default function CompletedProfileView({ userEmail: propUserEmail, onEditModeChange }: CompletedProfileViewProps) {
   const { data: session } = useSession();
   const router = useRouter()
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -84,6 +85,10 @@ export default function CompletedProfileView({ userEmail: propUserEmail }: Compl
       // console.error('Error updating profile:', error);
     }
   };
+
+  useEffect(() => {
+    onEditModeChange?.(isEditing);
+  }, [isEditing, onEditModeChange]);
 
   const renderProfileContent = () => {
     if (!profileData) return null;

@@ -15,6 +15,7 @@ export default function UserDashboardlogin() {
   const { data: session, status } = useSession()
   const [isProfileComplete, setIsProfileComplete] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isEditingChild, setIsEditingChild] = useState(false)
   const [user, setUser] = useState<User>({
     firstName: "",
     lastName: "",
@@ -156,7 +157,7 @@ export default function UserDashboardlogin() {
       <div className="min-h-screen bg-gray-50">
         <main className="container mx-auto py-8 px-4">
           {isProfileComplete ? (
-            <CompletedProfileView userEmail={session.user.email} />
+            <CompletedProfileView userEmail={session.user.email} onEditModeChange={setIsEditingChild} />
           ) : (
             <IncompleteProfileView 
               onProfileComplete={(data: any) => {
@@ -172,7 +173,8 @@ export default function UserDashboardlogin() {
           )}
         </main>
       </div>
-      <Footer />
+      {/* Hide Footer completely while editing */}
+      {!(isEditingChild || !isProfileComplete) && <Footer />}
     </>
   )
 }
