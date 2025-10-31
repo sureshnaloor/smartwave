@@ -60,6 +60,10 @@ export default function ProfilePage() {
   const [promoPending, setPromoPending] = useState(false);
   const marketingTimerRef = useRef<number | null>(null);
   const promoTimerRef = useRef<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'dashboard';
+    return sessionStorage.getItem('profile_active_tab') || 'dashboard';
+  });
 
   // Check user authentication
   useEffect(() => {
@@ -68,6 +72,13 @@ export default function ProfilePage() {
       router.push("/");
     }
   }, [status, router, mounted]);
+
+  // Persist selected tab to avoid resets on re-render
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('profile_active_tab', activeTab);
+    }
+  }, [activeTab]);
 
   // Handle form submission
   const handleThemeFormSubmit = async (formData: FormData) => {
@@ -134,7 +145,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-7 mb-8">  {/* Changed from grid-cols-5 */}
           <TabsTrigger value="dashboard" className="flex gap-2 items-center">
             <LayoutDashboard className="h-4 w-4" />

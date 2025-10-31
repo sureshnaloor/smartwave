@@ -90,9 +90,8 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
         isPremium: false
       });
     }
-    
-    revalidatePath('/dashboard');
-    revalidatePath(`/profile/${userEmail}`);
+    // Avoid triggering app-wide refreshes during client-side autosave.
+    // If needed, revalidation can be reintroduced via tags or scoped routes.
     return { success: true };
   } catch (error) {
     // console.error('Profile save error:', {
@@ -125,8 +124,9 @@ export async function getProfile(userEmail: string): Promise<ProfileData | null>
       return null;
     }
 
-    // console.log(`Profile found for user: ${userEmail}`);
-    return profile as ProfileData;
+    // Return a plain JSON-serializable object (no ObjectId/Date instances)
+    const plain = JSON.parse(JSON.stringify(profile));
+    return plain as ProfileData;
   } catch (error) {
     // console.error('Failed to get profile:', error);
     return null;
@@ -160,8 +160,8 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
       return null;
     }
 
-    // console.log(`Profile found for shortURL: ${shorturl}`);
-    return profile as ProfileData;
+    const plain = JSON.parse(JSON.stringify(profile));
+    return plain as ProfileData;
   } catch (error) {
     // console.error('Failed to get profile by shortURL:', error);
     return null;

@@ -80,7 +80,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
       if (!userEmail) return;
       setProfileData(updatedData);
       setIsEditing(false);
-      router.refresh();
+      // Avoid full page refresh; rely on local state updates
     } catch (error) {
       // console.error('Error updating profile:', error);
     }

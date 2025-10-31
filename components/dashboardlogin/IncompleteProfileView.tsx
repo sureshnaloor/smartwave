@@ -45,6 +45,7 @@ import { ProfileData, saveProfile } from "@/app/_actions/profile";
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
+import { Spinner, Check } from '@/components/ui/icons';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -155,6 +156,7 @@ export default function IncompleteProfileView({
   const [isDirty, setIsDirty] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [lastAutoSaveAt, setLastAutoSaveAt] = useState<number | null>(null);
+  const [showSaved, setShowSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [formData, setFormData] = useState<FormData>(() => {
     if (initialData) {
@@ -240,6 +242,9 @@ export default function IncompleteProfileView({
   });
 
   const [tempFiles, setTempFiles] = useState<Record<string, TempFileData>>({});
+  const [isSavingTab, setIsSavingTab] = useState(false);
+  const [lastProgressShown, setLastProgressShown] = useState<number | null>(null);
+  const lastSavedSnapshot = useState<Partial<ProfileData>>({})[0] as React.MutableRefObject<Partial<ProfileData>> as any;
 
   // Warn only when navigating away from profile page (not tab switches)
   useUnsavedChanges({ isDirty, profilePathStartsWith: "/profile" });
@@ -304,7 +309,19 @@ export default function IncompleteProfileView({
     const result = await saveProfile(data, userEmail);
     if (result.success) {
       setIsDirty(false);
-      setLastAutoSaveAt(Date.now());
+      // Only mark saved if payload actually changed values vs snapshot
+      let changed = false;
+      Object.keys(data).forEach((k) => {
+        const key = k as keyof ProfileData;
+        if (data[key] !== undefined && data[key] !== (lastSavedSnapshot.current?.[key] as any)) {
+          changed = true;
+        }
+      });
+      if (changed) {
+        setLastAutoSaveAt(Date.now());
+        // Update snapshot
+        lastSavedSnapshot.current = { ...lastSavedSnapshot.current, ...data };
+      }
     }
   }, 1000);
 
@@ -349,7 +366,19 @@ export default function IncompleteProfileView({
     setProgress(totalProgress);
   }, [formData]);
 
-  // Capture blur events at container level to trigger autosave (exclude file inputs)
+  // Auto-hide the saved indicator after a short delay; show only if progress changed
+  useEffect(() => {
+    if (!isSaving && lastAutoSaveAt) {
+      if (lastProgressShown === null || progress !== lastProgressShown) {
+        setShowSaved(true);
+        setLastProgressShown(progress);
+        const t = window.setTimeout(() => setShowSaved(false), 2000);
+        return () => window.clearTimeout(t);
+      }
+    }
+  }, [isSaving, lastAutoSaveAt, progress, lastProgressShown]);
+
+  // Capture blur events at container level to trigger autosave only when values changed (exclude file inputs)
   const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     // Skip if file input (photo/companyLogo)
@@ -360,8 +389,16 @@ export default function IncompleteProfileView({
       const val = (target as HTMLInputElement).value || '';
       setErrors((prev) => ({ ...prev, [fieldId]: val.trim() === '' ? 'This field is required' : undefined }));
     }
-    // Schedule autosave with current form data
+    // Schedule autosave only if value differs from last saved snapshot
     const data = buildProfileData(formData);
+    let changed = false;
+    Object.keys(data).forEach((k) => {
+      const key = k as keyof ProfileData;
+      if (data[key] !== undefined && data[key] !== (lastSavedSnapshot.current?.[key] as any)) {
+        changed = true;
+      }
+    });
+    if (!changed) return;
     setIsDirty(true);
     schedule(data);
   };
@@ -458,6 +495,8 @@ export default function IncompleteProfileView({
         toast.dismiss(loadingToastId);
         toast.success('Profile saved successfully');
         setTempFiles({});
+        // Update snapshot on full submit
+        lastSavedSnapshot.current = { ...lastSavedSnapshot.current, ...profileData };
         onProfileComplete(profileData as ProfileData);
       } else {
         toast.dismiss(loadingToastId);
@@ -533,6 +572,68 @@ export default function IncompleteProfileView({
       setActiveTab(tabOrder[currentIndex + 1]);
     } else if (direction === 'previous' && currentIndex > 0) {
       setActiveTab(tabOrder[currentIndex - 1]);
+    }
+  };
+
+  // Build partial payload per tab
+  const buildPartialForTab = (tab: string): Partial<ProfileData> => {
+    const d = formData;
+    const fullName = [d.firstName, d.middleName, d.lastName].filter(Boolean).join(" ").trim();
+    const workAddress = [d.workStreet, d.workDistrict, d.workCity, d.workState, d.workZipcode, d.workCountry].filter(Boolean).join(", ");
+    const base = { name: fullName, workAddress, userEmail } as Partial<ProfileData>;
+    switch (tab) {
+      case 'personal':
+        return { ...base, firstName: d.firstName, middleName: d.middleName, lastName: d.lastName, birthday: d.birthday };
+      case 'organization':
+        return { ...base, title: d.title, company: d.company, workEmail: d.workEmail };
+      case 'contact':
+        return { ...base, mobile: d.mobile, workPhone: d.workPhone, fax: d.fax, homePhone: d.homePhone, personalEmail: d.personalEmail };
+      case 'work-address':
+        return { ...base, workStreet: d.workStreet, workDistrict: d.workDistrict, workCity: d.workCity, workState: d.workState, workZipcode: d.workZipcode, workCountry: d.workCountry };
+      case 'home-address':
+        return { ...base, homeStreet: d.homeStreet, homeDistrict: d.homeDistrict, homeCity: d.homeCity, homeState: d.homeState, homeZipcode: d.homeZipcode, homeCountry: d.homeCountry };
+      case 'social':
+        return { ...base, website: d.website, linkedin: d.linkedin, twitter: d.twitter, facebook: d.facebook, instagram: d.instagram, youtube: d.youtube };
+      case 'additional':
+        return { ...base, notes: d.notes, birthday: d.birthday };
+      default:
+        return base;
+    }
+  };
+
+  const handleSaveCurrentTab = async () => {
+    if (!userEmail) {
+      toast.error('User email is required.');
+      return;
+    }
+    try {
+      setIsSavingTab(true);
+      const payload = buildPartialForTab(activeTab);
+      // Skip save if payload has no changes compared to snapshot
+      let changed = false;
+      Object.keys(payload).forEach((k) => {
+        const key = k as keyof ProfileData;
+        if (payload[key] !== undefined && payload[key] !== (lastSavedSnapshot.current?.[key] as any)) {
+          changed = true;
+        }
+      });
+      if (!changed) {
+        setIsSavingTab(false);
+        return;
+      }
+      const result = await saveProfile(payload, userEmail);
+      if (result.success) {
+        setIsDirty(false);
+        setLastAutoSaveAt(Date.now());
+        lastSavedSnapshot.current = { ...lastSavedSnapshot.current, ...payload };
+        toast.success('Saved');
+      } else {
+        toast.error(result.error || 'Failed to save');
+      }
+    } catch {
+      toast.error('Failed to save');
+    } finally {
+      setIsSavingTab(false);
     }
   };
 
@@ -661,7 +762,8 @@ export default function IncompleteProfileView({
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="firstName" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
-            First Name *
+            <span>First Name</span>
+            <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -674,16 +776,19 @@ export default function IncompleteProfileView({
                 }))
               }
               placeholder="John"
-              className="pl-10 border-2 focus:border-blue-500"
+              aria-invalid={Boolean(errors.firstName) || undefined}
+              aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+              className={`pl-10 border-2 ${errors.firstName ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
             />
             <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
           </div>
-          {errors.firstName && <p className="text-xs text-red-600">{errors.firstName}</p>}
+          {errors.firstName && <p id="firstName-error" className="mt-1 text-xs text-red-600">{errors.firstName}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="lastName" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
-            Last Name *
+            <span>Last Name</span>
+            <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -696,11 +801,13 @@ export default function IncompleteProfileView({
                 }))
               }
               placeholder="Doe"
-              className="pl-10 border-2 focus:border-blue-500"
+              aria-invalid={Boolean(errors.lastName) || undefined}
+              aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+              className={`pl-10 border-2 ${errors.lastName ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
             />
             <UserIcon className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
           </div>
-          {errors.lastName && <p className="text-xs text-red-600">{errors.lastName}</p>}
+          {errors.lastName && <p id="lastName-error" className="mt-1 text-xs text-red-600">{errors.lastName}</p>}
         </div>
 
         <div className="space-y-2">
@@ -729,14 +836,23 @@ export default function IncompleteProfileView({
       {/* Render photo upload fields only in edit mode */}
       {isEditing && renderPhotoUploadFields()}
 
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-2">
         <div /> {/* Empty div for spacing */}
-        <Button
-          onClick={() => navigateTab('next')}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Next
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleSaveCurrentTab}
+            variant="outline"
+            disabled={isSavingTab}
+          >
+            {isSavingTab ? 'Saving…' : 'Save'}
+          </Button>
+          <Button
+            onClick={() => navigateTab('next')}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </TabsContent>
   );
@@ -748,7 +864,8 @@ export default function IncompleteProfileView({
         <div className="space-y-2">
           <Label htmlFor="title" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" style={{ color: iconColor }} />
-            Job Title *
+            <span>Job Title</span>
+            <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -758,17 +875,20 @@ export default function IncompleteProfileView({
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
               }
               placeholder="Software Engineer"
-              className="pl-10 border-2 focus:border-blue-500"
+              aria-invalid={Boolean(errors.title) || undefined}
+              aria-describedby={errors.title ? 'title-error' : undefined}
+              className={`pl-10 border-2 ${errors.title ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
             />
             <Briefcase className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
-          {errors.title && <p className="text-xs text-red-600">{errors.title}</p>}
+          {errors.title && <p id="title-error" className="mt-1 text-xs text-red-600">{errors.title}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="company" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" style={{ color: iconColor }} />
-            Company *
+            <span>Company</span>
+            <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -778,17 +898,20 @@ export default function IncompleteProfileView({
                 setFormData((prev) => ({ ...prev, company: e.target.value }))
               }
               placeholder="Company Name"
-              className="pl-10 border-2 focus:border-blue-500"
+              aria-invalid={Boolean(errors.company) || undefined}
+              aria-describedby={errors.company ? 'company-error' : undefined}
+              className={`pl-10 border-2 ${errors.company ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
             />
             <Building2 className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
-          {errors.company && <p className="text-xs text-red-600">{errors.company}</p>}
+          {errors.company && <p id="company-error" className="mt-1 text-xs text-red-600">{errors.company}</p>}
         </div>
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="workEmail" className="flex items-center gap-2">
             <Mail className="h-4 w-4" style={{ color: iconColor }} />
-            Work Email *
+            <span>Work Email</span>
+            <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
           </Label>
           <div className="relative">
             <Input
@@ -799,33 +922,44 @@ export default function IncompleteProfileView({
                 setFormData((prev) => ({ ...prev, workEmail: e.target.value }))
               }
               placeholder="work@company.com"
-              className="pl-10 border-2 focus:border-blue-500"
+              aria-invalid={Boolean(errors.workEmail) || undefined}
+              aria-describedby={errors.workEmail ? 'workEmail-error' : undefined}
+              className={`pl-10 border-2 ${errors.workEmail ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
             />
             <Mail className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
           </div>
-          {errors.workEmail && <p className="text-xs text-red-600">{errors.workEmail}</p>}
+          {errors.workEmail && <p id="workEmail-error" className="mt-1 text-xs text-red-600">{errors.workEmail}</p>}
         </div>
       </div>
 
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-6 gap-2">
         <Button
           onClick={() => navigateTab('previous')}
           variant="outline"
         >
           Previous
         </Button>
-        <Button
-          onClick={() => navigateTab('next')}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Next
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleSaveCurrentTab}
+            variant="outline"
+            disabled={isSavingTab}
+          >
+            {isSavingTab ? 'Saving…' : 'Save'}
+          </Button>
+          <Button
+            onClick={() => navigateTab('next')}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </TabsContent>
   );
 
   return (
-    <div className="space-y-8" onBlur={handleContainerBlur}>
+    <div className="space-y-8 pb-14 md:pb-0" onBlur={handleContainerBlur}>
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-xl font-bold text-blue-600 mb-2">
           {isEditing ? 'Edit Your Profile' : 'Complete Your Profile'}
@@ -839,10 +973,21 @@ export default function IncompleteProfileView({
         <div className="mb-6">
           <div className="flex justify-between text-sm mb-1">
             <span>Profile Completion</span>
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2" aria-live="polite">
               {progress}%
-              {isSaving && <span className="text-xs text-blue-600">Saving…</span>}
-              {!isSaving && lastAutoSaveAt && <span className="text-xs text-green-600">Saved</span>}
+              {isSaving ? (
+                <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                  <Spinner className="h-3 w-3" />
+                  Saving…
+                </span>
+              ) : (
+                lastAutoSaveAt && (
+                  <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                    <Check className="h-3 w-3" />
+                    Saved
+                  </span>
+                )
+              )}
             </span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -886,7 +1031,8 @@ export default function IncompleteProfileView({
                   <div className="space-y-2">
                     <Label htmlFor="mobile" className="flex items-center gap-2">
                       <Phone className="h-4 w-4" style={{ color: iconColor }} />
-                      Mobile *
+                      <span>Mobile</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -896,11 +1042,13 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, mobile: e.target.value }))
                         }
                         placeholder="1234567890"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.mobile) || undefined}
+                        aria-describedby={errors.mobile ? 'mobile-error' : undefined}
+                        className={`pl-10 border-2 ${errors.mobile ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <Phone className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.mobile && <p className="text-xs text-red-600">{errors.mobile}</p>}
+                  {errors.mobile && <p id="mobile-error" className="mt-1 text-xs text-red-600">{errors.mobile}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -980,19 +1128,28 @@ export default function IncompleteProfileView({
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Button
                     onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveCurrentTab}
+                      variant="outline"
+                      disabled={isSavingTab}
+                    >
+                      {isSavingTab ? 'Saving…' : 'Save'}
+                    </Button>
+                    <Button
+                      onClick={() => navigateTab('next')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
               {/* Work Address Tab */}
@@ -1002,7 +1159,8 @@ export default function IncompleteProfileView({
                   <div className="space-y-2">
                     <Label htmlFor="workStreet" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" style={{ color: iconColor }} />
-                      Street Address *
+                      <span>Street Address</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1012,11 +1170,13 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, workStreet: e.target.value }))
                         }
                         placeholder="123 Work Street"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.workStreet) || undefined}
+                        aria-describedby={errors.workStreet ? 'workStreet-error' : undefined}
+                        className={`pl-10 border-2 ${errors.workStreet ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.workStreet && <p className="text-xs text-red-600">{errors.workStreet}</p>}
+                  {errors.workStreet && <p id="workStreet-error" className="mt-1 text-xs text-red-600">{errors.workStreet}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workDistrict" className="flex items-center gap-2">
@@ -1039,7 +1199,8 @@ export default function IncompleteProfileView({
                   <div className="space-y-2">
                     <Label htmlFor="workCity" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" style={{ color: iconColor }} />
-                      City *
+                      <span>City</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1049,16 +1210,19 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, workCity: e.target.value }))
                         }
                         placeholder="San Francisco"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.workCity) || undefined}
+                        aria-describedby={errors.workCity ? 'workCity-error' : undefined}
+                        className={`pl-10 border-2 ${errors.workCity ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.workCity && <p className="text-xs text-red-600">{errors.workCity}</p>}
+                  {errors.workCity && <p id="workCity-error" className="mt-1 text-xs text-red-600">{errors.workCity}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workState" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" style={{ color: iconColor }} />
-                      State *
+                      <span>State</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1068,16 +1232,19 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, workState: e.target.value }))
                         }
                         placeholder="California"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.workState) || undefined}
+                        aria-describedby={errors.workState ? 'workState-error' : undefined}
+                        className={`pl-10 border-2 ${errors.workState ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.workState && <p className="text-xs text-red-600">{errors.workState}</p>}
+                  {errors.workState && <p id="workState-error" className="mt-1 text-xs text-red-600">{errors.workState}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workZipcode" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" style={{ color: iconColor }} />
-                      Zipcode *
+                      <span>Zipcode</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1087,16 +1254,19 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, workZipcode: e.target.value }))
                         }
                         placeholder="94105"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.workZipcode) || undefined}
+                        aria-describedby={errors.workZipcode ? 'workZipcode-error' : undefined}
+                        className={`pl-10 border-2 ${errors.workZipcode ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.workZipcode && <p className="text-xs text-red-600">{errors.workZipcode}</p>}
+                  {errors.workZipcode && <p id="workZipcode-error" className="mt-1 text-xs text-red-600">{errors.workZipcode}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="workCountry" className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" style={{ color: iconColor }} />
-                      Country *
+                      <span>Country</span>
+                      <span title="Required" aria-label="Required" className="text-red-500" role="img">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -1106,27 +1276,38 @@ export default function IncompleteProfileView({
                           setFormData((prev) => ({ ...prev, workCountry: e.target.value }))
                         }
                         placeholder="United States"
-                        className="pl-10 border-2 focus:border-blue-500"
+                        aria-invalid={Boolean(errors.workCountry) || undefined}
+                        aria-describedby={errors.workCountry ? 'workCountry-error' : undefined}
+                        className={`pl-10 border-2 ${errors.workCountry ? 'border-red-500 focus:border-red-600' : 'focus:border-blue-500'}`}
                       />
                       <MapPin className="h-4 w-4 absolute left-3 top-3" style={{ color: iconColor }} />
                     </div>
-                  {errors.workCountry && <p className="text-xs text-red-600">{errors.workCountry}</p>}
+                  {errors.workCountry && <p id="workCountry-error" className="mt-1 text-xs text-red-600">{errors.workCountry}</p>}
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Button
                     onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveCurrentTab}
+                      variant="outline"
+                      disabled={isSavingTab}
+                    >
+                      {isSavingTab ? 'Saving…' : 'Save'}
+                    </Button>
+                    <Button
+                      onClick={() => navigateTab('next')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
               {/* Home Address Tab */}
@@ -1243,19 +1424,28 @@ export default function IncompleteProfileView({
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Button
                     onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveCurrentTab}
+                      variant="outline"
+                      disabled={isSavingTab}
+                    >
+                      {isSavingTab ? 'Saving…' : 'Save'}
+                    </Button>
+                    <Button
+                      onClick={() => navigateTab('next')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -1378,19 +1568,28 @@ export default function IncompleteProfileView({
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-2">
                   <Button
                     onClick={() => navigateTab('previous')}
                     variant="outline"
                   >
                     Previous
                   </Button>
-                  <Button
-                    onClick={() => navigateTab('next')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Next
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSaveCurrentTab}
+                      variant="outline"
+                      disabled={isSavingTab}
+                    >
+                      {isSavingTab ? 'Saving…' : 'Save'}
+                    </Button>
+                    <Button
+                      onClick={() => navigateTab('next')}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -1548,6 +1747,49 @@ export default function IncompleteProfileView({
         </div>
       </div>
       )}
+      {/* Sticky save status on mobile */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30">
+        <div className="mx-auto max-w-screen-md px-4 pb-4">
+          {(isSaving || showSaved) && (
+          <div className={`rounded-full shadow-md border bg-white/95 backdrop-blur px-3 py-2 w-full flex items-center justify-center text-xs transition-opacity duration-300 ${isSaving || showSaved ? 'opacity-100' : 'opacity-0'}`}>
+            {isSaving ? (
+              <span className="inline-flex items-center gap-2 text-blue-700">
+                <Spinner className="h-3 w-3" />
+                Saving your changes…
+              </span>
+            ) : (
+              showSaved && (
+                <span className="inline-flex items-center gap-2 text-green-700">
+                  <Check className="h-3 w-3" />
+                  All changes saved
+                </span>
+              )
+            )}
+          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop status badge top-right */}
+      <div className="hidden md:block fixed top-4 right-4 z-30">
+        {(isSaving || showSaved) && (
+        <div className={`rounded-full shadow-sm border bg-white/95 backdrop-blur px-3 py-1.5 text-xs transition-opacity duration-300 ${isSaving || showSaved ? 'opacity-100' : 'opacity-0'}`}>
+          {isSaving ? (
+            <span className="inline-flex items-center gap-2 text-blue-700">
+              <Spinner className="h-3 w-3" />
+              Saving…
+            </span>
+          ) : (
+            showSaved && (
+              <span className="inline-flex items-center gap-2 text-green-700">
+                <Check className="h-3 w-3" />
+                Saved
+              </span>
+            )
+          )}
+        </div>
+        )}
+      </div>
     </div>
   );
 }
