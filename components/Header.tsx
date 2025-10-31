@@ -7,7 +7,7 @@ import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
-import { Menu, X, Mail, DollarSign, ShoppingBag, Globe, BookOpen} from 'lucide-react';
+import { Menu, X, Mail, DollarSign, ShoppingBag, Globe, BookOpen, IdCard } from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
 
 export default function Header() {
@@ -51,6 +51,15 @@ export default function Header() {
           <div className="hidden md:flex items-center justify-center space-x-6">
             {isAuthenticated && (
               <Link 
+                href="/myprofile" 
+                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <IdCard className="h-5 w-5" />
+                <span>Create/Edit Profile</span>
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link 
                 href="/guide-me" 
                 className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
               >
@@ -92,6 +101,15 @@ export default function Header() {
                     <Globe className="h-5 w-5 text-gray-600" />
                     <Navigation variant="country-selector" />
                   </div>
+                )}
+                {isAuthenticated && (
+                  <Link 
+                    href="/myprofile" 
+                    className="flex items-center gap-2 px-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <IdCard className="h-5 w-5" />
+                    <span>Create/Edit Profile</span>
+                  </Link>
                 )}
                 <Navigation variant="full" />
               </div>
