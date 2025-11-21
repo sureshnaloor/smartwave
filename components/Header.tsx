@@ -21,8 +21,11 @@ export default function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Left Section: Logo and Store link */}
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold dark:text-white md:text-2xl mr-4">
-              Smartwave
+            <div className="logo-icon">
+              <span className="logo-icon-text">sw</span>
+            </div>
+            <Link href="/" className="logo-text-box mr-4">
+              <span className="logo-text">SmartWave</span>
             </Link>
             {isAuthenticated && (
               <Link 
@@ -75,11 +78,25 @@ export default function Header() {
               <span>Contact</span>
             </Link>
             <Link 
+              href="/features" 
+              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <Mail className="h-5 w-5" />
+              <span>Features</span>
+            </Link>
+            <Link 
               href="/pricing" 
               className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <DollarSign className="h-5 w-5" />
               <span>Pricing</span>
+            </Link>
+            <Link 
+              href="/wallet" 
+              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <DollarSign className="h-5 w-5" />
+              <span>Wallet Integration</span>
             </Link>
             <AboutDropdown />
           </div>

@@ -28,7 +28,16 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
+    
+    /* SmartWave Custom Colors */
+    --smart-charcoal: #1a1a1a;
+    --smart-silver: #e8e8e8;
+    --smart-teal: #00d4aa;
+    --smart-amber: #ffb347;
+    --nav-bg: rgba(26, 26, 26, 0.9);
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --border-color: rgba(255, 255, 255, 0.1);
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -56,6 +65,14 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%
   }
+  
+  :root.light {
+    --background: #ffffff;
+    --foreground: #1a1a1a;
+    --nav-bg: rgba(255, 255, 255, 0.9);
+    --card-bg: rgba(0, 0, 0, 0.02);
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
 }
 
 @layer base {
@@ -64,6 +81,462 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* SmartWave Logo Icon - Rounded square with gradient */
+  .logo-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #7dd3fc 0%, #fde047 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Logo icon text with cutout/transparent effect */
+  .logo-icon-text {
+    font-weight: 700;
+    font-size: 1.250rem;
+    color: #000000;
+    mix-blend-mode: multiply;
+    opacity: 0.9;
+    letter-spacing: -0.02em;
+    text-transform: lowercase;
+    line-height: 1;
+  }
+
+  /* SmartWave Text Box - Blue rectangle */
+  .logo-text-box {
+    background-color: #3b82f6;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+  }
+
+  /* Logo text styling */
+  .logo-text {
+    font-weight: 700;
+    font-size: 1.00rem;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  /* Utility classes for gradient and blue background */
+  .gradient-smartwave {
+    background: linear-gradient(135deg, #7dd3fc 0%, #fde047 100%);
+  }
+
+  .bg-smartwave-blue {
+    background-color: #3b82f6;
+  }
+
+  /* Custom Animations */
+  @keyframes aurora {
+    0%, 100% {
+      transform: translateX(-10%) rotate(0deg);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateX(10%) rotate(2deg);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes nfcPulse {
+    0% {
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Text Gradient */
+  .text-gradient {
+    background: linear-gradient(135deg, #00d4aa 0%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Feature Card */
+  .feature-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+    transform: translateY(-5px);
+  }
+
+  /* Comparison Table */
+  .comparison-table {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .comparison-table table {
+    border-collapse: collapse;
+  }
+
+  .comparison-table th {
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  .comparison-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* ROI Calculator */
+  .roi-calculator {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+  }
+
+  /* Industry Card */
+  .industry-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .industry-card:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+    transform: translateY(-5px);
+  }
+
+  .industry-card.active {
+    background: rgba(0, 212, 170, 0.1);
+    border-color: rgba(0, 212, 170, 0.5);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+  }
+
+  /* Use Case Demo */
+  .use-case-demo {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 400px;
+    transition: all 0.3s ease;
+  }
+
+  /* Phone Demo */
+  .demo-phone {
+    max-width: 375px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .demo-screen {
+    background: linear-gradient(to bottom, #1a1a1a 0%, #2a2a2a 100%);
+    border-radius: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    min-height: 600px;
+    aspect-ratio: 9/16;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .demo-screen:hover {
+    transform: scale(1.02);
+    box-shadow: 0 25px 70px rgba(0, 212, 170, 0.3);
+  }
+
+  .nfc-simulation {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(0, 212, 170, 0.5);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .demo-screen:hover .nfc-simulation {
+    animation: nfcPulse 2s ease-in-out infinite;
+    opacity: 1;
+  }
+
+  /* Range Input Styling */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #00d4aa;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: #00b894;
+    transform: scale(1.1);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #00d4aa;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  input[type="range"]::-moz-range-thumb:hover {
+    background: #00b894;
+    transform: scale(1.1);
+  }
+
+  /* Light Mode Overrides */
+  html.light .feature-card,
+  html.light .industry-card,
+  html.light .use-case-demo,
+  html.light .roi-calculator,
+  html.light .comparison-table {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  html.light .feature-card:hover,
+  html.light .industry-card:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+  }
+
+  html.light .industry-card.active {
+    background: rgba(0, 212, 170, 0.1);
+    border-color: rgba(0, 212, 170, 0.3);
+  }
+
+  html.light .comparison-table th {
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  html.light .comparison-table tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  html.light .demo-screen {
+    background: linear-gradient(to bottom, #f5f5f7 0%, #ffffff 100%);
+  }
+
+  html.light input[type="range"] {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  html.light .text-gradient {
+    background: linear-gradient(135deg, #00d4aa 0%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Integration Step */
+  .integration-step {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .integration-step:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+  }
+
+  /* Enterprise Feature */
+  .enterprise-feature {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .enterprise-feature:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+  }
+
+  /* iOS Wallet Demo Styles */
+  .wallet-phone {
+    max-width: 375px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .wallet-screen {
+    background: #f5f5f7;
+    border-radius: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    min-height: 600px;
+  }
+
+  .ios-wallet-bg {
+    background: linear-gradient(to bottom, #f5f5f7 0%, #ffffff 100%);
+  }
+
+  .wallet-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .wallet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .wallet-card.business-card {
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 212, 170, 0.05) 100%);
+    border: 1px solid rgba(0, 212, 170, 0.2);
+  }
+
+  .wallet-card.loyalty-card {
+    background: linear-gradient(135deg, rgba(255, 179, 71, 0.1) 0%, rgba(255, 179, 71, 0.05) 100%);
+    border: 1px solid rgba(255, 179, 71, 0.2);
+  }
+
+  .wallet-card.event-card {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(147, 51, 234, 0.05) 100%);
+    border: 1px solid rgba(147, 51, 234, 0.2);
+  }
+
+  .push-notification {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff3b30;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid #ffffff;
+  }
+
+  /* Light Mode Overrides for Wallet and Integration */
+  html.light .integration-step,
+  html.light .enterprise-feature {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  html.light .integration-step:hover,
+  html.light .enterprise-feature:hover {
+    background: rgba(0, 212, 170, 0.05);
+    border-color: rgba(0, 212, 170, 0.3);
+  }
+
+  html.light .wallet-screen,
+  html.light .ios-wallet-bg {
+    background: #f5f5f7;
+  }
+
+  html.light .wallet-card {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  html.light .push-notification {
+    background: rgba(0, 0, 0, 0.9);
+  }
+
+  /* CTA Section Dark Mode Text Colors */
+  .cta-description {
+    color: rgb(75, 85, 99); /* gray-600 for light mode */
+  }
+
+  .dark .cta-description,
+  html:not(.light) .cta-description {
+    color: rgba(232, 232, 232, 0.8);
+  }
+
+  .cta-stat-label {
+    color: rgb(107, 114, 128); /* gray-500 for light mode */
+  }
+
+  .dark .cta-stat-label,
+  html:not(.light) .cta-stat-label {
+    color: rgba(232, 232, 232, 0.6);
   }
 }
 
