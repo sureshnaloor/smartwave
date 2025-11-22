@@ -1,7 +1,7 @@
 'use client';
 
 import { Info, IdCard, Rocket, ChevronDown } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +11,8 @@ import {
 
 export default function AboutDropdown() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isAboutPage = pathname === '/about-smartwave' || pathname === '/about-xbeyond';
   
   const handleSmartwave = () => {
     router.push('/about-smartwave');
@@ -22,8 +24,12 @@ export default function AboutDropdown() {
   
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none">
-        <Info className="h-5 w-5" />
+      <DropdownMenuTrigger className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none ${
+        isAboutPage
+          ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+      }`}>
+        <Info className="h-4 w-4" />
         <span className="hidden md:inline">About</span>
         <ChevronDown className="h-4 w-4" />
       </DropdownMenuTrigger>

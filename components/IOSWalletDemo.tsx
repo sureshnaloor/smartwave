@@ -43,8 +43,8 @@ export default function IOSWalletDemo() {
                                         <span className="text-smart-charcoal font-bold text-xs">SW</span>
                                     </div>
                                     <div>
-                                        <p className="font-medium">John Smith</p>
-                                        <p className="text-sm opacity-80">Creative Director</p>
+                                        <p className="font-medium text-gray-800">John Smith</p>
+                                        <p className="text-sm opacity-80 text-gray-700">Creative Director</p>
                                     </div>
                                 </div>
                                 <div className="relative">
@@ -53,7 +53,7 @@ export default function IOSWalletDemo() {
                                 </div>
                             </div>
                             <div className="flex justify-between items-center">
-                                <p className="text-xs opacity-60">SmartWave Business Card</p>
+                                <p className="text-xs opacity-60 text-gray-700">SmartWave Business Card</p>
                                 <span className="text-xs opacity-60">📱</span>
                             </div>
                         </div>
@@ -66,14 +66,14 @@ export default function IOSWalletDemo() {
                                         <span className="text-white font-bold text-xs">★</span>
                                     </div>
                                     <div>
-                                        <p className="font-medium">Coffee Shop Rewards</p>
-                                        <p className="text-sm opacity-80">12 points</p>
+                                        <p className="font-medium text-gray-800">Coffee Shop Rewards</p>
+                                        <p className="text-sm opacity-80 text-gray-700">12 points</p>
                                     </div>
                                 </div>
                                 <span className="text-smart-amber">⭐</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <p className="text-xs opacity-60">Loyalty Program</p>
+                                <p className="text-xs opacity-60 text-gray-700">Loyalty Program</p>
                                 <span className="text-xs opacity-60">☕</span>
                             </div>
                         </div>
@@ -86,14 +86,14 @@ export default function IOSWalletDemo() {
                                         <span className="text-white font-bold text-xs">🎫</span>
                                     </div>
                                     <div>
-                                        <p className="font-medium">Tech Conference 2025</p>
-                                        <p className="text-sm opacity-80">March 15, 2025</p>
+                                        <p className="font-medium text-gray-800">Tech Conference 2025</p>
+                                        <p className="text-sm opacity-80 text-gray-700">March 15, 2025</p>
                                     </div>
                                 </div>
                                 <span className="text-smart-teal">🎪</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <p className="text-xs opacity-60">Event Ticket</p>
+                                <p className="text-xs opacity-60 text-gray-700">Event Ticket</p>
                                 <span className="text-xs opacity-60">📅</span>
                             </div>
                         </div>
@@ -106,8 +106,8 @@ export default function IOSWalletDemo() {
                                 <span className="text-smart-charcoal font-bold text-xs">SW</span>
                             </div>
                             <div>
-                                <p className="text-sm font-medium">John Smith updated his contact info</p>
-                                <p className="text-xs text-gray-400">Tap to view updated card</p>
+                                <p className="text-sm font-medium text-gray-800 dark:text-white">John Smith updated his contact info</p>
+                                <p className="text-xs text-gray-800 dark:text-gray-600">Tap to view updated card</p>
                             </div>
                         </div>
                     </div>

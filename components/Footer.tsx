@@ -1,14 +1,22 @@
+import Link from 'next/link';
+
 const Footer = () => {
   return (
     <footer className="w-full bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 py-6 sm:py-8 relative z-[999]">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center space-y-4 sm:space-y-0 sm:flex-row sm:justify-between">
           {/* Copyright section - Stacks vertically on mobile */}
-          <div className="text-[11px] sm:text-sm text-center sm:text-left">
+          <div className="flex items-center gap-3 text-[11px] sm:text-sm text-center sm:text-left">
+            <div className="flex items-center">
+              <div className="logo-icon">
+                <span className="logo-icon-text">sw</span>
+              </div>
+              <Link href="/" className="logo-text-box mr-2">
+                <span className="logo-text">SmartWave</span>
+              </Link>
+            </div>
             <span className="block sm:inline">
               © {new Date().getFullYear()}{" "}
-              <span className="text-red-500 dark:text-red-400">Smart</span>
-              <span className="text-cyan-500 dark:text-cyan-400">Wave</span>{" "}
               Cards.
             </span>
             <span className="block sm:inline">

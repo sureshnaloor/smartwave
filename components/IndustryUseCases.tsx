@@ -82,13 +82,13 @@ export default function IndustryUseCases() {
     const [activeIndustry, setActiveIndustry] = useState<'real-estate' | 'consulting' | 'creative' | 'tech'>('real-estate');
 
     return (
-        <section className="py-20 bg-gradient-to-b from-black to-smart-charcoal">
+        <section className="py-20 bg-gray-50 dark:bg-black">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl font-bold mb-6">
+                    <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                         Industry-Specific <span className="text-gradient">Solutions</span>
                     </h2>
-                    <p className="text-xl text-smart-silver/80 max-w-3xl mx-auto">
+                    <p className="text-xl text-gray-600 dark:text-smart-silver/80 max-w-3xl mx-auto">
                         SmartWave adapts to your industry's unique networking needs with specialized features and integrations.
                     </p>
                 </div>
@@ -106,8 +106,8 @@ export default function IndustryUseCases() {
                                 <div className={`w-12 h-12 ${colorClasses[data.color as ColorKey]} rounded-lg flex items-center justify-center mb-4`}>
                                     <span className="text-2xl">{data.icon}</span>
                                 </div>
-                                <h3 className="font-semibold mb-2">{data.title}</h3>
-                                <p className="text-sm text-smart-silver/60">{data.description}</p>
+                                <h3 className="font-semibold mb-2 text-gray-900 dark:text-white">{data.title}</h3>
+                                <p className="text-sm text-gray-600 dark:text-smart-silver/60">{data.description}</p>
                             </div>
                         );
                     })}
@@ -122,10 +122,10 @@ export default function IndustryUseCases() {
                                 <span className="text-6xl">{industryData[activeIndustry].visualContent}</span>
                             </div>
                             <div className="text-center">
-                                <h3 className="text-3xl font-bold mb-4">
+                                <h3 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
                                     {industryData[activeIndustry].title} <span className="text-gradient">Solution</span>
                                 </h3>
-                                <p className="text-lg text-smart-silver/80 max-w-md">
+                                <p className="text-lg text-gray-600 dark:text-smart-silver/80 max-w-md">
                                     {industryData[activeIndustry].content}
                                 </p>
                             </div>
@@ -133,17 +133,17 @@ export default function IndustryUseCases() {
 
                         {/* Right Column - Features List */}
                         <div>
-                            <h4 className="text-xl font-semibold mb-6">Key Features</h4>
+                            <h4 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white">Key Features</h4>
                             <div className="grid md:grid-cols-2 gap-4">
                                 {industryData[activeIndustry].features.map((feature, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                                        className="flex items-start space-x-3 p-4 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                                     >
                                         <div className="w-6 h-6 bg-smart-teal/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                             <span className="text-smart-teal text-xs">✓</span>
                                         </div>
-                                        <span className="text-smart-silver/80 text-sm">{feature}</span>
+                                        <span className="text-gray-700 dark:text-smart-silver/80 text-sm">{feature}</span>
                                     </div>
                                 ))}
                             </div>

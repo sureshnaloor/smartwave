@@ -5,6 +5,7 @@ import PricingFeatures from "@/components/pricing/PricingFeatures"
 import PricingCommunity from "@/components/pricing/PricingCommunity"
 import PricingCTA from "@/components/pricing/PricingCTA"
 import PricingNewStyle from "@/components/pricing/pricingnewstyle"
+import Footer from "@/components/Footer"
 
 export const metadata: Metadata = {
   title: "Pricing | Smartwave",
@@ -20,6 +21,7 @@ export default function PricingPage() {
       <PricingFeatures />
       <PricingCommunity />
       <PricingCTA />
+      <Footer />
     </div>
   )
 }

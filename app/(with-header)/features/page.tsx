@@ -1,6 +1,7 @@
 import PhoneDemo from '@/components/PhoneDemo';
 import IndustryUseCases from '@/components/IndustryUseCases';
 import ROICalculator from '@/components/ROICalculator';
+import Footer from '@/components/Footer';
 
 export default function FeaturesPage() {
     return (
@@ -128,14 +129,14 @@ export default function FeaturesPage() {
             </section>
 
             {/* Virtual Card Demo */}
-            <section className="py-20 bg-black">
+            <section className="py-20 bg-gray-50 dark:bg-black">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
-                            <h2 className="text-4xl font-bold mb-6">
+                            <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                                 See SmartWave in <span className="text-gradient">Action</span>
                             </h2>
-                            <p className="text-xl text-smart-silver/80 mb-8">
+                            <p className="text-xl text-gray-600 dark:text-smart-silver/80 mb-8">
                                 Experience the seamless NFC interaction. Simply tap your SmartWave card to any
                                 smartphone to instantly share your professional information.
                             </p>
@@ -146,8 +147,8 @@ export default function FeaturesPage() {
                                         <span className="text-smart-teal text-sm">1</span>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold mb-2">Tap to Connect</h4>
-                                        <p className="text-smart-silver/80">
+                                        <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Tap to Connect</h4>
+                                        <p className="text-gray-600 dark:text-smart-silver/80">
                                             Simply tap your SmartWave card to the back of any smartphone. No app required
                                             on the recipient's device.
                                         </p>
@@ -159,8 +160,8 @@ export default function FeaturesPage() {
                                         <span className="text-smart-teal text-sm">2</span>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold mb-2">Instant Transfer</h4>
-                                        <p className="text-smart-silver/80">
+                                        <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Instant Transfer</h4>
+                                        <p className="text-gray-600 dark:text-smart-silver/80">
                                             Your contact information, portfolio, and social links are instantly shared in
                                             a beautiful, mobile-optimized format.
                                         </p>
@@ -172,8 +173,8 @@ export default function FeaturesPage() {
                                         <span className="text-smart-teal text-sm">3</span>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold mb-2">Save & Connect</h4>
-                                        <p className="text-smart-silver/80">
+                                        <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Save & Connect</h4>
+                                        <p className="text-gray-600 dark:text-smart-silver/80">
                                             Recipients can save your information directly to their contacts or add your
                                             card to their digital wallet.
                                         </p>
@@ -196,20 +197,20 @@ export default function FeaturesPage() {
             <IndustryUseCases />
 
             {/* ROI Calculator */}
-            <section className="py-20 bg-smart-charcoal">
+            <section className="py-20 bg-gray-50 dark:bg-black">
                 <div className="max-w-7xl mx-auto px-6">
                     <ROICalculator />
                 </div>
             </section>
 
             {/* Comparison Table */}
-            <section className="py-20 bg-black">
+            <section className="py-20 bg-white dark:bg-black">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold mb-6">
+                        <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                             Why SmartWave <span className="text-gradient">Wins</span>
                         </h2>
-                        <p className="text-xl text-smart-silver/80">
+                        <p className="text-xl text-gray-600 dark:text-smart-silver/80">
                             Compare SmartWave against traditional business cards and other digital solutions
                         </p>
                     </div>
@@ -219,51 +220,51 @@ export default function FeaturesPage() {
                             <table className="w-full">
                                 <thead className="bg-smart-teal/10">
                                     <tr>
-                                        <th className="text-left p-6 font-semibold">Feature</th>
+                                        <th className="text-left p-6 font-semibold text-gray-900 dark:text-white">Feature</th>
                                         <th className="text-center p-6 font-semibold text-smart-teal">SmartWave</th>
-                                        <th className="text-center p-6 font-semibold">Traditional Cards</th>
-                                        <th className="text-center p-6 font-semibold">Other Digital</th>
+                                        <th className="text-center p-6 font-semibold text-gray-900 dark:text-white">Traditional Cards</th>
+                                        <th className="text-center p-6 font-semibold text-gray-900 dark:text-white">Other Digital</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">Instant Information Update</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">Instant Information Update</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-yellow-400">~</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">iOS Wallet Integration</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">iOS Wallet Integration</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">Advanced Analytics</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">Advanced Analytics</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-yellow-400">~</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">Enterprise Security</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">Enterprise Security</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-yellow-400">~</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">Environmental Impact</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">Environmental Impact</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">15+ Premium Themes</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">15+ Premium Themes</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
                                         <td className="text-center p-6 text-yellow-400">~</td>
                                     </tr>
-                                    <tr className="border-t border-white/10">
-                                        <td className="p-6 font-medium">No App Required</td>
+                                    <tr className="border-t border-gray-200 dark:border-white/10">
+                                        <td className="p-6 font-medium text-gray-900 dark:text-white">No App Required</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-green-400">✓</td>
                                         <td className="text-center p-6 text-red-400">✗</td>
@@ -276,28 +277,35 @@ export default function FeaturesPage() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 bg-gradient-to-b from-black to-smart-charcoal">
+            <section className="py-20 bg-gray-50 dark:bg-[#1a1a1a]">
                 <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-4xl font-bold mb-6">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-6 text-smart-charcoal dark:text-white">
                         Ready to Transform Your
                         <br />
                         <span className="text-gradient">Networking Game?</span>
                     </h2>
-                    <p className="text-xl text-smart-silver/80 mb-8">
+                    <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto text-stone-900 dark:text-white">
                         Join thousands of professionals who've already made the switch to SmartWave. Start your
                         free trial today.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-8 py-4 rounded-xl font-semibold transition-colors">
+                        <button 
+                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-white"
+                            style={{ backgroundColor: '#00d4aa' }}
+                        >
                             Start Free Trial
                         </button>
-                        <button className="border border-smart-silver/30 hover:border-smart-teal text-smart-silver hover:text-smart-teal px-8 py-4 rounded-xl font-semibold transition-colors">
+                        <button 
+                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-smart-charcoal dark:text-white border-2 bg-white dark:bg-transparent border-gray-300 dark:border-white/30"
+                        >
                             Schedule Demo
                         </button>
                     </div>
                 </div>
             </section>
+        
+        <Footer />
         </main>
     );
 }

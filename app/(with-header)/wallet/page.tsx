@@ -1,7 +1,9 @@
 import IOSWalletDemo from '@/components/IOSWalletDemo';
+import Footer from '@/components/Footer';
 
 export default function WalletPage() {
     return (
+        <>
         <main className="pt-20">
             {/* Hero Section */}
             <section id="wallet" className="pt-12 pb-20 bg-gradient-to-b from-smart-charcoal to-black">
@@ -333,14 +335,14 @@ export default function WalletPage() {
             {/* CTA Section */}
             <section className="py-20 bg-gray-50 dark:bg-[#1a1a1a]">
                 <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-6 text-smart-charcoal dark:text-white">
                         Ready to Integrate with
                         <br />
                         <span style={{ color: '#00d4aa' }}>Apple Wallet</span>
                         {' '}&{' '}
                         <span style={{ color: '#ffb347' }}>Google Pay?</span>
                     </h2>
-                    <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto cta-description">
+                    <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto text-stone-900 dark:text-white">
                         Join leading companies who've already transformed their networking with SmartWave's
                         wallet integration.
                     </p>
@@ -353,8 +355,7 @@ export default function WalletPage() {
                             Start Free Trial
                         </button>
                         <button 
-                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-white border-2"
-                            style={{ borderColor: 'rgba(255, 255, 255, 0.3)', backgroundColor: 'transparent' }}
+                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-smart-charcoal dark:text-white border-2 bg-white dark:bg-transparent border-gray-300 dark:border-white/30"
                         >
                             Request Demo
                         </button>
@@ -387,5 +388,7 @@ export default function WalletPage() {
                 </div>
             </section>
         </main>
+        <Footer />
+        </>
     );
 }

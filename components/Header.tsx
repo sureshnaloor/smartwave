@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
-import { Menu, X, Mail, DollarSign, ShoppingBag, Globe, BookOpen, IdCard } from 'lucide-react';
+import { Menu, X, Mail, DollarSign, ShoppingBag, Globe, BookOpen, IdCard, Zap, CreditCard } from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { status } = useSession();
+  const pathname = usePathname();
   const isAuthenticated = status === 'authenticated';
 
   return (
@@ -51,51 +53,75 @@ export default function Header() {
           </button>
 
           {/* Center Section: Main Navigation Items */}
-          <div className="hidden md:flex items-center justify-center space-x-6">
+          <div className="hidden md:flex items-center justify-center space-x-2">
             {isAuthenticated && (
               <Link 
                 href="/myprofile" 
-                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  pathname === '/myprofile'
+                    ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                }`}
               >
-                <IdCard className="h-5 w-5" />
+                <IdCard className="h-4 w-4" />
                 <span>Create/Edit Profile</span>
               </Link>
             )}
             {isAuthenticated && (
               <Link 
                 href="/guide-me" 
-                className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  pathname === '/guide-me'
+                    ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                }`}
               >
-                <BookOpen className="h-5 w-5" />
+                <BookOpen className="h-4 w-4" />
                 <span>Guide Me</span>
               </Link>
             )}
             <Link 
               href="/contact-us" 
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                pathname === '/contact-us'
+                  ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+              }`}
             >
-              <Mail className="h-5 w-5" />
+              <Mail className="h-4 w-4" />
               <span>Contact</span>
             </Link>
             <Link 
               href="/features" 
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                pathname === '/features'
+                  ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+              }`}
             >
-              <Mail className="h-5 w-5" />
+              <Zap className="h-4 w-4" />
               <span>Features</span>
             </Link>
             <Link 
               href="/pricing" 
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                pathname === '/pricing'
+                  ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+              }`}
             >
-              <DollarSign className="h-5 w-5" />
+              <DollarSign className="h-4 w-4" />
               <span>Pricing</span>
             </Link>
             <Link 
               href="/wallet" 
-              className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                pathname === '/wallet'
+                  ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+              }`}
             >
-              <DollarSign className="h-5 w-5" />
+              <CreditCard className="h-4 w-4" />
               <span>Wallet Integration</span>
             </Link>
             <AboutDropdown />
@@ -122,7 +148,11 @@ export default function Header() {
                 {isAuthenticated && (
                   <Link 
                     href="/myprofile" 
-                    className="flex items-center gap-2 px-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      pathname === '/myprofile'
+                        ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                    }`}
                   >
                     <IdCard className="h-5 w-5" />
                     <span>Create/Edit Profile</span>

@@ -32,7 +32,7 @@ export default function PhoneDemo() {
                         <div className="w-16 h-16 bg-smart-teal/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span className="text-2xl">📱</span>
                         </div>
-                        <p className="text-smart-silver/60">Tap a SmartWave card here</p>
+                        <p className="text-gray-600 dark:text-smart-silver/60">Tap a SmartWave card here</p>
                     </div>
 
                     {/* NFC Animation */}

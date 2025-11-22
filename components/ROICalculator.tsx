@@ -32,16 +32,25 @@ export default function ROICalculator() {
     useEffect(() => {
         if (!chartRef.current) return;
 
+        // Detect theme
+        const isDark = document.documentElement.classList.contains('dark') || 
+                      !document.documentElement.classList.contains('light');
+        
+        const textColor = isDark ? '#e8e8e8' : '#374151';
+        const tooltipBg = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)';
+        const tooltipTextColor = isDark ? '#ffffff' : '#1f2937';
+        const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
         const chart = echarts.init(chartRef.current);
 
         const option = {
             backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                backgroundColor: tooltipBg,
                 borderColor: '#00d4aa',
                 textStyle: {
-                    color: '#ffffff'
+                    color: tooltipTextColor
                 }
             },
             xAxis: {
@@ -49,31 +58,31 @@ export default function ROICalculator() {
                 data: ['Traditional', 'SmartWave'],
                 axisLine: {
                     lineStyle: {
-                        color: '#e8e8e8'
+                        color: textColor
                     }
                 },
                 axisLabel: {
-                    color: '#e8e8e8'
+                    color: textColor
                 }
             },
             yAxis: {
                 type: 'value',
                 name: 'Cost ($)',
                 nameTextStyle: {
-                    color: '#e8e8e8'
+                    color: textColor
                 },
                 axisLine: {
                     lineStyle: {
-                        color: '#e8e8e8'
+                        color: textColor
                     }
                 },
                 axisLabel: {
-                    color: '#e8e8e8',
+                    color: textColor,
                     formatter: (value: number) => `$${value / 1000}k`
                 },
                 splitLine: {
                     lineStyle: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+                        color: splitLineColor
                     }
                 }
             },
@@ -94,7 +103,7 @@ export default function ROICalculator() {
                     label: {
                         show: true,
                         position: 'top',
-                        color: '#e8e8e8',
+                        color: textColor,
                         formatter: (params: any) => `$${Math.round(params.value / 1000)}k`
                     }
                 }
@@ -118,16 +127,16 @@ export default function ROICalculator() {
     return (
         <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-                <h2 className="text-4xl font-bold mb-6">
+                <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                     Calculate Your <span className="text-gradient">ROI</span>
                 </h2>
-                <p className="text-xl text-smart-silver/80 mb-8">
+                <p className="text-xl text-gray-600 dark:text-smart-silver/80 mb-8">
                     See how much your business can save with SmartWave's digital business cards. Factor in printing costs, environmental impact, and networking efficiency.
                 </p>
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-2">Team Size</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Team Size</label>
                         <input
                             type="range"
                             id="teamSize"
@@ -137,7 +146,7 @@ export default function ROICalculator() {
                             onChange={(e) => setTeamSize(Number(e.target.value))}
                             className="w-full"
                         />
-                        <div className="flex justify-between text-sm text-smart-silver/60 mt-1">
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
                             <span>1</span>
                             <span id="teamSizeValue">{teamSize}</span>
                             <span>1000+</span>
@@ -145,7 +154,7 @@ export default function ROICalculator() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Annual Events per Person</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Annual Events per Person</label>
                         <input
                             type="range"
                             id="eventsPerYear"
@@ -155,7 +164,7 @@ export default function ROICalculator() {
                             onChange={(e) => setEventsPerYear(Number(e.target.value))}
                             className="w-full"
                         />
-                        <div className="flex justify-between text-sm text-smart-silver/60 mt-1">
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
                             <span>1</span>
                             <span id="eventsValue">{eventsPerYear}</span>
                             <span>52</span>
@@ -163,7 +172,7 @@ export default function ROICalculator() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Current Card Cost (per 1000)</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Current Card Cost (per 1000)</label>
                         <input
                             type="range"
                             id="cardCost"
@@ -173,7 +182,7 @@ export default function ROICalculator() {
                             onChange={(e) => setCardCost(Number(e.target.value))}
                             className="w-full"
                         />
-                        <div className="flex justify-between text-sm text-smart-silver/60 mt-1">
+                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
                             <span>$50</span>
                             <span id="costValue">${cardCost}</span>
                             <span>$500</span>
@@ -183,7 +192,7 @@ export default function ROICalculator() {
             </div>
 
             <div className="roi-calculator p-8">
-                <h3 className="text-2xl font-bold mb-6">Your Annual Savings</h3>
+                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Your Annual Savings</h3>
                 <div ref={chartRef} className="w-full h-80 mb-6"></div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -191,13 +200,13 @@ export default function ROICalculator() {
                         <div className="text-3xl font-bold text-smart-teal" id="annualSavings">
                             ${Math.round(annualSavings).toLocaleString()}
                         </div>
-                        <div className="text-sm text-smart-silver/60">Annual Savings</div>
+                        <div className="text-sm text-gray-600 dark:text-smart-silver/60">Annual Savings</div>
                     </div>
                     <div className="text-center">
                         <div className="text-3xl font-bold text-smart-amber" id="treesSaved">
                             {treesSaved}
                         </div>
-                        <div className="text-sm text-smart-silver/60">Trees Saved</div>
+                        <div className="text-sm text-gray-600 dark:text-smart-silver/60">Trees Saved</div>
                     </div>
                 </div>
             </div>

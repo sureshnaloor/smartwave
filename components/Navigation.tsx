@@ -11,7 +11,9 @@ import {
   ShoppingBag,
   Info,
   Globe, // Add Globe icon for country selector
-  BookOpen // Add BookOpen icon for guide
+  BookOpen, // Add BookOpen icon for guide
+  CreditCard, // Add CreditCard icon for wallet page
+  Zap // Add Zap icon for features page
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCountry } from '@/context/CountryContext';
@@ -29,7 +31,9 @@ const navItems: NavItem[] = [
   { href: '/guide-me', label: 'Guide Me', icon: BookOpen, requiresAuth: true },
   { href: '/store', label: 'Store', icon: ShoppingBag, requiresAuth: true },
   { href: '/contact-us', label: 'Contact', icon: Mail, requiresAuth: false },
+  { href: '/features', label: 'Features', icon: Zap, requiresAuth: false },
   { href: '/pricing', label: 'Pricing', icon: DollarSign, requiresAuth: false },
+  { href: '/wallet', label: 'Wallet', icon: CreditCard, requiresAuth: false },
   { 
     href: '#', 
     label: 'About', 
@@ -81,10 +85,10 @@ export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'c
                   <Link 
                     key={child.href} 
                     href={child.href}
-                    className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm ${
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200 ${
                       pathname === child.href
-                        ? 'text-red-500 font-medium'
-                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                        ? 'bg-smart-teal/10 text-smart-teal font-medium dark:bg-smart-teal/20 dark:text-smart-teal'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
                     }`}
                   >
                     <child.icon className="h-4 w-4" />
@@ -101,15 +105,15 @@ export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'c
           <Link 
             key={item.href} 
             href={item.href}
-            className="group flex items-center gap-2 text-sm"
+            className="group"
           >
             <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex items-center gap-2 rounded-md p-2 transition-colors ${
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 ${
                 isActive 
-                  ? 'text-red-500' 
-                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                  ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal' 
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
               }`}
             >
               <motion.div
@@ -118,11 +122,11 @@ export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'c
               >
                 <item.icon className={`h-5 w-5 ${
                   isActive 
-                    ? 'text-red-500' 
+                    ? 'text-smart-teal' 
                     : 'text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-gray-200'
                 }`} />
               </motion.div>
-              <span className="font-medium">{item.label}</span>
+              <span className="font-medium text-sm">{item.label}</span>
             </motion.div>
           </Link>
         );
