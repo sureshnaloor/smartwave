@@ -1,6 +1,6 @@
 'use client';
 
-import { Info, IdCard, Rocket, ChevronDown } from 'lucide-react';
+import { Info, IdCard, Rocket, Mail, ChevronDown } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
 export default function AboutDropdown() {
   const router = useRouter();
   const pathname = usePathname();
-  const isAboutPage = pathname === '/about-smartwave' || pathname === '/about-xbeyond';
+  const isAboutPage = pathname === '/about-smartwave' || pathname === '/about-xbeyond' || pathname === '/contact-us';
   
   const handleSmartwave = () => {
     router.push('/about-smartwave');
@@ -20,6 +20,10 @@ export default function AboutDropdown() {
   
   const handleXBeyond = () => {
     router.push('/about-xbeyond');
+  };
+  
+  const handleContact = () => {
+    router.push('/contact-us');
   };
   
   return (
@@ -41,6 +45,10 @@ export default function AboutDropdown() {
         <DropdownMenuItem onClick={handleXBeyond} className="cursor-pointer">
           <Rocket className="mr-2 h-4 w-4" />
           <span>About xBeyond</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleContact} className="cursor-pointer">
+          <Mail className="mr-2 h-4 w-4" />
+          <span>Contact</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

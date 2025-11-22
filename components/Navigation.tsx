@@ -13,7 +13,8 @@ import {
   Globe, // Add Globe icon for country selector
   BookOpen, // Add BookOpen icon for guide
   CreditCard, // Add CreditCard icon for wallet page
-  Zap // Add Zap icon for features page
+  Zap, // Add Zap icon for features page
+  PlayCircle // Add PlayCircle icon for demo page
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCountry } from '@/context/CountryContext';
@@ -28,12 +29,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/guide-me', label: 'Guide Me', icon: BookOpen, requiresAuth: true },
   { href: '/store', label: 'Store', icon: ShoppingBag, requiresAuth: true },
-  { href: '/contact-us', label: 'Contact', icon: Mail, requiresAuth: false },
-  { href: '/features', label: 'Features', icon: Zap, requiresAuth: false },
   { href: '/pricing', label: 'Pricing', icon: DollarSign, requiresAuth: false },
   { href: '/wallet', label: 'Wallet', icon: CreditCard, requiresAuth: false },
+  { href: '/demo', label: 'Demo', icon: PlayCircle, requiresAuth: false },
+  { href: '/features', label: 'Features', icon: Zap, requiresAuth: false },
   { 
     href: '#', 
     label: 'About', 
@@ -41,7 +41,8 @@ const navItems: NavItem[] = [
     requiresAuth: false,
     children: [
       { href: '/about-smartwave', label: 'About Smartwave', icon: Info },
-      { href: '/about-xbeyond', label: 'About xBeyond', icon: Info }
+      { href: '/about-xbeyond', label: 'About xBeyond', icon: Info },
+      { href: '/contact-us', label: 'Contact', icon: Mail }
     ]
   }
 ];
