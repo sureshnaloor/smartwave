@@ -6,6 +6,7 @@ import CardCustomizer from '@/components/demo/CardCustomizer';
 import MarketGrowth from '@/components/demo/MarketGrowth';
 import SocialProof from '@/components/demo/SocialProof';
 import DemoPricing from '@/components/demo/DemoPricing';
+import WalletDemo from '@/components/demo/WalletDemo';
 import Footer from '@/components/Footer';
 
 export default function DemoPage() {
@@ -43,6 +44,7 @@ export default function DemoPage() {
     <div className="min-h-screen">
       <DemoHero />
       <CardCustomizer />
+      <WalletDemo />
       <MarketGrowth />
       <SocialProof />
       <DemoPricing />

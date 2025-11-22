@@ -556,6 +556,101 @@
     border: 2px solid #ffffff;
   }
 
+  @keyframes bounceIn {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slideInFade {
+    0% {
+      transform: translateY(-20px) scale(0.9);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes dramaticFadeOut {
+    0% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+      filter: brightness(1) blur(0px);
+    }
+    25% {
+      transform: scale(1.1) rotate(2deg);
+      opacity: 0.9;
+      filter: brightness(1.2) blur(1px);
+    }
+    50% {
+      transform: scale(1.3) rotate(-3deg);
+      opacity: 0.6;
+      filter: brightness(1.5) blur(3px);
+    }
+    75% {
+      transform: scale(1.6) rotate(5deg);
+      opacity: 0.3;
+      filter: brightness(2) blur(6px);
+    }
+    100% {
+      transform: scale(2) rotate(-10deg);
+      opacity: 0;
+      filter: brightness(3) blur(10px);
+    }
+  }
+
+  .wallet-pass-card {
+    position: relative;
+    overflow: visible;
+  }
+
+  .wallet-pass-card::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #00d4aa, #ffb347, #00d4aa);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+  }
+
+  .wallet-pass-card:hover::before {
+    opacity: 0.3;
+  }
+
   /* Light Mode Overrides for Wallet and Integration */
   html.light .integration-step,
   html.light .enterprise-feature {
