@@ -5,18 +5,33 @@ import * as echarts from 'echarts';
 
 export default function ROICalculator() {
     const [teamSize, setTeamSize] = useState(50);
-    const [eventsPerYear, setEventsPerYear] = useState(12);
+    const [eventsPerYear, setEventsPerYear] = useState(6);
     const [cardCost, setCardCost] = useState(200);
     const chartRef = useRef<HTMLDivElement>(null);
 
-    // Calculate ROI
+    // Calculate ROI over 5 years
     const calculateSavings = () => {
-        const cardsPerPerson = eventsPerYear * 50; // Average cards per event
-        const totalCards = teamSize * cardsPerPerson;
-        const traditionalCost = (totalCards / 1000) * cardCost;
-        const smartwaveCost = teamSize * 79 * 12; // Professional plan annual
-        const savings = traditionalCost - smartwaveCost;
-        return Math.max(0, savings);
+        const cardsPerPerson = eventsPerYear * 50; // Average cards per event assumed 50 per person
+        const totalCardsPerYear = teamSize * cardsPerPerson;
+        // Traditional cards: cost per year * 5 years
+        const traditionalCost5Years = (totalCardsPerYear / 1000) * cardCost * 5;
+        // Smartwave: one card per team member at $79, lasts 5 years
+        const smartwaveCost5Years = teamSize * 79;
+        const savings5Years = traditionalCost5Years - smartwaveCost5Years;
+        // Annual savings = total savings / 5
+        return Math.max(0, savings5Years / 5);
+    };
+
+    const calculate5YearCosts = () => {
+        const cardsPerPerson = eventsPerYear * 50;
+        const totalCardsPerYear = teamSize * cardsPerPerson;
+        const traditionalCost5Years = (totalCardsPerYear / 1000) * cardCost * 5;
+        const smartwaveCost5Years = teamSize * 79;
+        return {
+            traditional: traditionalCost5Years,
+            smartwave: smartwaveCost5Years,
+            savings: traditionalCost5Years - smartwaveCost5Years
+        };
     };
 
     const calculateTrees = () => {
@@ -28,18 +43,26 @@ export default function ROICalculator() {
 
     const annualSavings = calculateSavings();
     const treesSaved = calculateTrees();
+    const costs5Years = calculate5YearCosts();
 
     useEffect(() => {
         if (!chartRef.current) return;
 
-        // Detect theme
-        const isDark = document.documentElement.classList.contains('dark') || 
-                      !document.documentElement.classList.contains('light');
+        // Calculate 5-year costs
+        const cardsPerPerson = eventsPerYear * 50;
+        const totalCardsPerYear = teamSize * cardsPerPerson;
+        const traditionalCost5Years = (totalCardsPerYear / 1000) * cardCost * 5;
+        const smartwaveCost5Years = teamSize * 79;
+
+        // Detect theme - check for light class explicitly
+        const hasLightClass = document.documentElement.classList.contains('light');
+        const hasDarkClass = document.documentElement.classList.contains('dark');
+        const isDark = hasDarkClass || (!hasLightClass && window.matchMedia('(prefers-color-scheme: dark)').matches);
         
-        const textColor = isDark ? '#e8e8e8' : '#374151';
+        const textColor = isDark ? '#ffffff' : '#000000';
         const tooltipBg = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)';
         const tooltipTextColor = isDark ? '#ffffff' : '#1f2937';
-        const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.25)';
 
         const chart = echarts.init(chartRef.current);
 
@@ -58,27 +81,31 @@ export default function ROICalculator() {
                 data: ['Traditional', 'SmartWave'],
                 axisLine: {
                     lineStyle: {
-                        color: textColor
+                        color: isDark ? '#ffffff' : '#000000'
                     }
                 },
                 axisLabel: {
-                    color: textColor
+                    color: isDark ? '#ffffff' : '#000000'
                 }
             },
             yAxis: {
                 type: 'value',
                 name: 'Cost ($)',
                 nameTextStyle: {
-                    color: textColor
+                    color: isDark ? '#ffffff' : '#000000'
                 },
                 axisLine: {
                     lineStyle: {
-                        color: textColor
+                        color: isDark ? '#ffffff' : '#000000'
                     }
                 },
                 axisLabel: {
-                    color: textColor,
-                    formatter: (value: number) => `$${value / 1000}k`
+                    color: isDark ? '#ffffff' : '#000000',
+                    formatter: (value: number) => {
+                        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                        if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+                        return `$${Math.round(value)}`;
+                    }
                 },
                 splitLine: {
                     lineStyle: {
@@ -88,103 +115,189 @@ export default function ROICalculator() {
             },
             series: [
                 {
-                    name: 'Annual Cost',
+                    name: '5-Year Cost',
                     type: 'bar',
                     data: [
                         {
-                            value: (teamSize * eventsPerYear * 50 / 1000) * cardCost,
+                            value: traditionalCost5Years,
                             itemStyle: { color: '#ff3b30' }
                         },
                         {
-                            value: teamSize * 79 * 12,
+                            value: smartwaveCost5Years,
                             itemStyle: { color: '#00d4aa' }
                         }
                     ],
                     label: {
                         show: true,
                         position: 'top',
-                        color: textColor,
-                        formatter: (params: any) => `$${Math.round(params.value / 1000)}k`
+                        color: isDark ? '#ffffff' : '#000000',
+                        formatter: (params: any) => {
+                            const value = params.value;
+                            if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                            if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+                            return `$${Math.round(value)}`;
+                        }
                     }
                 }
             ]
         };
 
-        chart.setOption(option);
+        chart.setOption(option, { notMerge: false });
 
         const handleResize = () => {
             chart.resize();
         };
 
+        // Listen for theme changes
+        const handleThemeChange = () => {
+            const currentHasLightClass = document.documentElement.classList.contains('light');
+            const currentHasDarkClass = document.documentElement.classList.contains('dark');
+            const currentIsDark = currentHasDarkClass || (!currentHasLightClass && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            const currentTextColor = currentIsDark ? '#ffffff' : '#000000';
+            const currentSplitLineColor = currentIsDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.25)';
+            
+            chart.setOption({
+                xAxis: {
+                    axisLine: {
+                        lineStyle: {
+                            color: currentTextColor
+                        }
+                    },
+                    axisLabel: {
+                        color: currentTextColor
+                    }
+                },
+                yAxis: {
+                    nameTextStyle: {
+                        color: currentTextColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: currentTextColor
+                        }
+                    },
+                    axisLabel: {
+                        color: currentTextColor
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: currentSplitLineColor
+                        }
+                    }
+                },
+                series: [{
+                    label: {
+                        color: currentTextColor
+                    }
+                }]
+            }, { notMerge: false });
+        };
+
+        // Create a MutationObserver to watch for class changes on documentElement
+        const observer = new MutationObserver(handleThemeChange);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
         window.addEventListener('resize', handleResize);
 
         return () => {
             window.removeEventListener('resize', handleResize);
+            observer.disconnect();
             chart.dispose();
         };
     }, [teamSize, eventsPerYear, cardCost]);
 
     return (
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="roi-calculator-wrapper grid lg:grid-cols-2 gap-12 items-center">
             <div>
                 <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
                     Calculate Your <span className="text-gradient">ROI</span>
                 </h2>
-                <p className="text-xl text-gray-600 dark:text-smart-silver/80 mb-8">
+                <p className="text-xl text-gray-600 dark:text-white/90 mb-8">
                     See how much your business can save with SmartWave's digital business cards. Factor in printing costs, environmental impact, and networking efficiency.
                 </p>
 
                 <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Team Size</label>
-                        <input
-                            type="range"
-                            id="teamSize"
-                            min="1"
-                            max="1000"
-                            value={teamSize}
-                            onChange={(e) => setTeamSize(Number(e.target.value))}
-                            className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
+                        <div className="relative group">
+                            <input
+                                type="range"
+                                id="teamSize"
+                                min="1"
+                                max="100"
+                                value={teamSize}
+                                onChange={(e) => setTeamSize(Number(e.target.value))}
+                                className="w-full slider-with-tooltip"
+                            />
+                            <div 
+                                className="slider-tooltip"
+                                style={{
+                                    left: `${((teamSize - 1) / (100 - 1)) * 100}%`
+                                }}
+                            >
+                                {teamSize}
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-800 dark:text-white/80 mt-1">
                             <span>1</span>
-                            <span id="teamSizeValue">{teamSize}</span>
-                            <span>1000+</span>
+                            <span>100+</span>
                         </div>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Annual Events per Person</label>
-                        <input
-                            type="range"
-                            id="eventsPerYear"
-                            min="1"
-                            max="52"
-                            value={eventsPerYear}
-                            onChange={(e) => setEventsPerYear(Number(e.target.value))}
-                            className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
+                        <div className="relative group">
+                            <input
+                                type="range"
+                                id="eventsPerYear"
+                                min="1"
+                                max="12"
+                                value={eventsPerYear}
+                                onChange={(e) => setEventsPerYear(Number(e.target.value))}
+                                className="w-full slider-with-tooltip"
+                            />
+                            <div 
+                                className="slider-tooltip"
+                                style={{
+                                    left: `${((eventsPerYear - 1) / (12 - 1)) * 100}%`
+                                }}
+                            >
+                                {eventsPerYear}
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-800 dark:text-white/80 mt-1">
                             <span>1</span>
-                            <span id="eventsValue">{eventsPerYear}</span>
-                            <span>52</span>
+                            <span>12</span>
                         </div>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium mb-2 text-gray-900 dark:text-white">Current Card Cost (per 1000)</label>
-                        <input
-                            type="range"
-                            id="cardCost"
-                            min="50"
-                            max="500"
-                            value={cardCost}
-                            onChange={(e) => setCardCost(Number(e.target.value))}
-                            className="w-full"
-                        />
-                        <div className="flex justify-between text-sm text-gray-600 dark:text-smart-silver/60 mt-1">
+                        <div className="relative group">
+                            <input
+                                type="range"
+                                id="cardCost"
+                                min="50"
+                                max="500"
+                                value={cardCost}
+                                onChange={(e) => setCardCost(Number(e.target.value))}
+                                className="w-full slider-with-tooltip"
+                            />
+                            <div 
+                                className="slider-tooltip"
+                                style={{
+                                    left: `${((cardCost - 50) / (500 - 50)) * 100}%`
+                                }}
+                            >
+                                ${cardCost}
+                            </div>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-800 dark:text-white/80 mt-1">
                             <span>$50</span>
-                            <span id="costValue">${cardCost}</span>
                             <span>$500</span>
                         </div>
                     </div>
@@ -192,7 +305,10 @@ export default function ROICalculator() {
             </div>
 
             <div className="roi-calculator p-8">
-                <h3 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Your Annual Savings</h3>
+                <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">5-Year Cost Comparison</h3>
+                <p className="text-sm text-gray-600 dark:text-white/80 mb-6">
+                    SmartWave: One card per team member ($79) lasts 5 years. Traditional cards: Recurring cost based on events.
+                </p>
                 <div ref={chartRef} className="w-full h-80 mb-6"></div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -200,13 +316,13 @@ export default function ROICalculator() {
                         <div className="text-3xl font-bold text-smart-teal" id="annualSavings">
                             ${Math.round(annualSavings).toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-smart-silver/60">Annual Savings</div>
+                        <div className="text-sm text-gray-600 dark:text-white/80">Annual Savings</div>
                     </div>
                     <div className="text-center">
                         <div className="text-3xl font-bold text-smart-amber" id="treesSaved">
                             {treesSaved}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-smart-silver/60">Trees Saved</div>
+                        <div className="text-sm text-gray-600 dark:text-white/80">Trees Saved</div>
                     </div>
                 </div>
             </div>

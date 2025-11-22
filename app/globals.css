@@ -378,8 +378,70 @@
     background: linear-gradient(to bottom, #f5f5f7 0%, #ffffff 100%);
   }
 
-  html.light input[type="range"] {
-    background: rgba(0, 0, 0, 0.1);
+  /* Force darker slider track and labels in light mode - Very specific selectors */
+  html.light input[type="range"],
+  html:not(.dark) input[type="range"],
+  :root.light input[type="range"] {
+    background: #4b5563 !important;
+  }
+
+  html.light input[type="range"]::-webkit-slider-thumb,
+  html:not(.dark) input[type="range"]::-webkit-slider-thumb,
+  :root.light input[type="range"]::-webkit-slider-thumb {
+    background: #00d4aa !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html.light input[type="range"]::-moz-range-thumb,
+  html:not(.dark) input[type="range"]::-moz-range-thumb,
+  :root.light input[type="range"]::-moz-range-thumb {
+    background: #00d4aa !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html.light input[type="range"]::-webkit-slider-runnable-track,
+  html:not(.dark) input[type="range"]::-webkit-slider-runnable-track,
+  :root.light input[type="range"]::-webkit-slider-runnable-track {
+    background: #4b5563 !important;
+  }
+
+  html.light input[type="range"]::-moz-range-track,
+  html:not(.dark) input[type="range"]::-moz-range-track,
+  :root.light input[type="range"]::-moz-range-track {
+    background: #4b5563 !important;
+  }
+
+  /* Force darker text for ROI calculator slider labels in light mode */
+  html.light .text-gray-800,
+  html.light .text-gray-600,
+  html:not(.dark) .text-gray-800,
+  html:not(.dark) .text-gray-600,
+  :root.light .text-gray-800,
+  :root.light .text-gray-600 {
+    color: #000000 !important;
+  }
+
+  /* Target ROI calculator specifically */
+  html.light .roi-calculator-wrapper input[type="range"],
+  html:not(.dark) .roi-calculator-wrapper input[type="range"] {
+    background: #4b5563 !important;
+  }
+
+  html.light .roi-calculator-wrapper input[type="range"]::-webkit-slider-runnable-track,
+  html:not(.dark) .roi-calculator-wrapper input[type="range"]::-webkit-slider-runnable-track {
+    background: #4b5563 !important;
+  }
+
+  html.light .roi-calculator-wrapper input[type="range"]::-moz-range-track,
+  html:not(.dark) .roi-calculator-wrapper input[type="range"]::-moz-range-track {
+    background: #4b5563 !important;
+  }
+
+  html.light .roi-calculator-wrapper .text-gray-800,
+  html.light .roi-calculator-wrapper .text-gray-600,
+  html:not(.dark) .roi-calculator-wrapper .text-gray-800,
+  html:not(.dark) .roi-calculator-wrapper .text-gray-600 {
+    color: #000000 !important;
   }
 
   html.light .text-gradient {
@@ -551,6 +613,54 @@
   .dark .cta-stat-label,
   html:not(.light) .cta-stat-label {
     color: rgba(232, 232, 232, 0.6);
+  }
+
+  /* Slider Tooltip Styles */
+  .slider-with-tooltip {
+    position: relative;
+  }
+
+  .slider-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+  }
+
+  .slider-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+  }
+
+  .group:hover .slider-tooltip,
+  .group:focus-within .slider-tooltip,
+  .group input[type="range"]:hover ~ .slider-tooltip,
+  .group input[type="range"]:focus ~ .slider-tooltip {
+    opacity: 1;
+  }
+
+  .dark .slider-tooltip {
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a1a1a;
+  }
+
+  .dark .slider-tooltip::after {
+    border-top-color: rgba(255, 255, 255, 0.95);
   }
 }
 
