@@ -52,7 +52,11 @@ const config: Config = {
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
-  			}
+  			},
+  			'smart-charcoal': '#1a1a1a',
+  			'smart-silver': '#e8e8e8',
+  			'smart-teal': '#00d4aa',
+  			'smart-amber': '#ffb347'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

@@ -662,5 +662,229 @@
   .dark .slider-tooltip::after {
     border-top-color: rgba(255, 255, 255, 0.95);
   }
+
+  /* Demo Page Styles */
+  .hero-bg {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .aurora-flow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg,
+        rgba(0, 212, 170, 0.1) 0%,
+        rgba(255, 179, 71, 0.05) 50%,
+        rgba(0, 212, 170, 0.1) 100%);
+    animation: aurora 8s ease-in-out infinite;
+  }
+
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-3d:hover {
+    transform: rotateY(15deg) rotateX(5deg) translateZ(20px);
+  }
+
+  .glow-edge {
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+  }
+
+  .particle-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .content-layer {
+    position: relative;
+    z-index: 2;
+  }
+
+  .theme-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .theme-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 212, 170, 0.2);
+  }
+
+  .theme-card.active {
+    border: 2px solid #00d4aa;
+    box-shadow: 0 0 30px rgba(0, 212, 170, 0.4);
+  }
+
+  /* Theme selector glow effect */
+  .theme-card-selected {
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.6), 0 0 40px rgba(0, 212, 170, 0.3);
+  }
+
+  .floating-card {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Light Theme Overrides for Demo Page */
+  html.light .hero-bg,
+  html:not(.dark) .hero-bg {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%) !important;
+  }
+
+  html.light .aurora-flow,
+  html:not(.dark) .aurora-flow {
+    background: linear-gradient(45deg,
+        rgba(0, 212, 170, 0.05) 0%,
+        rgba(255, 179, 71, 0.02) 50%,
+        rgba(0, 212, 170, 0.05) 100%) !important;
+  }
+
+  html.light section.bg-black,
+  html.light .bg-black,
+  html:not(.dark) section.bg-black,
+  html:not(.dark) .bg-black {
+    background: #f8f9fa !important;
+  }
+
+  html.light section.bg-smart-charcoal,
+  html.light .bg-smart-charcoal,
+  html:not(.dark) section.bg-smart-charcoal,
+  html:not(.dark) .bg-smart-charcoal {
+    background: #ffffff !important;
+  }
+
+  html.light .bg-gradient-to-b.from-smart-charcoal,
+  html:not(.dark) .bg-gradient-to-b.from-smart-charcoal {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa) !important;
+  }
+
+  html.light .text-smart-silver,
+  html:not(.dark) .text-smart-silver {
+    color: #4a5568 !important;
+  }
+
+  html.light .text-smart-silver\/80,
+  html:not(.dark) .text-smart-silver\/80 {
+    color: rgba(74, 85, 104, 0.8) !important;
+  }
+
+  html.light .text-smart-silver\/60,
+  html:not(.dark) .text-smart-silver\/60 {
+    color: rgba(74, 85, 104, 0.6) !important;
+  }
+
+  html.light .border-smart-silver\/30,
+  html:not(.dark) .border-smart-silver\/30 {
+    border-color: rgba(74, 85, 104, 0.3) !important;
+  }
+
+  html.light .bg-white\/10,
+  html:not(.dark) .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+
+  html.light .border-white\/20,
+  html:not(.dark) .border-white\/20 {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+  }
+
+  html.light .bg-white\/5,
+  html:not(.dark) .bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+
+  html.light .market-chart,
+  html:not(.dark) .market-chart {
+    background: rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Light theme overrides for CardCustomizer */
+  html.light .bg-gradient-to-b.from-smart-charcoal.to-black,
+  html:not(.dark) .bg-gradient-to-b.from-smart-charcoal.to-black {
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa) !important;
+  }
+
+  html.light select.bg-white\/5,
+  html:not(.dark) select.bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+    color: #1a1a1a !important;
+  }
+
+  html.light input.bg-white\/5,
+  html:not(.dark) input.bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+    color: #1a1a1a !important;
+  }
+
+  html.light .bg-smart-charcoal.rounded,
+  html:not(.dark) .bg-smart-charcoal.rounded {
+    background-color: #f8f9fa !important;
+  }
+
+  html.light .bg-smart-charcoal.rounded .text-white,
+  html:not(.dark) .bg-smart-charcoal.rounded .text-white {
+    color: #1a1a1a !important;
+  }
+
+  /* Light theme for SocialProof section */
+  html.light .bg-gradient-to-b.from-black.to-smart-charcoal,
+  html:not(.dark) .bg-gradient-to-b.from-black.to-smart-charcoal {
+    background: linear-gradient(to bottom, #f8f9fa, #ffffff) !important;
+  }
+
+  /* Light theme for DemoPricing section */
+  html.light section.bg-smart-charcoal,
+  html:not(.dark) section.bg-smart-charcoal {
+    background: #ffffff !important;
+  }
+
+  /* Ensure text is visible in light mode */
+  html.light h1,
+  html.light h2,
+  html.light h3,
+  html.light h4,
+  html.light p,
+  html.light span,
+  html:not(.dark) h1,
+  html:not(.dark) h2,
+  html:not(.dark) h3,
+  html:not(.dark) h4,
+  html:not(.dark) p,
+  html:not(.dark) span {
+    color: #1a1a1a !important;
+  }
+
+  /* But keep white text for specific elements that need it */
+  html.light .text-white.bg-smart-teal,
+  html:not(.dark) .text-white.bg-smart-teal {
+    color: #1a1a1a !important;
+  }
+
+  html.light button.bg-smart-teal,
+  html:not(.dark) button.bg-smart-teal {
+    color: #1a1a1a !important;
+  }
+
+  /* Fix text-white in light mode - should be dark */
+  html.light .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal),
+  html:not(.dark) .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal) {
+    color: #1a1a1a !important;
+  }
+
+  /* Ensure text-smart-charcoal is visible in light mode */
+  html.light .text-smart-charcoal,
+  html:not(.dark) .text-smart-charcoal {
+    color: #1a1a1a !important;
+  }
 }
 
