@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 
 export default function WalletDemo() {
   const [showBadge, setShowBadge] = useState(false);
@@ -10,48 +11,88 @@ export default function WalletDemo() {
   const [notificationKey, setNotificationKey] = useState(0);
   const [walletPassKey, setWalletPassKey] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const badgeShowTimerRef = useRef<NodeJS.Timeout | null>(null);
   const walletPassTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const walletPassShowTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const showBadgeAndNotification = () => {
-    // Clear any existing timeout
+    // Clear any existing timeouts
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (badgeShowTimerRef.current) {
+      clearTimeout(badgeShowTimerRef.current);
+      badgeShowTimerRef.current = null;
     }
     
-    // First hide them to reset state
-    setShowBadge(false);
-    setShowNotification(false);
+    // Force synchronous update to hide first
+    flushSync(() => {
+      setShowBadge(false);
+      setShowNotification(false);
+    });
     
-    // Then show them again after a brief delay to trigger animation
-    setTimeout(() => {
+    // Show after a delay to trigger animation
+    badgeShowTimerRef.current = setTimeout(() => {
       // Increment keys to force re-render and trigger animations
-      setBadgeKey(prev => prev + 1);
-      setNotificationKey(prev => prev + 1);
-      
-      // Show badge and notification
-      setShowBadge(true);
-      setShowNotification(true);
+      flushSync(() => {
+        setBadgeKey(prev => prev + 1);
+        setNotificationKey(prev => prev + 1);
+        setShowBadge(true);
+        setShowNotification(true);
+      });
       
       // Hide after 3 seconds
       timeoutRef.current = setTimeout(() => {
-        setShowBadge(false);
-        setShowNotification(false);
+        flushSync(() => {
+          setShowBadge(false);
+          setShowNotification(false);
+        });
         timeoutRef.current = null;
       }, 3000);
-    }, 50);
+      
+      badgeShowTimerRef.current = null;
+    }, 200);
   };
 
   // Show badge and notification on initial render for 3 seconds
   useEffect(() => {
-    showBadgeAndNotification();
+    // Clear any existing timeouts
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (badgeShowTimerRef.current) clearTimeout(badgeShowTimerRef.current);
+    
+    // Always hide first to reset state - use flushSync to ensure it happens
+    flushSync(() => {
+      setShowBadge(false);
+      setShowNotification(false);
+    });
+    
+    // Show after a delay
+    badgeShowTimerRef.current = setTimeout(() => {
+      flushSync(() => {
+        setBadgeKey(1);
+        setNotificationKey(1);
+        setShowBadge(true);
+        setShowNotification(true);
+      });
+      
+      // Hide after 3 seconds
+      timeoutRef.current = setTimeout(() => {
+        flushSync(() => {
+          setShowBadge(false);
+          setShowNotification(false);
+        });
+        timeoutRef.current = null;
+      }, 3000);
+      
+      badgeShowTimerRef.current = null;
+    }, 200);
     
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (badgeShowTimerRef.current) clearTimeout(badgeShowTimerRef.current);
     };
-  }, []);
+  }, []); // Empty deps - only run on mount
 
   const simulatePushUpdate = () => {
     showBadgeAndNotification();
@@ -68,54 +109,75 @@ export default function WalletDemo() {
       walletPassShowTimerRef.current = null;
     }
     
-    // First hide it to reset state
-    setShowWalletPass(false);
+    // Force synchronous update to hide first
+    flushSync(() => {
+      setShowWalletPass(false);
+    });
     
-    // Then show it again after a brief delay to trigger animation
+    // Show after a delay
     walletPassShowTimerRef.current = setTimeout(() => {
-      // Increment key to force re-render and trigger animations
-      setWalletPassKey(prev => prev + 1);
+      // Increment key and show
+      flushSync(() => {
+        setWalletPassKey(prev => prev + 1);
+        setShowWalletPass(true);
+      });
       
-      // Show wallet pass
-      setShowWalletPass(true);
-      
-      // Hide after 3 seconds total (2.2s visible + 0.8s fade-out animation)
+      // Hide after 3 seconds (2.2s visible + 0.8s fade-out animation)
       walletPassTimeoutRef.current = setTimeout(() => {
-        setShowWalletPass(false);
+        // Wait for animation to complete before removing from DOM
+        setTimeout(() => {
+          flushSync(() => {
+            setShowWalletPass(false);
+          });
+        }, 800); // Wait for fade-out animation to complete
         walletPassTimeoutRef.current = null;
-      }, 3000);
+      }, 2200); // Start fade-out at 2.2s
       
       walletPassShowTimerRef.current = null;
-    }, 100);
+    }, 200);
   };
 
   // Show wallet pass on initial render for 3 seconds
   useEffect(() => {
-    showWalletPassCard();
+    // Clear any existing timeouts
+    if (walletPassTimeoutRef.current) clearTimeout(walletPassTimeoutRef.current);
+    if (walletPassShowTimerRef.current) clearTimeout(walletPassShowTimerRef.current);
+    
+    // Always hide first to reset state - use flushSync to ensure it happens
+    flushSync(() => {
+      setShowWalletPass(false);
+    });
+    
+    // Show after a delay
+    walletPassShowTimerRef.current = setTimeout(() => {
+      flushSync(() => {
+        setWalletPassKey(1);
+        setShowWalletPass(true);
+      });
+      
+      // Hide after 3 seconds (2.2s visible + 0.8s fade-out animation)
+      walletPassTimeoutRef.current = setTimeout(() => {
+        // Wait for animation to complete before removing from DOM
+        setTimeout(() => {
+          flushSync(() => {
+            setShowWalletPass(false);
+          });
+        }, 800); // Wait for fade-out animation to complete
+        walletPassTimeoutRef.current = null;
+      }, 2200); // Start fade-out at 2.2s
+      
+      walletPassShowTimerRef.current = null;
+    }, 200);
     
     return () => {
-      if (walletPassTimeoutRef.current) {
-        clearTimeout(walletPassTimeoutRef.current);
-        walletPassTimeoutRef.current = null;
-      }
-      if (walletPassShowTimerRef.current) {
-        clearTimeout(walletPassShowTimerRef.current);
-        walletPassShowTimerRef.current = null;
-      }
+      if (walletPassTimeoutRef.current) clearTimeout(walletPassTimeoutRef.current);
+      if (walletPassShowTimerRef.current) clearTimeout(walletPassShowTimerRef.current);
     };
-  }, []);
+  }, []); // Empty deps - only run on mount
 
   const handleAddToWallet = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Clear any existing timeouts first
-    if (walletPassTimeoutRef.current) {
-      clearTimeout(walletPassTimeoutRef.current);
-      walletPassTimeoutRef.current = null;
-    }
-    if (walletPassShowTimerRef.current) {
-      clearTimeout(walletPassShowTimerRef.current);
-      walletPassShowTimerRef.current = null;
-    }
+    e.stopPropagation();
     showWalletPassCard();
   };
 
@@ -162,11 +224,8 @@ export default function WalletDemo() {
                   {showWalletPass && (
                     <div 
                       key={walletPassKey}
-                      className="wallet-card business-card wallet-pass-card"
+                      className="wallet-card business-card wallet-pass-card wallet-pass-animate"
                       id="businessCard"
-                      style={{
-                        animation: 'slideInFade 0.5s ease-out, dramaticFadeOut 0.8s ease-in 2.2s',
-                      }}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
@@ -183,10 +242,7 @@ export default function WalletDemo() {
                           {showBadge && (
                             <div 
                               key={badgeKey}
-                              className="notification-badge"
-                              style={{
-                                animation: 'bounceIn 0.5s ease-out',
-                              }}
+                              className="notification-badge badge-animate"
                             >
                               1
                             </div>
@@ -245,10 +301,7 @@ export default function WalletDemo() {
                 {showNotification && (
                   <div 
                     key={notificationKey}
-                    className="push-notification"
-                    style={{
-                      animation: 'slideUp 0.5s ease-out',
-                    }}
+                    className="push-notification notification-animate"
                   >
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-smart-teal rounded mr-3 flex items-center justify-center">

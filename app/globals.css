@@ -651,6 +651,20 @@
     opacity: 0.3;
   }
 
+  /* Animation classes */
+  .wallet-pass-animate {
+    animation: slideInFade 0.5s ease-out, dramaticFadeOut 0.8s ease-in 2.2s forwards !important;
+    animation-fill-mode: forwards !important;
+  }
+
+  .badge-animate {
+    animation: bounceIn 0.5s ease-out !important;
+  }
+
+  .notification-animate {
+    animation: slideUp 0.5s ease-out !important;
+  }
+
   /* Light Mode Overrides for Wallet and Integration */
   html.light .integration-step,
   html.light .enterprise-feature {

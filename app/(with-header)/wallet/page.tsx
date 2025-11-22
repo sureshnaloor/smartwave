@@ -1,3 +1,5 @@
+'use client';
+
 import IOSWalletDemo from '@/components/IOSWalletDemo';
 import Footer from '@/components/Footer';
 
@@ -41,7 +43,14 @@ export default function WalletPage() {
                                             setup or additional apps required.
                                         </p>
                                         <div className="flex items-center space-x-4">
-                                            <button className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-6 py-2 rounded-lg font-semibold transition-colors">
+                                            <button 
+                                                onClick={() => {
+                                                    if (typeof window !== 'undefined' && (window as any).addToWallet) {
+                                                        (window as any).addToWallet();
+                                                    }
+                                                }}
+                                                className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-6 py-2 rounded-lg font-semibold transition-colors"
+                                            >
                                                 Add to Wallet
                                             </button>
                                             <span className="text-sm text-smart-silver/60">📱 iOS & Android compatible</span>
@@ -61,7 +70,14 @@ export default function WalletPage() {
                                             When you update your information, all wallet cards update automatically via push
                                             notifications. Your contacts always have your latest details.
                                         </p>
-                                        <button className="border border-smart-amber/30 hover:border-smart-amber text-smart-amber px-6 py-2 rounded-lg font-semibold transition-colors">
+                                        <button 
+                                            onClick={() => {
+                                                if (typeof window !== 'undefined' && (window as any).simulatePushUpdate) {
+                                                    (window as any).simulatePushUpdate();
+                                                }
+                                            }}
+                                            className="border border-smart-amber/30 hover:border-smart-amber text-smart-amber px-6 py-2 rounded-lg font-semibold transition-colors"
+                                        >
                                             Simulate Push Update
                                         </button>
                                     </div>
