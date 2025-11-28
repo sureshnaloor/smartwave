@@ -106,40 +106,57 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
   };
 
   return (
-    <div className="relative">
-      {/* Wallet-pass style header bar */}
-      <div className="h-3 w-full bg-gradient-to-r from-blue-700 via-sky-500 to-cyan-400 rounded-t-2xl" />
-      <div className="rounded-b-2xl border border-blue-100 shadow-[inset_8px_0_14px_-10px_rgba(30,58,138,0.35),inset_-8px_0_14px_-10px_rgba(8,47,73,0.35)] bg-white overflow-hidden">
-        {/* Header: photo | identity | company logo */}
-        <div className="p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4 rounded-lg border bg-white/60 px-4 py-4 hover:shadow-sm transition-shadow">
-            <div className="w-20 h-20 sm:w-24 sm:h-24">
-              <PhotoUpload
-                value={form.photo || ""}
-                onUploaded={(url) => {
-                  setForm((p) => ({ ...p, photo: url }));
-                  setIsDirty(true);
-                  // explicit save for images
-                  void saveProfile({ photo: url, userEmail }, userEmail).then(() => {
-                    snapshotRef.current = { ...snapshotRef.current, photo: url };
-                    setIsDirty(false);
-                    setLastSavedAt(Date.now());
-                  });
-                }}
-              />
-            </div>
-            <div className="flex-1 min-w-0 text-center">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <EditableField label="First Name" value={form.firstName || ""} placeholder="First" onChange={(v) => updateField("firstName", v)} className="text-base sm:text-lg font-semibold" />
-                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle" onChange={(v) => updateField("middleName", v)} className="text-base sm:text-lg" />
-                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last" onChange={(v) => updateField("lastName", v)} className="text-base sm:text-lg font-semibold" />
+    <div className="relative max-w-5xl mx-auto">
+      {/* Main Card Container */}
+      <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+
+        {/* Vibrant Header Background */}
+        <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+        </div>
+
+        {/* Content Wrapper */}
+        <div className="relative px-8 pb-12 pt-12">
+
+          {/* Identity Section - Floating above */}
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-8 mb-12">
+
+            {/* Photo */}
+            <div className="relative group">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-white p-1.5 shadow-xl shadow-indigo-900/10 rotate-[-2deg] group-hover:rotate-0 transition-transform duration-300 ease-out">
+                <div className="w-full h-full rounded-xl overflow-hidden bg-slate-50 relative">
+                  <PhotoUpload
+                    value={form.photo || ""}
+                    onUploaded={(url) => {
+                      setForm((p) => ({ ...p, photo: url }));
+                      setIsDirty(true);
+                      void saveProfile({ photo: url, userEmail }, userEmail).then(() => {
+                        snapshotRef.current = { ...snapshotRef.current, photo: url };
+                        setIsDirty(false);
+                        setLastSavedAt(Date.now());
+                      });
+                    }}
+                  />
+                </div>
               </div>
-              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <EditableField label="Title" value={form.title || ""} placeholder="Job Title" onChange={(v) => updateField("title", v)} />
-                <EditableField label="Company" value={form.company || ""} placeholder="Company" onChange={(v) => updateField("company", v)} />
+            </div>
+
+            {/* Name & Title */}
+            <div className="flex-1 min-w-0 pb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <EditableField label="First Name" value={form.firstName || ""} placeholder="First Name" onChange={(v) => updateField("firstName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
+                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle Name" onChange={(v) => updateField("middleName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
+                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last Name" onChange={(v) => updateField("lastName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <EditableField label="Job Title" value={form.title || ""} placeholder="What do you do?" onChange={(v) => updateField("title", v)} className="!bg-white/50" />
+                <EditableField label="Company" value={form.company || ""} placeholder="Where do you work?" onChange={(v) => updateField("company", v)} className="!bg-white/50" />
               </div>
             </div>
-            <div className="w-20 h-20 sm:w-24 sm:h-24">
+
+            {/* Company Logo */}
+            <div className="hidden md:block w-24 h-24 rounded-2xl bg-white p-2 shadow-lg shadow-slate-200/50 border border-slate-100 rotate-[2deg] hover:rotate-0 transition-transform duration-300">
               <CompanyLogoUpload
                 value={form.companyLogo || ""}
                 onUploaded={(url) => {
@@ -154,85 +171,109 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               />
             </div>
           </div>
+
+          {/* Main Form Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+
+            {/* Left Column */}
+            <div className="space-y-10">
+              {/* Contact Info */}
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Contact Details</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-blue-50">
+                  <EditableField label="Mobile" value={form.mobile || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("mobile", v)} icon="phone" />
+                  <EditableField label="Work Phone" value={form.workPhone || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("workPhone", v)} icon="phone" />
+                  <EditableField label="Work Email" value={form.workEmail || ""} placeholder="you@company.com" onChange={(v) => updateField("workEmail", v)} icon="mail" />
+                  <EditableField label="Personal Email" value={form.personalEmail || ""} placeholder="you@gmail.com" onChange={(v) => updateField("personalEmail", v)} icon="mail" />
+                  <EditableField label="Website" value={form.website || ""} placeholder="https://yourwebsite.com" onChange={(v) => updateField("website", v)} icon="link" />
+                </div>
+              </section>
+
+              {/* Social Media */}
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Social Profiles</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2 border-l-2 border-purple-50">
+                  <EditableField label="LinkedIn" value={form.linkedin || ""} placeholder="LinkedIn Profile" onChange={(v) => updateField("linkedin", v)} icon="linkedin" />
+                  <EditableField label="Twitter/X" value={form.twitter || ""} placeholder="Twitter Handle" onChange={(v) => updateField("twitter", v)} icon="twitter" />
+                  <EditableField label="Instagram" value={form.instagram || ""} placeholder="Instagram Handle" onChange={(v) => updateField("instagram", v)} icon="instagram" />
+                  <EditableField label="Facebook" value={form.facebook || ""} placeholder="Facebook Profile" onChange={(v) => updateField("facebook", v)} icon="facebook" />
+                </div>
+              </section>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-10">
+              {/* Work Address */}
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Work Address</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-emerald-50">
+                  <div className="col-span-2"><EditableField label="Street Address" value={form.workStreet || ""} placeholder="123 Business Rd" onChange={(v) => updateField("workStreet", v)} icon="map" /></div>
+                  <EditableField label="City" value={form.workCity || ""} placeholder="City" onChange={(v) => updateField("workCity", v)} icon="map" />
+                  <EditableField label="State" value={form.workState || ""} placeholder="State" onChange={(v) => updateField("workState", v)} icon="map" />
+                  <EditableField label="Zip Code" value={form.workZipcode || ""} placeholder="12345" onChange={(v) => updateField("workZipcode", v)} icon="hash" />
+                  <EditableField label="Country" value={form.workCountry || ""} placeholder="Country" onChange={(v) => updateField("workCountry", v)} icon="flag" />
+                </div>
+              </section>
+
+              {/* Home Address */}
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Home Address</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-orange-50">
+                  <div className="col-span-2"><EditableField label="Street Address" value={form.homeStreet || ""} placeholder="456 Home Ln" onChange={(v) => updateField("homeStreet", v)} icon="map" /></div>
+                  <EditableField label="City" value={form.homeCity || ""} placeholder="City" onChange={(v) => updateField("homeCity", v)} icon="map" />
+                  <EditableField label="State" value={form.homeState || ""} placeholder="State" onChange={(v) => updateField("homeState", v)} icon="map" />
+                  <EditableField label="Zip Code" value={form.homeZipcode || ""} placeholder="12345" onChange={(v) => updateField("homeZipcode", v)} icon="hash" />
+                  <EditableField label="Country" value={form.homeCountry || ""} placeholder="Country" onChange={(v) => updateField("homeCountry", v)} icon="flag" />
+                </div>
+              </section>
+
+              {/* Additional Info */}
+              <section>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-pink-50 rounded-lg text-pink-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-800">Additional Info</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-pink-50">
+                  <EditableField label="Birthday" value={form.birthday || ""} placeholder="YYYY-MM-DD" onChange={(v) => updateField("birthday", v)} icon="calendar" inputType="date" />
+                  <EditableField label="Notes" value={form.notes || ""} placeholder="Any additional notes..." onChange={(v) => updateField("notes", v)} icon="note" multiline />
+                </div>
+              </section>
+            </div>
+          </div>
+
         </div>
-
-        {/* Sections */}
-        <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-5">
-          {/* Contact */}
-          <div className="rounded-lg border bg-white/60 p-4 hover:shadow-sm transition-shadow">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-700 mb-3">Contact</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <EditableField label="Mobile" value={form.mobile || ""} placeholder="Add mobile" onChange={(v) => updateField("mobile", v)} icon="phone" />
-              <EditableField label="Work Phone" value={form.workPhone || ""} placeholder="Add work phone" onChange={(v) => updateField("workPhone", v)} icon="phone" />
-              <EditableField label="Home Phone" value={form.homePhone || ""} placeholder="Add home phone" onChange={(v) => updateField("homePhone", v)} icon="phone" />
-              <EditableField label="Fax" value={form.fax || ""} placeholder="Add fax" onChange={(v) => updateField("fax", v)} icon="phone" />
-              <EditableField label="Work Email" value={form.workEmail || ""} placeholder="Add work email" onChange={(v) => updateField("workEmail", v)} icon="mail" />
-              <EditableField label="Personal Email" value={form.personalEmail || ""} placeholder="Add personal email" onChange={(v) => updateField("personalEmail", v)} icon="mail" />
-              <EditableField label="Website" value={form.website || ""} placeholder="Add website" onChange={(v) => updateField("website", v)} icon="link" />
-            </div>
-          </div>
-
-          {/* Work Address */}
-          <div className="rounded-lg border bg-white/60 p-4 hover:shadow-sm transition-shadow">
-            <div className="text-xs font-semibold uppercase tracking-wide text-blue-700 mb-3">Work Address</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <EditableField label="Street" value={form.workStreet || ""} placeholder="Street" onChange={(v) => updateField("workStreet", v)} icon="map" />
-              <EditableField label="District" value={form.workDistrict || ""} placeholder="District" onChange={(v) => updateField("workDistrict", v)} icon="map" />
-              <EditableField label="City" value={form.workCity || ""} placeholder="City" onChange={(v) => updateField("workCity", v)} icon="map" />
-              <EditableField label="State" value={form.workState || ""} placeholder="State" onChange={(v) => updateField("workState", v)} icon="map" />
-              <EditableField label="Zip" value={form.workZipcode || ""} placeholder="Zip" onChange={(v) => updateField("workZipcode", v)} icon="hash" />
-              <EditableField label="Country" value={form.workCountry || ""} placeholder="Country" onChange={(v) => updateField("workCountry", v)} icon="flag" />
-            </div>
-          </div>
-
-          {/* Home Address */}
-          <div className="rounded-lg border bg-white/60 p-4 hover:shadow-sm transition-shadow">
-            <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700 mb-3">Home Address</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <EditableField label="Street" value={form.homeStreet || ""} placeholder="Street" onChange={(v) => updateField("homeStreet", v)} icon="map" />
-              <EditableField label="District" value={form.homeDistrict || ""} placeholder="District" onChange={(v) => updateField("homeDistrict", v)} icon="map" />
-              <EditableField label="City" value={form.homeCity || ""} placeholder="City" onChange={(v) => updateField("homeCity", v)} icon="map" />
-              <EditableField label="State" value={form.homeState || ""} placeholder="State" onChange={(v) => updateField("homeState", v)} icon="map" />
-              <EditableField label="Zip" value={form.homeZipcode || ""} placeholder="Zip" onChange={(v) => updateField("homeZipcode", v)} icon="hash" />
-              <EditableField label="Country" value={form.homeCountry || ""} placeholder="Country" onChange={(v) => updateField("homeCountry", v)} icon="flag" />
-            </div>
-          </div>
-
-          {/* Social */}
-          <div className="rounded-lg border bg-white/60 p-4 hover:shadow-sm transition-shadow">
-            <div className="text-xs font-semibold uppercase tracking-wide text-purple-700 mb-3">Social</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <EditableField label="LinkedIn" value={form.linkedin || ""} placeholder="LinkedIn URL" onChange={(v) => updateField("linkedin", v)} icon="linkedin" />
-              <EditableField label="Twitter/X" value={form.twitter || ""} placeholder="Twitter URL" onChange={(v) => updateField("twitter", v)} icon="twitter" />
-              <EditableField label="Facebook" value={form.facebook || ""} placeholder="Facebook URL" onChange={(v) => updateField("facebook", v)} icon="facebook" />
-              <EditableField label="Instagram" value={form.instagram || ""} placeholder="Instagram URL" onChange={(v) => updateField("instagram", v)} icon="instagram" />
-              <EditableField label="YouTube" value={form.youtube || ""} placeholder="YouTube URL" onChange={(v) => updateField("youtube", v)} icon="youtube" />
-            </div>
-          </div>
-
-          {/* Extras */}
-          <div className="rounded-lg border bg-white/60 p-4 hover:shadow-sm transition-shadow">
-            <div className="text-xs font-semibold uppercase tracking-wide text-cyan-700 mb-3">Additional</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <EditableField label="Birthday" value={form.birthday || ""} placeholder="YYYY-MM-DD" onChange={(v) => updateField("birthday", v)} icon="calendar" inputType="date" />
-              <EditableField label="Notes" value={form.notes || ""} placeholder="Notes" onChange={(v) => updateField("notes", v)} icon="note" multiline />
-            </div>
-          </div>
-        </div>
-        {/* Bottom gradient bar for visual closure */}
-        <div className="h-2 w-full bg-gradient-to-r from-cyan-400 via-sky-500 to-blue-700 rounded-b-2xl" />
       </div>
 
-      {/* No explicit Save button; autosave handles persistence */}
-
       {/* Desktop status badge */}
-      <div className="hidden md:block fixed top-4 right-4 z-30">
+      <div className="hidden md:block fixed bottom-8 right-8 z-50">
         {(isSaving || lastSavedAt) && (
-          <div className={`rounded-full shadow-sm border bg-white/95 backdrop-blur px-3 py-1.5 text-xs transition-opacity duration-300 ${isSaving ? 'opacity-100' : 'opacity-100'}`}>
+          <div className={`rounded-full shadow-lg border border-slate-100 bg-white/90 backdrop-blur-md px-4 py-2 text-sm font-medium transition-all duration-500 transform ${isSaving ? 'opacity-100 translate-y-0' : 'opacity-80 translate-y-2 hover:opacity-100 hover:translate-y-0'}`}>
             {isSaving ? (
-              <span className="inline-flex items-center gap-2 text-blue-700"><Spinner className="h-3 w-3" />Saving…</span>
+              <span className="inline-flex items-center gap-2 text-blue-600"><Spinner className="h-4 w-4 animate-spin" />Saving changes...</span>
             ) : (
-              <span className="inline-flex items-center gap-2 text-green-700"><Check className="h-3 w-3" />Saved</span>
+              <span className="inline-flex items-center gap-2 text-emerald-600"><Check className="h-4 w-4" />All changes saved</span>
             )}
           </div>
         )}

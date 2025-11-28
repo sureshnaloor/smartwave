@@ -17,12 +17,12 @@ export default function EditableField({ label, value, placeholder, onChange, cla
   const [editing, setEditing] = useState(false);
 
   return (
-    <div className="group">
-      <div className="text-[11px] uppercase tracking-wider text-gray-500 mb-1">{label}</div>
-      <div
-        className={`relative border rounded-md px-3 py-2 bg-white hover:border-blue-300 focus-within:border-blue-500 transition ${className || ""}`}
+    <div className="group relative">
+      <div 
+        className={`relative rounded-xl bg-slate-50/50 border border-slate-200/60 px-4 py-2.5 transition-all duration-300 hover:bg-white hover:shadow-md hover:border-blue-200/80 focus-within:bg-white focus-within:shadow-lg focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-500/10 ${className || ""}`}
         onClick={() => setEditing(true)}
       >
+        <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5 group-hover:text-blue-500 transition-colors duration-300">{label}</div>
         {multiline ? (
           <textarea
             rows={3}
@@ -30,7 +30,7 @@ export default function EditableField({ label, value, placeholder, onChange, cla
             placeholder={placeholder || ""}
             onChange={(e) => onChange(e.target.value)}
             onBlur={() => setEditing(false)}
-            className="w-full outline-none bg-transparent resize-y"
+            className="w-full outline-none bg-transparent resize-y text-slate-700 font-medium placeholder:text-slate-300"
           />
         ) : (
           <input
@@ -39,7 +39,7 @@ export default function EditableField({ label, value, placeholder, onChange, cla
             placeholder={placeholder || ""}
             onChange={(e) => onChange(e.target.value)}
             onBlur={() => setEditing(false)}
-            className="w-full outline-none bg-transparent"
+            className="w-full outline-none bg-transparent text-slate-700 font-medium placeholder:text-slate-300"
           />
         )}
       </div>

@@ -64,9 +64,9 @@ interface DigitalCardProps {
 function CardContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full max-w-[1344px] mx-auto">
-      <div 
-        className="relative w-full" 
-        style={{ 
+      <div
+        className="relative w-full"
+        style={{
           paddingBottom: `${(CARD_HEIGHT / CARD_WIDTH) * 100}%`,
           maxWidth: `${CARD_WIDTH}px`,
           maxHeight: `${CARD_HEIGHT}px`
@@ -85,7 +85,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const [isDownloading, setIsDownloading] = useState(false)
-  
+
   const frontRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
 
@@ -106,7 +106,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   ].filter(Boolean).join(", ")
 
   const flipCard = () => setShowFront(!showFront)
-  
+
   const cycleTheme = () => {
     const themes: Theme[] = ['smartwave', 'minimal', 'dark']
     const currentIndex = themes.indexOf(currentTheme)
@@ -146,7 +146,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     const generateQR = async () => {
       const vCardData = generateVCardData()
       // console.log('Generating QR code with vCard data:', vCardData)
-      
+
       try {
         const qrOptions = {
           type: 'image/png' as const,
@@ -173,11 +173,11 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   // Update the print dimensions constants (300 DPI for high quality)
   const PRINT_CARD_WIDTH = 1050  // 3.5 inches * 300dpi
   const PRINT_CARD_HEIGHT = 600  // 2 inches * 300dpi
-  
+
   // Update the downloadBusinessCard function
   const downloadBusinessCard = async () => {
     if (!frontRef.current || !backRef.current || isDownloading) return;
-    
+
     setIsDownloading(true);
     try {
       // Store original states
@@ -186,7 +186,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       const originalBackVisibility = backRef.current.style.visibility;
       const originalFrontDisplay = frontRef.current.style.display;
       const originalBackDisplay = backRef.current.style.display;
-  
+
       // Configure options for exact dimensions
       const options = {
         width: PRINT_CARD_WIDTH,
@@ -197,7 +197,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         canvasWidth: PRINT_CARD_WIDTH,
         canvasHeight: PRINT_CARD_HEIGHT,
       };
-  
+
       // Capture style for both sides
       const captureStyle = `
         width: ${PRINT_CARD_WIDTH}px !important;
@@ -209,61 +209,61 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         display: block !important;
         opacity: 1 !important;
       `;
-  
+
       // Prepare front side for capture
       frontRef.current.style.cssText += captureStyle;
       frontRef.current.style.transform = 'none';
       frontRef.current.classList.remove('hidden');
-      
+
       // Capture front
       const frontImage = await htmlToImage.toJpeg(frontRef.current, {
         ...options,
         style: {
           // Remove spread of options.style since it doesn't exist in the options type
-          background: currentTheme === 'minimal' ? '#f7f3eb' : 
-                     currentTheme === 'dark' ? 'radial-gradient(ellipse at top right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
-                     'linear-gradient(to right, rgb(37, 99, 235), rgb(220, 38, 38))'
+          background: currentTheme === 'minimal' ? '#f7f3eb' :
+            currentTheme === 'dark' ? 'radial-gradient(ellipse at top right, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
+              'linear-gradient(to right, rgb(37, 99, 235), rgb(220, 38, 38))'
         }
       });
-  
+
       // Prepare back side for capture
       backRef.current.style.cssText += captureStyle;
       backRef.current.style.transform = 'none';
       backRef.current.classList.remove('hidden');
-  
+
       // Capture back
       const backImage = await htmlToImage.toJpeg(backRef.current, {
         ...options,
         style: {
-// Remove spread of options.style since it's not defined in the options type
-          background: currentTheme === 'minimal' ? '#f0ece4' : 
-                     currentTheme === 'dark' ? 'radial-gradient(ellipse at top left, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
-                     'linear-gradient(to right, rgb(220, 38, 38), rgb(37, 99, 235))'
+          // Remove spread of options.style since it's not defined in the options type
+          background: currentTheme === 'minimal' ? '#f0ece4' :
+            currentTheme === 'dark' ? 'radial-gradient(ellipse at top left, rgb(17, 24, 39), rgb(31, 41, 55), rgb(0, 0, 0))' :
+              'linear-gradient(to right, rgb(220, 38, 38), rgb(37, 99, 235))'
         }
       });
-  
+
       // Download front
       const frontLink = document.createElement('a');
       frontLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_front.jpg`;
       frontLink.href = frontImage;
       frontLink.click();
-  
+
       // Small delay between downloads
       await new Promise(resolve => setTimeout(resolve, 500));
-  
+
       // Download back
       const backLink = document.createElement('a');
       backLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_back.jpg`;
       backLink.href = backImage;
       backLink.click();
-  
+
       // Restore original states
       frontRef.current.style.visibility = originalFrontVisibility;
       backRef.current.style.visibility = originalBackVisibility;
       frontRef.current.style.display = originalFrontDisplay;
       backRef.current.style.display = originalBackDisplay;
       setShowFront(originalShowFront);
-  
+
     } catch (error) {
       // console.error('Error generating business card images:', error);
     } finally {
@@ -276,16 +276,14 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       <CardContainer>
         <div className="perspective-1000 w-full h-full">
           <div
-            className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${
-              showFront ? "" : "rotate-y-180"
-            }`}
+            className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${showFront ? "" : "rotate-y-180"
+              }`}
           >
             {/* Front of card */}
             <div
               ref={frontRef}
-              className={`absolute w-full h-full backface-hidden ${theme.front} rounded-xl p-6 shadow-lg ${theme.text.primary} ${
-                showFront ? "" : "hidden"
-              }`}
+              className={`absolute w-full h-full backface-hidden ${theme.front} rounded-xl p-6 shadow-lg ${theme.text.primary} ${showFront ? "" : "hidden"
+                }`}
             >
               <div className="flex justify-between h-full pt-5">
                 {/* Left column: identity + contact */}
@@ -354,9 +352,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             {/* Back of card */}
             <div
               ref={backRef}
-              className={`absolute w-full h-full backface-hidden ${theme.back} rounded-xl p-4 shadow-lg rotate-y-180 ${theme.text.primary} ${
-                showFront ? "hidden" : ""
-              }`}
+              className={`absolute w-full h-full backface-hidden ${theme.back} rounded-xl p-4 shadow-lg rotate-y-180 ${theme.text.primary} ${showFront ? "hidden" : ""
+                }`}
             >
               <div className="relative w-full h-full">
                 {/* Left content column - contrasting color */}
@@ -370,7 +367,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className={`space-y-1.5 text-[11px] font-mono ${theme.text.backLeft}`}>
                     {user.personalEmail && (
                       <p className="flex items-center gap-2">
