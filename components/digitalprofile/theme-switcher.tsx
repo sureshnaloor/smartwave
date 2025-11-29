@@ -49,6 +49,9 @@ export function ThemeSwitcher({ currentTheme, setTheme }: ThemeSwitcherProps) {
           <DropdownMenuItem onClick={() => setTheme("bold")} className={currentTheme === "bold" ? "bg-accent" : ""}>
             Bold
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("glassmorphism")} className={currentTheme === "glassmorphism" ? "bg-accent" : ""}>
+            Glassmorphism
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

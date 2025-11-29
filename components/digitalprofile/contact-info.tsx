@@ -26,6 +26,84 @@ export function ContactInfo({
   title,
   theme
 }: ContactInfoProps) {
+  if (theme === "glassmorphism") {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {workEmail && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Mail className="text-2xl text-blue-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Work Email</p>
+                <p className="text-gray-700">{workEmail}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {workPhone && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Phone className="text-2xl text-green-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Work Phone</p>
+                <p className="text-gray-700">{workPhone}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {personalEmail && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Mail className="text-2xl text-purple-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Personal Email</p>
+                <p className="text-gray-700">{personalEmail}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {mobile && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Phone className="text-2xl text-indigo-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Mobile</p>
+                <p className="text-gray-700">{mobile}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {homePhone && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Phone className="text-2xl text-teal-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Home Phone</p>
+                <p className="text-gray-700">{homePhone}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {fax && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <Phone className="text-2xl text-orange-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Fax</p>
+                <p className="text-gray-700">{fax}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (theme === "minimal") {
     return (
       <div className="space-y-6 group">

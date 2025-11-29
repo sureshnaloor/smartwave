@@ -48,6 +48,39 @@ export function Locations({
     return parts.join(", ")
   }
 
+  if (theme === "glassmorphism") {
+    const workAddress = formatAddress(workStreet, workDistrict, workCity, workState, workZipcode, workCountry)
+    const homeAddress = formatAddress(homeStreet, homeDistrict, homeCity, homeState, homeZipcode, homeCountry)
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {workAddress && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <MapPin className="text-2xl text-red-500" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Work Address</p>
+                <p className="text-gray-700">{workAddress}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {homeAddress && (
+          <div className="bg-white/80 backdrop-blur-md rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <MapPin className="text-2xl text-green-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Home Address</p>
+                <p className="text-gray-700">{homeAddress}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (theme === "minimal") {
     return (
       <div className="space-y-6">

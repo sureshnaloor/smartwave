@@ -1,4 +1,4 @@
-export type ThemeType = "classic" | "modern" | "minimal" | "bold" | "light" | "dark"
+export type ThemeType = "classic" | "modern" | "minimal" | "bold" | "glassmorphism" | "light" | "dark"
 
 export interface AddressInfo {
   address: string

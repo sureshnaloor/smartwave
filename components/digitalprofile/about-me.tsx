@@ -6,6 +6,15 @@ interface AboutMeProps extends BaseComponentProps {
 }
 
 export function AboutMe({ about, theme }: AboutMeProps) {
+  if (theme === "glassmorphism") {
+    return (
+      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
+        <div className="prose prose-sm max-w-none prose-slate text-gray-600" dangerouslySetInnerHTML={{ __html: about }} />
+      </div>
+    )
+  }
+
   if (theme === "minimal") {
     return (
       <div className="p-6 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:bg-white/80 dark:hover:bg-slate-900/80 hover:shadow-xl hover:-translate-y-1">

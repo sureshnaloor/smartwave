@@ -28,6 +28,59 @@ export function ProfileHeader({
 }: ProfileHeaderProps) {
   const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ")
 
+  if (theme === "glassmorphism") {
+    return (
+      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8">
+        {/* Logo */}
+        {logo && (
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 rounded-full shadow-xl overflow-hidden">
+              <Image
+                src={logo}
+                alt="Company Logo"
+                width={96}
+                height={96}
+                className="object-cover w-full h-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Profile Photo */}
+        <div className="flex justify-center mb-6">
+          <div className="w-32 h-32 rounded-full shadow-xl overflow-hidden">
+            <Image
+              src={photo || "/placeholder.svg"}
+              alt={fullName}
+              width={128}
+              height={128}
+              className="object-cover w-full h-full"
+            />
+          </div>
+        </div>
+
+        {/* Name and Details */}
+        <div className="text-center space-y-3">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {fullName}
+          </h1>
+
+          {title && (
+            <p className="text-xl text-gray-700 font-medium">
+              {title}
+            </p>
+          )}
+
+          {company && (
+            <p className="text-lg text-blue-600 font-semibold">
+              {company}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   if (theme === "minimal") {
     return (
       <div className="w-full group">

@@ -92,6 +92,62 @@ export function SocialLinks({
 
   if (socialLinks.length === 0) return null
 
+  if (theme === "glassmorphism") {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        {socialLinks.map((link) => {
+          const getIconColor = () => {
+            switch (link.platform) {
+              case "linkedin":
+                return "text-[#0077b5]"
+              case "twitter":
+                return "text-sky-500"
+              case "facebook":
+                return "text-blue-700"
+              case "instagram":
+                return "text-pink-600"
+              case "github":
+                return "text-slate-900"
+              default:
+                return "text-gray-600"
+            }
+          }
+
+          const getIcon = () => {
+            const iconProps = { className: `text-3xl ${getIconColor()}` }
+            switch (link.platform) {
+              case "linkedin":
+                return <Linkedin {...iconProps} />
+              case "twitter":
+                return <Twitter {...iconProps} />
+              case "facebook":
+                return <Facebook {...iconProps} />
+              case "instagram":
+                return <Instagram {...iconProps} />
+              case "github":
+                return <Github {...iconProps} />
+              default:
+                return <ExternalLink {...iconProps} />
+            }
+          }
+
+          return (
+            <a
+              key={link.platform}
+              href={link.url!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 p-4 bg-white/80 backdrop-blur-md rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              {getIcon()}
+              <span className="text-sm font-medium text-gray-700 capitalize">{link.platform}</span>
+            </a>
+          )
+        })}
+      </div>
+    )
+  }
+
   if (theme === "minimal") {
     return (
       <div className="space-y-6">

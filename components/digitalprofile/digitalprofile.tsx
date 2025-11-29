@@ -54,6 +54,8 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         return "max-w-3xl"
       case "bold":
         return "max-w-4xl"
+      case "glassmorphism":
+        return "max-w-2xl"
       default:
         return "max-w-4xl"
     }
@@ -184,7 +186,10 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
   }
 
   return (
-    <div className={cn("min-h-screen w-full pb-10", getBackgroundClass(), getTextColorClass())}>
+    <div
+      className={cn("min-h-screen w-full pb-10", layoutTheme !== "glassmorphism" && getBackgroundClass(), layoutTheme !== "glassmorphism" && getTextColorClass())}
+      style={layoutTheme === "glassmorphism" ? { backgroundColor: (profileData as any).backgroundColor || '#EBE9E1' } : {}}
+    >
       <div className={cn("mx-auto px-4 py-8", getLayoutClass())}>
         {/* Theme controls */}
         <div className="fixed top-4 right-4 z-10 flex gap-2">
@@ -233,7 +238,9 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
               ? "grid-cols-1 lg:grid-cols-3"
               : layoutTheme === "minimal"
                 ? "grid-cols-1"
-                : "grid-cols-1 md:grid-cols-2",
+                : layoutTheme === "glassmorphism"
+                  ? "grid-cols-1"
+                  : "grid-cols-1 md:grid-cols-2",
         )}>
           <ContactInfo {...profileData} theme={layoutTheme} />
           <Locations {...profileData} theme={layoutTheme} />
