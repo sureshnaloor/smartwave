@@ -12,10 +12,9 @@ import { ThemeSwitcher } from "./theme-switcher"
 import { Button } from "@/components/ui/button"
 // First, add the Download icon import at the top
 import { Sun, Moon, Download } from "lucide-react"
-import { 
-  ThemeType, 
-  BackgroundType, 
-  ProfileData 
+import {
+  ThemeType,
+  ProfileData
 } from "./types"
 import QRCode from 'qrcode'
 import Image from 'next/image'
@@ -29,7 +28,6 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
   const [layoutTheme, setLayoutTheme] = useState<ThemeType>("classic")
   // Use light/dark theme with system preference as default
   const [colorTheme, setColorTheme] = useState<"light" | "dark">("light")
-  const [background, setBackground] = useState<BackgroundType>("gradient")
 
   // Check system preference on mount
   useEffect(() => {
@@ -38,26 +36,11 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
     setColorTheme(prefersDark ? "dark" : "light")
   }, [])
 
-  // Get background class based on selected background type and color theme
+  // Get clean adaptive background based on color theme
   const getBackgroundClass = () => {
-    switch (background) {
-      case "gradient":
-        return colorTheme === "dark"
-          ? "bg-gradient-to-br from-gray-800 to-gray-900"
-          : "bg-gradient-to-br from-blue-100 to-indigo-300"
-      case "pattern":
-        return colorTheme === "dark"
-          ? "bg-gray-900 bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px]"
-          : "bg-white bg-[radial-gradient(#62cff4_1px,transparent_1px)] [background-size:16px_16px]"
-      case "solid":
-        return colorTheme === "dark" ? "bg-gray-900" : "bg-slate-200"
-      case "image":
-        return colorTheme === "dark" 
-          ? "bg-[url('/bgdark.jpg?height=1080&width=1920')] bg-cover bg-center" 
-          : "bg-[url('/bgwhite.jpg?height=1080&width=1920')] bg-cover bg-center"
-      default:
-        return colorTheme === "dark" ? "bg-gray-900" : "bg-white"
-    }
+    return colorTheme === "dark"
+      ? "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      : "bg-gradient-to-br from-slate-50 via-white to-slate-100"
   }
 
   // Get layout class based on selected theme
@@ -157,7 +140,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
   const handleDownloadVCard = async () => {
     try {
       let photoData = '';
-      
+
       if (profileData.photo) {
         const photoResponse = await fetch(profileData.photo);
         const photoBlob = await photoResponse.blob();
@@ -166,10 +149,10 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(photoBlob);
         });
-        
+
         photoData = base64String.toString().split(',')[1];
       }
-      
+
       const vCardData = [
         'BEGIN:VCARD',
         'VERSION:3.0',
@@ -185,7 +168,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         photoData ? `PHOTO;ENCODING=b;TYPE=JPEG:${photoData}` : '',
         'END:VCARD'
       ].filter(Boolean).join('\n');
-      
+
       const blob = new Blob([vCardData], { type: 'text/vcard' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -206,9 +189,9 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         {/* Theme controls */}
         <div className="fixed top-4 right-4 z-10 flex gap-2">
           {/* Dark/Light mode toggle button */}
-          <Button 
-            variant="outline" 
-            size="icon" 
+          <Button
+            variant="outline"
+            size="icon"
             onClick={toggleColorTheme}
             className={colorTheme === "dark" ? "bg-gray-800" : "bg-white"}
           >
@@ -219,19 +202,17 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
             )}
             <span className="sr-only">Toggle dark mode</span>
           </Button>
-          
-          {/* Layout theme and background switcher */}
+
+          {/* Layout theme switcher */}
           <ThemeSwitcher
             currentTheme={layoutTheme}
             setTheme={setLayoutTheme}
-            currentBackground={background}
-            setBackground={setBackground}
           />
         </div>
 
         {/* Profile Header - Fixed syntax */}
         <div className="mb-8">
-          <ProfileHeader 
+          <ProfileHeader
             firstName={profileData.firstName}
             middleName={profileData.middleName}
             lastName={profileData.lastName}
@@ -261,44 +242,58 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
         </div>
 
         {/* Contact Actions Section */}
-        <div className="mt-12 grid gap-8 md:grid-cols-2 md:gap-12">
+        <div className="mt-16 grid gap-10 md:grid-cols-2 md:gap-12">
           {/* QR Code */}
           <div className="flex justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-sm max-w-sm w-full">
-              <h3 className="text-xl font-semibold mb-4 text-teal-600">QR Code</h3>
-              <p className="text-gray-600 mb-6">
-                Scan this QR code to add {profileData.name} to your contacts
-              </p>
-              <div className="flex justify-center">
-                {qrDataUrl ? (
-                  <Image
-                    src={qrDataUrl}
-                    alt="QR Code"
-                    width={300}
-                    height={300}
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <div className="w-[300px] h-[300px] bg-gray-100 rounded-lg animate-pulse" />
-                )}
+            <div className="relative group max-w-sm w-full">
+              {/* Glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+              <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2">
+                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  QR Code
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6 font-medium">
+                  Scan to add {profileData.firstName} {profileData.lastName} to your contacts
+                </p>
+                <div className="flex justify-center">
+                  {qrDataUrl ? (
+                    <div className="relative p-4 bg-white rounded-xl shadow-lg transition-transform duration-500 hover:scale-105">
+                      <Image
+                        src={qrDataUrl}
+                        alt="QR Code"
+                        width={300}
+                        height={300}
+                        className="rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-[300px] h-[300px] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl animate-pulse" />
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* vCard Download */}
           <div className="flex justify-center">
-            <div className="bg-white p-6 rounded-lg shadow-sm max-w-sm w-full">
-              <h3 className="text-xl font-semibold mb-4 text-teal-600">Add to Contacts</h3>
-              <p className="text-gray-600 mb-6">
-                Download {profileData.name}&apos;s contact information as a vCard file
-              </p>
-              <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleDownloadVCard}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Add to Contacts
-              </Button>
+            <div className="relative group max-w-sm w-full">
+              {/* Glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+              <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2">
+                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Add to Contacts
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-8 font-medium">
+                  Download {profileData.firstName} {profileData.lastName}&apos;s contact information as a vCard file
+                </p>
+                <Button
+                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn"
+                  onClick={handleDownloadVCard}
+                >
+                  <Download className="mr-3 h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:-translate-y-0.5" />
+                  Add to Contacts
+                </Button>
+              </div>
             </div>
           </div>
         </div>

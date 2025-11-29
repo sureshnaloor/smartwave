@@ -11,16 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Paintbrush } from "lucide-react"
-import { ThemeType, BackgroundType } from "./types"
+import { ThemeType } from "./types"
 
 interface ThemeSwitcherProps {
   currentTheme: ThemeType
   setTheme: (theme: ThemeType) => void
-  currentBackground: BackgroundType
-  setBackground: (background: BackgroundType) => void
 }
 
-export function ThemeSwitcher({ currentTheme, setTheme, currentBackground, setBackground }: ThemeSwitcherProps) {
+export function ThemeSwitcher({ currentTheme, setTheme }: ThemeSwitcherProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,7 +28,7 @@ export function ThemeSwitcher({ currentTheme, setTheme, currentBackground, setBa
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Layout</DropdownMenuLabel>
+        <DropdownMenuLabel>Layout Style</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
@@ -50,35 +48,6 @@ export function ThemeSwitcher({ currentTheme, setTheme, currentBackground, setBa
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTheme("bold")} className={currentTheme === "bold" ? "bg-accent" : ""}>
             Bold
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-
-        <DropdownMenuLabel className="mt-2">Background</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => setBackground("gradient")}
-            className={currentBackground === "gradient" ? "bg-accent" : ""}
-          >
-            Gradient
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setBackground("pattern")}
-            className={currentBackground === "pattern" ? "bg-accent" : ""}
-          >
-            Pattern
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setBackground("solid")}
-            className={currentBackground === "solid" ? "bg-accent" : ""}
-          >
-            Solid
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setBackground("image")}
-            className={currentBackground === "image" ? "bg-accent" : ""}
-          >
-            Image
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
