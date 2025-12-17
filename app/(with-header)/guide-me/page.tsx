@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircle, 
-  ArrowRight, 
-  User, 
-  Palette, 
-  Share2, 
-  Smartphone, 
-  Globe, 
+import {
+  CheckCircle,
+  ArrowRight,
+  User,
+  Palette,
+  Share2,
+  Smartphone,
+  Globe,
   Settings,
   QrCode,
   Download,
@@ -28,9 +30,53 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
+import { getOnboardingProgress, StepStatus } from '@/app/_actions/onboarding';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function GuideMePage() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stepStatuses, setStepStatuses] = useState<Record<number, StepStatus>>({
+    1: 'pending',
+    2: 'pending',
+    3: 'pending',
+    4: 'pending',
+    5: 'pending',
+  });
+  const [progressPercentage, setProgressPercentage] = useState(0);
+
+  // Fetch user's onboarding progress
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (status === 'unauthenticated') {
+        router.push('/');
+        return;
+      }
+
+      if (status === 'authenticated' && session?.user?.email) {
+        setLoading(true);
+        try {
+          const progress = await getOnboardingProgress(session.user.email);
+
+          // Map step statuses
+          const statusMap: Record<number, StepStatus> = {};
+          progress.steps.forEach(step => {
+            statusMap[step.id] = step.status;
+          });
+
+          setStepStatuses(statusMap);
+          setProgressPercentage(progress.progressPercentage);
+        } catch (error) {
+          console.error('Failed to fetch onboarding progress:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchProgress();
+  }, [status, session, router]);
 
   const onboardingSteps = [
     {
@@ -45,7 +91,7 @@ export default function GuideMePage() {
         "Add your contact information"
       ],
       estimatedTime: "5 minutes",
-      status: "completed"
+      status: stepStatuses[1]
     },
     {
       id: 2,
@@ -59,7 +105,7 @@ export default function GuideMePage() {
         "Preview your design"
       ],
       estimatedTime: "3 minutes",
-      status: "in-progress"
+      status: stepStatuses[2]
     },
     {
       id: 3,
@@ -73,7 +119,7 @@ export default function GuideMePage() {
         "Set up contact preferences"
       ],
       estimatedTime: "4 minutes",
-      status: "pending"
+      status: stepStatuses[3]
     },
     {
       id: 4,
@@ -87,7 +133,7 @@ export default function GuideMePage() {
         "Download your QR code"
       ],
       estimatedTime: "2 minutes",
-      status: "pending"
+      status: stepStatuses[4]
     },
     {
       id: 5,
@@ -101,7 +147,7 @@ export default function GuideMePage() {
         "Start networking!"
       ],
       estimatedTime: "3 minutes",
-      status: "pending"
+      status: stepStatuses[5]
     }
   ];
 
@@ -110,28 +156,28 @@ export default function GuideMePage() {
       title: "Edit Profile",
       description: "Update your personal information",
       icon: <Edit3 className="h-5 w-5" />,
-      href: "/profile",
+      href: "/myprofile",
       color: "bg-blue-500"
     },
     {
       title: "Customize Design",
       description: "Change your card appearance",
       icon: <Palette className="h-5 w-5" />,
-      href: "/profile",
+      href: "/myprofile",
       color: "bg-purple-500"
     },
     {
       title: "View Analytics",
       description: "See who viewed your card",
       icon: <Star className="h-5 w-5" />,
-      href: "/profile",
+      href: "/myprofile",
       color: "bg-green-500"
     },
     {
       title: "Download QR",
       description: "Get your QR code image",
       icon: <Download className="h-5 w-5" />,
-      href: "/profile",
+      href: "/myprofile",
       color: "bg-orange-500"
     }
   ];
@@ -154,8 +200,12 @@ export default function GuideMePage() {
     }
   ];
 
+  // Calculate completed steps for display
   const completedSteps = onboardingSteps.filter(step => step.status === "completed").length;
-  const progressPercentage = (completedSteps / onboardingSteps.length) * 100;
+
+  // Show loading spinner while fetching data or authenticating
+  if (loading || status === 'loading') return <LoadingSpinner />;
+  if (!session?.user?.email) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -172,7 +222,7 @@ export default function GuideMePage() {
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
             Let's get you set up with your digital business card in just a few steps
           </p>
-          
+
           {/* Progress Bar */}
           <div className="max-w-md mx-auto mb-6">
             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -194,7 +244,7 @@ export default function GuideMePage() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Your Onboarding Journey
               </h2>
-              
+
               <div className="space-y-4">
                 {onboardingSteps.map((step, index) => (
                   <motion.div
@@ -203,23 +253,21 @@ export default function GuideMePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className={`transition-all duration-300 ${
-                      step.status === 'completed' 
-                        ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' 
-                        : step.status === 'in-progress'
+                    <Card className={`transition-all duration-300 ${step.status === 'completed'
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                      : step.status === 'in-progress'
                         ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
                         : 'border-gray-200 dark:border-gray-700'
-                    }`}>
+                      }`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-full ${
-                              step.status === 'completed' 
-                                ? 'bg-green-500 text-white' 
-                                : step.status === 'in-progress'
+                            <div className={`p-2 rounded-full ${step.status === 'completed'
+                              ? 'bg-green-500 text-white'
+                              : step.status === 'in-progress'
                                 ? 'bg-blue-500 text-white'
                                 : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                            }`}>
+                              }`}>
                               {step.status === 'completed' ? (
                                 <CheckCircle className="h-5 w-5" />
                               ) : (
@@ -233,17 +281,17 @@ export default function GuideMePage() {
                           </div>
                           <div className="flex items-center space-x-2">
                             <Badge variant={
-                              step.status === 'completed' 
-                                ? 'default' 
+                              step.status === 'completed'
+                                ? 'default'
                                 : step.status === 'in-progress'
-                                ? 'secondary'
-                                : 'outline'
+                                  ? 'secondary'
+                                  : 'outline'
                             }>
-                              {step.status === 'completed' 
-                                ? 'Completed' 
+                              {step.status === 'completed'
+                                ? 'Completed'
                                 : step.status === 'in-progress'
-                                ? 'In Progress'
-                                : 'Pending'
+                                  ? 'In Progress'
+                                  : 'Pending'
                               }
                             </Badge>
                             <span className="text-sm text-gray-500">{step.estimatedTime}</span>
@@ -254,13 +302,12 @@ export default function GuideMePage() {
                         <ul className="space-y-2">
                           {step.tasks.map((task, taskIndex) => (
                             <li key={taskIndex} className="flex items-center space-x-2 text-sm">
-                              <CheckCircle className={`h-4 w-4 ${
-                                step.status === 'completed' 
-                                  ? 'text-green-500' 
-                                  : 'text-gray-300 dark:text-gray-600'
-                              }`} />
-                              <span className={step.status === 'completed' 
-                                ? 'text-gray-700 dark:text-gray-300' 
+                              <CheckCircle className={`h-4 w-4 ${step.status === 'completed'
+                                ? 'text-green-500'
+                                : 'text-gray-300 dark:text-gray-600'
+                                }`} />
+                              <span className={step.status === 'completed'
+                                ? 'text-gray-700 dark:text-gray-300'
                                 : 'text-gray-500 dark:text-gray-400'
                               }>
                                 {task}
@@ -270,7 +317,7 @@ export default function GuideMePage() {
                         </ul>
                         {step.status === 'in-progress' && (
                           <div className="mt-4">
-                            <Link href="/profile">
+                            <Link href="/myprofile">
                               <Button className="w-full">
                                 Continue Setup
                                 <ArrowRight className="ml-2 h-4 w-4" />
