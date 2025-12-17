@@ -108,12 +108,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
   return (
     <div className="relative max-w-5xl mx-auto">
       {/* Main Card Container */}
-      <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+      <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-gray-950/50 overflow-hidden border border-slate-100 dark:border-gray-800">
 
         {/* Vibrant Header Background */}
         <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600">
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white dark:from-gray-900 to-transparent"></div>
         </div>
 
         {/* Content Wrapper */}
@@ -180,12 +180,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               {/* Contact Info */}
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Contact Details</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Contact Details</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-blue-50">
+                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-blue-50 dark:border-blue-900/30">
                   <EditableField label="Mobile" value={form.mobile || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("mobile", v)} icon="phone" />
                   <EditableField label="Work Phone" value={form.workPhone || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("workPhone", v)} icon="phone" />
                   <EditableField label="Work Email" value={form.workEmail || ""} placeholder="you@company.com" onChange={(v) => updateField("workEmail", v)} icon="mail" />
@@ -197,12 +197,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               {/* Social Media */}
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                  <div className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Social Profiles</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Social Profiles</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2 border-l-2 border-purple-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2 border-l-2 border-purple-50 dark:border-purple-900/30">
                   <EditableField label="LinkedIn" value={form.linkedin || ""} placeholder="LinkedIn Profile" onChange={(v) => updateField("linkedin", v)} icon="linkedin" />
                   <EditableField label="Twitter/X" value={form.twitter || ""} placeholder="Twitter Handle" onChange={(v) => updateField("twitter", v)} icon="twitter" />
                   <EditableField label="Instagram" value={form.instagram || ""} placeholder="Instagram Handle" onChange={(v) => updateField("instagram", v)} icon="instagram" />
@@ -216,12 +216,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               {/* Work Address */}
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Work Address</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Work Address</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-emerald-50">
+                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-emerald-50 dark:border-emerald-900/30">
                   <div className="col-span-2"><EditableField label="Street Address" value={form.workStreet || ""} placeholder="123 Business Rd" onChange={(v) => updateField("workStreet", v)} icon="map" /></div>
                   <EditableField label="City" value={form.workCity || ""} placeholder="City" onChange={(v) => updateField("workCity", v)} icon="map" />
                   <EditableField label="State" value={form.workState || ""} placeholder="State" onChange={(v) => updateField("workState", v)} icon="map" />
@@ -233,12 +233,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               {/* Home Address */}
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                  <div className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Home Address</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Home Address</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-orange-50">
+                <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-orange-50 dark:border-orange-900/30">
                   <div className="col-span-2"><EditableField label="Street Address" value={form.homeStreet || ""} placeholder="456 Home Ln" onChange={(v) => updateField("homeStreet", v)} icon="map" /></div>
                   <EditableField label="City" value={form.homeCity || ""} placeholder="City" onChange={(v) => updateField("homeCity", v)} icon="map" />
                   <EditableField label="State" value={form.homeState || ""} placeholder="State" onChange={(v) => updateField("homeState", v)} icon="map" />
@@ -250,12 +250,12 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
               {/* Additional Info */}
               <section>
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-pink-50 rounded-lg text-pink-600">
+                  <div className="p-2 bg-pink-50 dark:bg-pink-900/30 rounded-lg text-pink-600 dark:text-pink-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-800">Additional Info</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white">Additional Info</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-pink-50">
+                <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-pink-50 dark:border-pink-900/30">
                   <EditableField label="Birthday" value={form.birthday || ""} placeholder="YYYY-MM-DD" onChange={(v) => updateField("birthday", v)} icon="calendar" inputType="date" />
                   <EditableField label="Notes" value={form.notes || ""} placeholder="Any additional notes..." onChange={(v) => updateField("notes", v)} icon="note" multiline />
                 </div>
@@ -269,11 +269,11 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
       {/* Desktop status badge */}
       <div className="hidden md:block fixed bottom-8 right-8 z-50">
         {(isSaving || lastSavedAt) && (
-          <div className={`rounded-full shadow-lg border border-slate-100 bg-white/90 backdrop-blur-md px-4 py-2 text-sm font-medium transition-all duration-500 transform ${isSaving ? 'opacity-100 translate-y-0' : 'opacity-80 translate-y-2 hover:opacity-100 hover:translate-y-0'}`}>
+          <div className={`rounded-full shadow-lg border border-slate-100 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md px-4 py-2 text-sm font-medium transition-all duration-500 transform ${isSaving ? 'opacity-100 translate-y-0' : 'opacity-80 translate-y-2 hover:opacity-100 hover:translate-y-0'}`}>
             {isSaving ? (
-              <span className="inline-flex items-center gap-2 text-blue-600"><Spinner className="h-4 w-4 animate-spin" />Saving changes...</span>
+              <span className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400"><Spinner className="h-4 w-4 animate-spin" />Saving changes...</span>
             ) : (
-              <span className="inline-flex items-center gap-2 text-emerald-600"><Check className="h-4 w-4" />All changes saved</span>
+              <span className="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400"><Check className="h-4 w-4" />All changes saved</span>
             )}
           </div>
         )}

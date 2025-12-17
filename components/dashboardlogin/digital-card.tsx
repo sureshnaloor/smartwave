@@ -625,7 +625,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                     </div>
                   </div>
                   {/* Right column: logo top-right near edge, QR bottom-right smaller */}
-                  <div className="absolute right-0 top-0 bottom-0 w-[42%] flex flex-col items-end justify-between p-3">
+                  <div className="absolute right-0 top-0 bottom-0 w-[42%] flex flex-col items-end justify-between gap-4 p-3">
                     {user.companyLogo && (
                       <div>
                         <Image
