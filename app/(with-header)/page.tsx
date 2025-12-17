@@ -164,7 +164,7 @@ export default function HomePage() {
       </section>
 
       {/* Wallet Demo Component */}
-      <WalletDemo />
+
 
       {/* Features Grid Section */}
       <section id="features" className="py-20 bg-white dark:bg-black">
