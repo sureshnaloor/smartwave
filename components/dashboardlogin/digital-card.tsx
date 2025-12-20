@@ -7,91 +7,92 @@ import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, 
 import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import * as htmlToImage from 'html-to-image'
+import { useTheme } from '@/context/ThemeContext'
 
 // Standard business card dimensions (3.5 x 2 inches) at 300 DPI for print quality
 const CARD_WIDTH = 1050 // 3.5 inches * 300 DPI
 const CARD_HEIGHT = 600 // 2 inches * 300 DPI
 
-type Theme = 'smartwave' | 'minimal' | 'dark' | 'modern' | 'professional' | 'creative'
+type Theme = 'smartwave' | 'minimal' | 'onyx' | 'modern' | 'professional' | 'creative'
 
 const themeStyles = {
   smartwave: {
-    front: 'bg-gradient-to-r from-blue-600 to-red-600',
-    back: 'bg-gradient-to-r from-red-600 to-blue-600',
+    front: 'bg-gradient-to-b from-red-200 to-blue-600 dark:from-slate-800 dark:to-blue-900',
+    back: 'bg-gradient-to-b from-red-200 to-blue-600 dark:from-slate-800 dark:to-blue-900',
     text: {
-      primary: 'text-white',
-      address: 'text-blue-100',
-      contact: 'text-orange-100',
-      icon: 'text-white/60',
-      backLeft: 'text-gray-900' // Contrasting color for back left content
+      primary: '!text-white',
+      address: '!text-blue-100',
+      contact: '!text-orange-100',
+      icon: '!text-white/60',
+      backLeft: '!text-gray-900 dark:!text-white' // Contrasting color for back left content
     },
-    buttonText: 'text-white/70 hover:text-white',
-    backButtonText: 'bg-white/90 text-gray-800 hover:bg-white',
+    buttonText: '!text-white/70 hover:!text-white',
+    backButtonText: 'bg-white/90 !text-gray-800 hover:bg-white dark:bg-slate-700 dark:!text-white',
   },
   minimal: {
-    front: 'bg-[#f5f1e8]', // Slightly darker cream for better contrast
-    back: 'bg-[#ede9e0]', // Darker cream for back
+    front: 'bg-[#f5f1e8] dark:bg-slate-600',
+    back: 'bg-[#ede9e0] dark:bg-slate-600',
     text: {
-      primary: 'text-black',
-      address: 'text-blue-950',
-      contact: 'text-gray-950',
-      icon: 'text-gray-700',
-      backLeft: 'text-black'
+      primary: '!text-gray-900 dark:!text-white',
+      address: '!text-blue-900 dark:!text-blue-200',
+      contact: '!text-gray-900 dark:!text-gray-300',
+      icon: '!text-gray-700 dark:!text-gray-400',
+      backLeft: '!text-gray-900 dark:!text-white'
     },
-    buttonText: 'text-gray-700 hover:text-gray-900',
-    backButtonText: 'bg-gray-900 text-white hover:bg-black',
+    buttonText: '!text-gray-700 hover:!text-gray-900 dark:!text-gray-300 dark:hover:!text-white',
+    backButtonText: 'bg-gray-900 !text-white hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600',
   },
-  dark: {
+  onyx: {
     front: 'bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-900 via-gray-800 to-black',
     back: 'bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-gray-900 via-gray-800 to-black',
     text: {
-      primary: 'text-gray-100',
-      address: 'text-emerald-300',
-      contact: 'text-purple-300',
-      icon: 'text-gray-500',
-      backLeft: 'text-gray-200'
+      primary: '!text-white',
+      address: '!text-emerald-300',
+      contact: '!text-purple-300',
+      icon: '!text-gray-300',
+      backLeft: '!text-white'
     },
-    buttonText: 'text-gray-300 hover:text-white',
-    backButtonText: 'bg-gray-700 text-gray-200 hover:bg-gray-600',
+    buttonText: '!text-gray-300 hover:!text-white',
+    backButtonText: 'bg-gray-700 !text-gray-200 hover:bg-gray-600',
   },
   modern: {
-    front: 'bg-white',
-    back: 'bg-slate-900',
+    front: 'bg-white dark:bg-slate-900',
+    back: 'bg-slate-900 dark:bg-black',
     text: {
-      primary: 'text-slate-800',
-      address: 'text-slate-300',
-      contact: 'text-slate-300',
-      icon: 'text-slate-400',
-      backLeft: 'text-white'
+      primary: '!text-slate-900 dark:!text-white',
+      address: '!text-slate-700 dark:!text-slate-300',
+      contact: '!text-slate-700 dark:!text-slate-300',
+      icon: '!text-slate-600 dark:!text-slate-400',
+      backLeft: '!text-slate-100'
     },
-    buttonText: 'text-slate-600 hover:text-slate-900',
-    backButtonText: 'bg-slate-800 text-white hover:bg-slate-700',
+    buttonText: '!text-slate-600 hover:!text-slate-900 dark:!text-slate-400 dark:hover:!text-white',
+    backButtonText: 'bg-slate-800 !text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600',
   },
   professional: {
-    front: 'bg-white border-[12px] border-blue-950',
-    back: 'bg-blue-950 border-[12px] border-blue-900',
+    front: 'bg-white border-[12px] border-blue-950 dark:bg-slate-900 dark:border-slate-800',
+    back: 'bg-blue-950 border-[12px] border-blue-900 dark:bg-black dark:border-slate-900',
     text: {
-      primary: 'text-blue-950',
-      address: 'text-blue-800',
-      contact: 'text-blue-800',
-      icon: 'text-blue-600',
-      backLeft: 'text-blue-100'
+      primary: '!text-blue-950 dark:!text-white',
+      address: '!text-blue-800 dark:!text-blue-300',
+      contact: '!text-blue-800 dark:!text-blue-300',
+      icon: '!text-blue-600 dark:!text-blue-400',
+      backLeft: '!text-blue-100'
     },
-    buttonText: 'text-blue-900 hover:text-blue-700',
-    backButtonText: 'bg-blue-900 text-white hover:bg-blue-800',
+    buttonText: '!text-blue-900 hover:!text-blue-700 dark:!text-blue-300 dark:hover:!text-white',
+    backButtonText: 'bg-blue-900 !text-white hover:bg-blue-800 dark:bg-slate-800 dark:hover:bg-slate-700',
   },
   creative: {
     front: 'bg-gradient-to-br from-violet-600 via-fuchsia-600 to-orange-500',
     back: 'bg-gray-900',
     text: {
-      primary: 'text-white',
-      address: 'text-white/90',
-      contact: 'text-white/90',
-      icon: 'text-white/70',
-      backLeft: 'text-white'
+      primary: '!text-white',
+      address: '!text-white/90',
+      contact: '!text-white/90',
+      icon: '!text-white/70',
+      backLeft: '!text-white'
     },
-    buttonText: 'text-white/80 hover:text-white',
-    backButtonText: 'bg-white/20 text-white hover:bg-white/30',
+    buttonText: '!text-white/80 hover:!text-white',
+    backButtonText: 'bg-white/20 !text-white hover:bg-white/30',
   },
 }
 
@@ -120,6 +121,7 @@ function CardContainer({ children }: { children: React.ReactNode }) {
 }
 
 export default function DigitalCard({ user }: DigitalCardProps) {
+  const { theme: globalTheme } = useTheme()
   const [showFront, setShowFront] = useState(true)
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
@@ -147,13 +149,13 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   const flipCard = () => setShowFront(!showFront)
 
   const cycleTheme = () => {
-    const themes: Theme[] = ['smartwave', 'minimal', 'dark', 'modern', 'professional', 'creative']
+    const themes: Theme[] = ['smartwave', 'minimal', 'onyx', 'modern', 'professional', 'creative']
     const currentIndex = themes.indexOf(currentTheme)
     const nextIndex = (currentIndex + 1) % themes.length
     setCurrentTheme(themes[nextIndex])
   }
 
-  const theme = themeStyles[currentTheme]
+  const cardStyles = themeStyles[currentTheme]
 
   // Function to create vCard format string (simplified for better QR readability)
   const generateVCardData = () => {
@@ -282,7 +284,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   return (
     <div className="space-y-4">
       <CardContainer>
-        <div className="perspective-1000 w-full h-full">
+        <div className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
           <div
             className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${showFront ? "" : "rotate-y-180"
               }`}
@@ -290,26 +292,25 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             {/* Front of card */}
             <div
               ref={frontRef}
-              className={`absolute w-full h-full backface-hidden ${theme.front} rounded-xl shadow-lg ${theme.text.primary} ${showFront ? "" : "hidden"
-                } ${['smartwave', 'minimal', 'dark'].includes(currentTheme) ? 'p-8' : 'overflow-hidden'} !text-current`}
-              style={{ color: 'inherit' }}
+              className={`absolute w-full h-full backface-hidden ${cardStyles.front} rounded-xl shadow-lg ${cardStyles.text.primary} ${showFront ? "" : "hidden"
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-8' : 'overflow-hidden'}`}
             >
-              {['smartwave', 'minimal', 'dark'].includes(currentTheme) && (
+              {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="flex justify-between h-full items-center py-2">
                   {/* Left column: identity + contact */}
                   <div className="max-w-[62%] flex flex-col justify-center">
                     <div>
                       {/* Identity block */}
                       <div className="space-y-0.5">
-                        <h3 className="text-base font-bold tracking-wide font-sans leading-tight">{user.name}</h3>
+                        <h3 className="font-bold tracking-wide font-sans leading-tight">{user.name}</h3>
                         {user.title && <p className="text-[11px] italic opacity-90 font-sans">{user.title}</p>}
                         {user.company && <p className="text-xs font-semibold font-sans">{user.company}</p>}
                       </div>
                       {/* Address */}
                       {workAddress && (
                         <div className="relative mt-1.5">
-                          <MapPin className={`h-3.5 w-3.5 absolute -left-6 top-0.5 ${theme.text.icon}`} />
-                          <div className={`text-[11px] font-serif ${theme.text.address} pl-2`}>
+                          <MapPin className={`h-3.5 w-3.5 absolute -left-6 top-0.5 ${cardStyles.text.icon}`} />
+                          <div className={`text-[11px] font-serif ${cardStyles.text.address} pl-2`}>
                             <p className="break-words italic leading-tight line-clamp-2">{workAddress}</p>
                           </div>
                         </div>
@@ -317,7 +318,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                     </div>
 
                     {/* Contact block */}
-                    <div className={`space-y-0.5 text-[11px] font-mono ${theme.text.contact} mt-1.5`}>
+                    <div className={`space-y-0.5 text-[11px] font-mono ${cardStyles.text.contact} mt-1.5`}>
                       {user.website && (
                         <p className="flex items-center gap-1.5">
                           <Globe className="h-3 w-3 flex-shrink-0" />
@@ -357,7 +358,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               {currentTheme === 'modern' && (
                 <div className="flex h-full w-full">
                   {/* Left Sidebar */}
-                  <div className="w-[38%] h-full bg-slate-900 p-5 flex flex-col justify-between text-white relative">
+                  <div className="w-[38%] h-full bg-slate-100 dark:bg-slate-900 p-5 flex flex-col justify-between text-white relative">
                     <div className="relative z-10">
                       {user.photo ? (
                         <Image
@@ -404,17 +405,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   </div>
 
                   {/* Right Content */}
-                  <div className="flex-1 p-6 py-8 flex flex-col justify-center bg-white text-slate-950">
+                  <div className="flex-1 p-6 py-8 flex flex-col justify-center bg-white dark:bg-slate-900 text-slate-950 dark:text-white">
                     <div className="mb-auto pt-1">
                       {user.companyLogo && (
                         <Image src={user.companyLogo} alt="Logo" width={35} height={35} className="mb-3" />
                       )}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-950 tracking-tight mb-0.5">{user.name}</h3>
-                      <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-2">{user.title}</p>
+                      <h3 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight mb-0.5">{user.name}</h3>
+                      <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest mb-2">{user.title}</p>
                       <div className="w-10 h-0.5 bg-blue-700 mb-2"></div>
-                      {user.company && <p className="text-sm font-serif text-slate-800 font-semibold line-clamp-1">{user.company}</p>}
+                      {user.company && <p className="text-sm font-serif text-slate-800 dark:text-slate-300 font-semibold line-clamp-1">{user.company}</p>}
                     </div>
                     <div className="mt-auto">
                       {/* Additional info if needed */}
@@ -424,7 +425,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'professional' && (
-                <div className="h-full w-full flex flex-col relative p-6 py-6 bg-white text-blue-950">
+                <div className="h-full w-full flex flex-col relative p-6 py-6 bg-white dark:bg-slate-900 text-blue-950 dark:text-white">
                   {/* Top Bar */}
                   <div className="absolute top-0 left-0 right-0 h-2.5 bg-blue-950"></div>
 
@@ -437,8 +438,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       </div>
                     )}
 
-                    <h3 className="text-xl font-serif font-bold text-blue-950 mb-0.5 leading-tight">{user.name}</h3>
-                    <p className="text-[10px] font-sans font-bold text-blue-700 uppercase tracking-widest mb-3">{user.title}</p>
+                    <h3 className="text-xl font-serif font-bold text-blue-950 dark:text-white mb-0.5 leading-tight">{user.name}</h3>
+                    <p className="text-[10px] font-sans font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3">{user.title}</p>
 
                     <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-left w-full max-w-[90%] mx-auto">
                       {user.workEmail && (
@@ -446,7 +447,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
                             <Mail className="h-2.5 w-2.5 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 truncate">{user.workEmail}</span>
+                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.workEmail}</span>
                         </div>
                       )}
                       {user.mobile && (
@@ -454,7 +455,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
                             <Phone className="h-2.5 w-2.5 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950">{user.mobile}</span>
+                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90">{user.mobile}</span>
                         </div>
                       )}
                       {user.website && (
@@ -462,7 +463,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
                             <Globe className="h-2.5 w-2.5 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 truncate">{user.website}</span>
+                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.website}</span>
                         </div>
                       )}
                       {user.company && (
@@ -470,7 +471,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
                             <MapPin className="h-2.5 w-2.5 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 truncate">{user.company}</span>
+                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.company}</span>
                         </div>
                       )}
                       {workAddress && (
@@ -478,7 +479,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0 mt-0.5">
                             <MapPin className="h-2.5 w-2.5 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 leading-tight line-clamp-1">{workAddress}</span>
+                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 leading-tight line-clamp-1">{workAddress}</span>
                         </div>
                       )}
                     </div>
@@ -490,7 +491,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden text-white">
+                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden !text-white">
                   {/* Abstract Background Shapes */}
                   <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-[-20%] left-[-10%] w-96 h-96 bg-black/20 rounded-full blur-3xl"></div>
@@ -516,9 +517,9 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 flex flex-col justify-center h-full text-white drop-shadow-md">
-                      <h3 className="text-xl font-black mb-0.5 tracking-tight leading-tight">{user.name}</h3>
-                      <p className="text-xs font-bold text-white/90 mb-3 uppercase tracking-wide">{user.title}</p>
+                    <div className="flex-1 min-w-0 flex flex-col justify-center h-full text-white drop-shadow-sm">
+                      <h3 className="text-xl font-bold mb-0.5 tracking-tight leading-tight">{user.name}</h3>
+                      <p className="text-xs font-semibold text-white/90 mb-3 uppercase tracking-wide">{user.title}</p>
 
                       <div className="space-y-2">
                         {user.workEmail && (
@@ -555,25 +556,24 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             {/* Back of card */}
             <div
               ref={backRef}
-              className={`absolute w-full h-full backface-hidden ${theme.back} rounded-xl shadow-lg rotate-y-180 ${theme.text.primary} ${showFront ? "hidden" : ""
-                } ${['smartwave', 'minimal', 'dark'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'} !text-current`}
-              style={{ color: 'inherit' }}
+              className={`absolute w-full h-full backface-hidden ${cardStyles.back} rounded-xl shadow-lg rotate-y-180 ${cardStyles.text.primary} ${showFront ? "hidden" : ""
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
             >
-              {['smartwave', 'minimal', 'dark'].includes(currentTheme) && (
+              {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="relative w-full h-full">
                   {/* Left content column - contrasting color */}
                   <div className="absolute left-3 top-3 bottom-3 pr-2 w-[56%]">
-                    <h3 className={`text-sm font-semibold font-sans leading-tight mb-1.5 ${theme.text.backLeft}`}>{user.name}</h3>
+                    <h3 className={`text-sm font-semibold font-sans leading-tight mb-1.5 ${cardStyles.text.backLeft}`}>{user.name}</h3>
                     {homeAddress && (
                       <div className="relative mb-2">
-                        <MapPin className={`h-3 w-3 absolute -left-4 top-0.5 ${theme.text.backLeft} opacity-60`} />
-                        <div className={`text-xs font-serif pl-2 ${theme.text.backLeft} opacity-80`}>
+                        <MapPin className={`h-3 w-3 absolute -left-4 top-0.5 ${cardStyles.text.backLeft} opacity-60`} />
+                        <div className={`text-xs font-serif pl-2 ${cardStyles.text.backLeft} opacity-80`}>
                           <p className="break-words italic leading-snug">{homeAddress}</p>
                         </div>
                       </div>
                     )}
 
-                    <div className={`space-y-1.5 text-[11px] font-mono ${theme.text.backLeft}`}>
+                    <div className={`space-y-1.5 text-[11px] font-mono ${cardStyles.text.backLeft}`}>
                       {user.personalEmail && (
                         <p className="flex items-center gap-2">
                           <Mail className="h-3 w-3 flex-shrink-0 opacity-70" />
@@ -674,8 +674,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   </div>
 
                   {/* Right Content (White) */}
-                  <div className="flex-1 p-8 flex flex-col items-center justify-center bg-white text-slate-500 relative">
-                    <div className="w-48 h-48 bg-white p-2 shadow-xl rounded-xl">
+                  <div className="flex-1 p-8 flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 relative">
+                    <div className="w-48 h-48 bg-white dark:bg-slate-800 p-2 shadow-xl rounded-xl">
                       {qrDataUrl && (
                         <img src={qrDataUrl} alt="QR Code" className="w-full h-full object-contain" />
                       )}
@@ -734,7 +734,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         <Button
           variant="outline"
           size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={downloadBusinessCard}
           disabled={isDownloading}
         >
@@ -744,7 +744,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         <Button
           variant="outline"
           size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={() => {
             // Share functionality
             if (navigator.share) {
@@ -762,7 +762,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         <Button
           variant="outline"
           size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={cycleTheme}
         >
           <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -771,7 +771,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         <Button
           variant="outline"
           size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9"
+          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={flipCard}
         >
           <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />

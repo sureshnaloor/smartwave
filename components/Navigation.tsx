@@ -14,7 +14,8 @@ import {
   BookOpen, // Add BookOpen icon for guide
   CreditCard, // Add CreditCard icon for wallet page
   Zap, // Add Zap icon for features page
-  PlayCircle // Add PlayCircle icon for demo page
+  PlayCircle, // Add PlayCircle icon for demo page
+  IdCard // Add IdCard icon for create/edit profile
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useCountry } from '@/context/CountryContext';
@@ -34,6 +35,8 @@ const navItems: NavItem[] = [
   { href: '/wallet', label: 'Wallet', icon: CreditCard, requiresAuth: false },
   { href: '/demo', label: 'Demo', icon: PlayCircle, requiresAuth: false },
   { href: '/features', label: 'Features', icon: Zap, requiresAuth: false },
+  { href: '/myprofile', label: 'Create/Edit Profile', icon: IdCard, requiresAuth: true },
+  { href: '/guide-me', label: 'Guide Me', icon: BookOpen, requiresAuth: true },
   { 
     href: '#', 
     label: 'About', 

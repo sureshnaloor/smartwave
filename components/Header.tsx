@@ -10,7 +10,6 @@ import Avatar from './Avatar';
 import Navigation from './Navigation';
 import { Menu, X, DollarSign, ShoppingBag, BookOpen, IdCard, Globe } from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
-import ProfileDropdown from './ProfileDropdown';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,9 +75,32 @@ export default function Header() {
             <AboutDropdown />
           </div>
 
-          {/* Right Section: Profile Dropdown, Theme Toggle, Avatar, Auth */}
+          {/* Right Section: Profile Links, Theme Toggle, Avatar, Auth */}
           <div className="hidden md:flex items-center gap-4">
-            {isAuthenticated && <ProfileDropdown />}
+            {isAuthenticated && (
+              <>
+                <Link
+                  href="/myprofile"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/myprofile'
+                      ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                    }`}
+                >
+                  <IdCard className="h-4 w-4" />
+                  <span>Create/Edit Profile</span>
+                </Link>
+                <Link
+                  href="/guide-me"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/guide-me'
+                      ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                    }`}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  <span>Guide Me</span>
+                </Link>
+              </>
+            )}
             <ThemeToggle />
             <Avatar />
             <AuthButton />

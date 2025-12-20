@@ -2,11 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Edit2, Building2, User, Share2, Link } from "lucide-react"
+import { Edit2, Building2, User } from "lucide-react"
 import VCardEditor from "./vcard-editor"
-import { ProfileData, generateAndUpdateShortUrl } from "@/app/_actions/profile"
+import { ProfileData } from "@/app/_actions/profile"
 import Image from "next/image"
-import { toast } from "sonner"
 
 interface DigitalProfileProps {
   user: ProfileData
@@ -15,24 +14,6 @@ interface DigitalProfileProps {
 
 export default function DigitalProfile({ user, onUpdate }: DigitalProfileProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [isGeneratingUrl, setIsGeneratingUrl] = useState(false)
-
-  const handleGenerateShortUrl = async () => {
-    try {
-      setIsGeneratingUrl(true)
-      const result = await generateAndUpdateShortUrl(user.userEmail)
-      if (result.success) {
-        onUpdate({ ...user, shorturl: result.shorturl })
-        toast.success("Short URL generated successfully!")
-      } else {
-        toast.error(result.error || "Failed to generate short URL")
-      }
-    } catch (error) {
-      toast.error("An error occurred while generating short URL")
-    } finally {
-      setIsGeneratingUrl(false)
-    }
-  }
 
   if (isEditing) {
     return <VCardEditor user={user} onUpdate={(data) => {
@@ -73,28 +54,6 @@ export default function DigitalProfile({ user, onUpdate }: DigitalProfileProps) 
             </div>
 
             <div className="flex gap-2">
-              {!user.shorturl ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGenerateShortUrl}
-                  disabled={isGeneratingUrl}
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/20"
-                >
-                  <Link className="h-4 w-4 mr-2" />
-                  {isGeneratingUrl ? 'Generating...' : 'Generate Short URL'}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`/publicprofile/${user.shorturl}`, '_blank')}
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/20"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share Profile
-                </Button>
-              )}
               <Button
                 variant="outline"
                 size="sm"

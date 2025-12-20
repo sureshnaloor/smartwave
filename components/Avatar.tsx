@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Heart, ShoppingCart, Package, LogOut } from 'lucide-react';
+import { User, Heart, ShoppingCart, Package, LogOut, Globe } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import CountrySelector from "@/components/shared/CountrySelector";
 
 export default function Avatar() {
   const { data: session } = useSession();
@@ -102,6 +103,13 @@ export default function Avatar() {
         <DropdownMenuLabel>
           {session.user.name || session.user.email}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-gray-500" />
+            <CountrySelector />
+          </div>
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
           <User className="mr-2 h-4 w-4" />

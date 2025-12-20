@@ -99,12 +99,6 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
             <h2 className="text-[14px] md:text-[18px] font-bold text-sky-800">Welcome back, {profileData.name}!</h2>
             <p className="text-sm md:text-base text-gray-600">Manage your digital business card and profile</p>
           </div>
-          <Button 
-            onClick={() => setIsEditing(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base w-full md:w-auto"
-          >
-            Edit Profile
-          </Button>
         </div>
         <Tabs defaultValue="digital-card" className="w-full">
           <TabsList className="grid w-full grid-cols-5">

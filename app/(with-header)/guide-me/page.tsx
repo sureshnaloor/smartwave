@@ -174,9 +174,9 @@ export default function GuideMePage() {
       color: "bg-green-500"
     },
     {
-      title: "Download QR",
-      description: "Get your QR code image",
-      icon: <Download className="h-5 w-5" />,
+        title: "Generate Shareable Link",
+        description: "Create your digital profile URL",
+        icon: <LinkIcon className="h-5 w-5" />,
       href: "/myprofile",
       color: "bg-orange-500"
     }
