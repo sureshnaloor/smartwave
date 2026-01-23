@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2, Linkedin, Twitter, Facebook, Instagram, Youtube, QrCode } from "lucide-react"
+import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2, Linkedin, Twitter, Facebook, Instagram, Youtube, QrCode, Wallet } from "lucide-react"
 import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import * as htmlToImage from 'html-to-image'
@@ -126,6 +126,16 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const [isDownloading, setIsDownloading] = useState(false)
+  const [os, setOs] = useState<"ios" | "android" | "other">("other")
+
+  useEffect(() => {
+    const userAgent = window.navigator.userAgent.toLowerCase()
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      setOs("ios")
+    } else if (/android/.test(userAgent)) {
+      setOs("android")
+    }
+  }, [])
 
   const frontRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
@@ -777,6 +787,34 @@ export default function DigitalCard({ user }: DigitalCardProps) {
           <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
           <span className="hidden sm:inline">Flip</span>
         </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {(os === "ios" || os === "other") && (
+          <Button
+            className="flex-1 h-12 bg-black hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
+            onClick={() => window.open("/api/wallet/apple", "_blank")}
+          >
+            <Wallet className="h-5 w-5" />
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-[10px] opacity-70">Add to</span>
+              <span className="text-base font-semibold">Apple Wallet</span>
+            </div>
+          </Button>
+        )}
+
+        {(os === "android" || os === "other") && (
+          <Button
+            className="flex-1 h-12 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
+            onClick={() => window.open("/api/wallet/google", "_blank")}
+          >
+            <Wallet className="h-5 w-5" />
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-[10px] opacity-70">Save to</span>
+              <span className="text-base font-semibold">Google Wallet</span>
+            </div>
+          </Button>
+        )}
       </div>
     </div>
   )

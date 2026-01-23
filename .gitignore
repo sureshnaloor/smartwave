@@ -40,3 +40,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# wallet certificates and secrets
+certs/
+lib/wallet/certs/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!.eslintrc.json
+!components.json
+
+certs/
