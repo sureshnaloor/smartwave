@@ -29,7 +29,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    
+
     /* SmartWave Custom Colors */
     --smart-charcoal: #1a1a1a;
     --smart-silver: #e8e8e8;
@@ -39,6 +39,7 @@
     --card-bg: rgba(255, 255, 255, 0.02);
     --border-color: rgba(255, 255, 255, 0.1);
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -65,7 +66,7 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%
   }
-  
+
   :root.light {
     --background: #ffffff;
     --foreground: #1a1a1a;
@@ -79,12 +80,14 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
+
   /* SmartWave Logo Icon - Rounded square with gradient */
   .logo-icon {
     width: 2rem;
@@ -140,10 +143,13 @@
 
   /* Custom Animations */
   @keyframes aurora {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateX(-10%) rotate(0deg);
       opacity: 0.3;
     }
+
     50% {
       transform: translateX(10%) rotate(2deg);
       opacity: 0.6;
@@ -151,9 +157,12 @@
   }
 
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-20px);
     }
@@ -164,9 +173,11 @@
       transform: translate(-50%, -50%) scale(0.5);
       opacity: 0;
     }
+
     50% {
       opacity: 0.6;
     }
+
     100% {
       transform: translate(-50%, -50%) scale(1.5);
       opacity: 0;
@@ -178,6 +189,7 @@
       transform: translateY(100px);
       opacity: 0;
     }
+
     to {
       transform: translateY(0);
       opacity: 1;
@@ -383,6 +395,7 @@
   html:not(.dark) input[type="range"],
   :root.light input[type="range"] {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   html.light input[type="range"]::-webkit-slider-thumb,
@@ -403,12 +416,14 @@
   html:not(.dark) input[type="range"]::-webkit-slider-runnable-track,
   :root.light input[type="range"]::-webkit-slider-runnable-track {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   html.light input[type="range"]::-moz-range-track,
   html:not(.dark) input[type="range"]::-moz-range-track,
   :root.light input[type="range"]::-moz-range-track {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   /* Force darker text for ROI calculator slider labels in light mode */
@@ -425,16 +440,19 @@
   html.light .roi-calculator-wrapper input[type="range"],
   html:not(.dark) .roi-calculator-wrapper input[type="range"] {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   html.light .roi-calculator-wrapper input[type="range"]::-webkit-slider-runnable-track,
   html:not(.dark) .roi-calculator-wrapper input[type="range"]::-webkit-slider-runnable-track {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   html.light .roi-calculator-wrapper input[type="range"]::-moz-range-track,
   html:not(.dark) .roi-calculator-wrapper input[type="range"]::-moz-range-track {
     background: #4b5563 !important;
+    height: 6px !important;
   }
 
   html.light .roi-calculator-wrapper .text-gray-800,
@@ -561,9 +579,11 @@
       transform: scale(0);
       opacity: 0;
     }
+
     50% {
       transform: scale(1.2);
     }
+
     100% {
       transform: scale(1);
       opacity: 1;
@@ -575,6 +595,7 @@
       opacity: 1;
       transform: scale(1);
     }
+
     100% {
       opacity: 0;
       transform: scale(0);
@@ -586,6 +607,7 @@
       transform: translateY(0);
       opacity: 1;
     }
+
     to {
       transform: translateY(100px);
       opacity: 0;
@@ -597,6 +619,7 @@
       transform: translateY(-20px) scale(0.9);
       opacity: 0;
     }
+
     100% {
       transform: translateY(0) scale(1);
       opacity: 1;
@@ -609,21 +632,25 @@
       opacity: 1;
       filter: brightness(1) blur(0px);
     }
+
     25% {
       transform: scale(1.1) rotate(2deg);
       opacity: 0.9;
       filter: brightness(1.2) blur(1px);
     }
+
     50% {
       transform: scale(1.3) rotate(-3deg);
       opacity: 0.6;
       filter: brightness(1.5) blur(3px);
     }
+
     75% {
       transform: scale(1.6) rotate(5deg);
       opacity: 0.3;
       filter: brightness(2) blur(6px);
     }
+
     100% {
       transform: scale(2) rotate(-10deg);
       opacity: 0;
@@ -707,7 +734,8 @@
 
   /* CTA Section Dark Mode Text Colors */
   .cta-description {
-    color: rgb(12, 10, 9); /* stone-900 for light mode - matches text-stone-900 */
+    color: rgb(12, 10, 9);
+    /* stone-900 for light mode - matches text-stone-900 */
   }
 
   .dark .cta-description,
@@ -716,7 +744,8 @@
   }
 
   .cta-stat-label {
-    color: rgb(107, 114, 128); /* gray-500 for light mode */
+    color: rgb(107, 114, 128);
+    /* gray-500 for light mode */
   }
 
   .dark .cta-stat-label,
@@ -758,8 +787,8 @@
 
   .group:hover .slider-tooltip,
   .group:focus-within .slider-tooltip,
-  .group input[type="range"]:hover ~ .slider-tooltip,
-  .group input[type="range"]:focus ~ .slider-tooltip {
+  .group input[type="range"]:hover~.slider-tooltip,
+  .group input[type="range"]:focus~.slider-tooltip {
     opacity: 1;
   }
 
@@ -957,19 +986,19 @@
     background: #ffffff !important;
   }
 
-  /* Ensure text is visible in light mode */
-  html.light h1,
-  html.light h2,
-  html.light h3,
-  html.light h4,
-  html.light p,
-  html.light span,
-  html:not(.dark) h1,
-  html:not(.dark) h2,
-  html:not(.dark) h3,
-  html:not(.dark) h4,
-  html:not(.dark) p,
-  html:not(.dark) span {
+  /* Ensure text is visible in light mode - but exclude chart containers */
+  html.light h1:not(.roi-calculator *):not(.market-chart *),
+  html.light h2:not(.roi-calculator *):not(.market-chart *),
+  html.light h3:not(.roi-calculator *):not(.market-chart *),
+  html.light h4:not(.roi-calculator *):not(.market-chart *),
+  html.light p:not(.roi-calculator *):not(.market-chart *),
+  html.light span:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) h1:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) h2:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) h3:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) h4:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) p:not(.roi-calculator *):not(.market-chart *),
+  html:not(.dark) span:not(.roi-calculator *):not(.market-chart *) {
     color: #1a1a1a !important;
   }
 
@@ -996,4 +1025,3 @@
     color: #1a1a1a !important;
   }
 }
-

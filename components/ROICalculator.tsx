@@ -54,15 +54,30 @@ export default function ROICalculator() {
         const traditionalCost5Years = (totalCardsPerYear / 1000) * cardCost * 5;
         const smartwaveCost5Years = teamSize * 79;
 
-        // Detect theme - check for light class explicitly
-        const hasLightClass = document.documentElement.classList.contains('light');
-        const hasDarkClass = document.documentElement.classList.contains('dark');
-        const isDark = hasDarkClass || (!hasLightClass && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        
+        // Improved theme detection - check multiple sources
+        const htmlElement = document.documentElement;
+        const hasLightClass = htmlElement.classList.contains('light');
+        const hasDarkClass = htmlElement.classList.contains('dark');
+
+        // If light class is explicitly set, it's light mode
+        // If dark class is set, it's dark mode
+        // Otherwise, check system preference
+        let isDark = false;
+        if (hasLightClass) {
+            isDark = false;
+        } else if (hasDarkClass) {
+            isDark = true;
+        } else {
+            isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+
+        // Force black in light mode, white in dark mode
         const textColor = isDark ? '#ffffff' : '#000000';
         const tooltipBg = isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)';
         const tooltipTextColor = isDark ? '#ffffff' : '#1f2937';
         const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.25)';
+
+        console.log('ROI Chart Init:', { hasLightClass, hasDarkClass, isDark, textColor });
 
         const chart = echarts.init(chartRef.current);
 
@@ -81,26 +96,31 @@ export default function ROICalculator() {
                 data: ['Traditional', 'SmartWave'],
                 axisLine: {
                     lineStyle: {
-                        color: isDark ? '#ffffff' : '#000000'
+                        color: textColor
                     }
                 },
                 axisLabel: {
-                    color: isDark ? '#ffffff' : '#000000'
+                    color: textColor,
+                    fontSize: 14,
+                    fontWeight: 'bold'
                 }
             },
             yAxis: {
                 type: 'value',
                 name: 'Cost ($)',
                 nameTextStyle: {
-                    color: isDark ? '#ffffff' : '#000000'
+                    color: textColor,
+                    fontSize: 14,
+                    fontWeight: 'bold'
                 },
                 axisLine: {
                     lineStyle: {
-                        color: isDark ? '#ffffff' : '#000000'
+                        color: textColor
                     }
                 },
                 axisLabel: {
-                    color: isDark ? '#ffffff' : '#000000',
+                    color: textColor,
+                    fontSize: 12,
                     formatter: (value: number) => {
                         if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
                         if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
@@ -130,7 +150,9 @@ export default function ROICalculator() {
                     label: {
                         show: true,
                         position: 'top',
-                        color: isDark ? '#ffffff' : '#000000',
+                        color: textColor,
+                        fontSize: 14,
+                        fontWeight: 'bold',
                         formatter: (params: any) => {
                             const value = params.value;
                             if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -142,7 +164,7 @@ export default function ROICalculator() {
             ]
         };
 
-        chart.setOption(option, { notMerge: false });
+        chart.setOption(option, { notMerge: true });
 
         const handleResize = () => {
             chart.resize();
@@ -150,13 +172,22 @@ export default function ROICalculator() {
 
         // Listen for theme changes
         const handleThemeChange = () => {
-            const currentHasLightClass = document.documentElement.classList.contains('light');
-            const currentHasDarkClass = document.documentElement.classList.contains('dark');
-            const currentIsDark = currentHasDarkClass || (!currentHasLightClass && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            
+            const currentHtmlElement = document.documentElement;
+            const currentHasLightClass = currentHtmlElement.classList.contains('light');
+            const currentHasDarkClass = currentHtmlElement.classList.contains('dark');
+
+            let currentIsDark = false;
+            if (currentHasLightClass) {
+                currentIsDark = false;
+            } else if (currentHasDarkClass) {
+                currentIsDark = true;
+            } else {
+                currentIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
             const currentTextColor = currentIsDark ? '#ffffff' : '#000000';
             const currentSplitLineColor = currentIsDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.25)';
-            
+
             chart.setOption({
                 xAxis: {
                     axisLine: {
@@ -233,7 +264,7 @@ export default function ROICalculator() {
                                 onChange={(e) => setTeamSize(Number(e.target.value))}
                                 className="w-full slider-with-tooltip"
                             />
-                            <div 
+                            <div
                                 className="slider-tooltip"
                                 style={{
                                     left: `${((teamSize - 1) / (100 - 1)) * 100}%`
@@ -260,7 +291,7 @@ export default function ROICalculator() {
                                 onChange={(e) => setEventsPerYear(Number(e.target.value))}
                                 className="w-full slider-with-tooltip"
                             />
-                            <div 
+                            <div
                                 className="slider-tooltip"
                                 style={{
                                     left: `${((eventsPerYear - 1) / (12 - 1)) * 100}%`
@@ -287,7 +318,7 @@ export default function ROICalculator() {
                                 onChange={(e) => setCardCost(Number(e.target.value))}
                                 className="w-full slider-with-tooltip"
                             />
-                            <div 
+                            <div
                                 className="slider-tooltip"
                                 style={{
                                     left: `${((cardCost - 50) / (500 - 50)) * 100}%`

@@ -5,15 +5,15 @@ import { useSession } from 'next-auth/react';
 import { getThemePreference, saveThemePreference } from '@/app/_actions/theme';
 
 interface ThemeContextType {
-  theme: string;
-  toggleTheme: () => void;
-  isLoading: boolean;
+    theme: string;
+    toggleTheme: () => void;
+    isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
-  toggleTheme: () => {},
-  isLoading: true
+    theme: 'light',
+    toggleTheme: () => { },
+    isLoading: true
 });
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
@@ -25,15 +25,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // Initialize client-side rendering state and get initial theme from localStorage
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        
+
         // Set mounted state to true
         setMounted(true);
-        
+
         try {
             // Get theme from localStorage as initial value
-            const savedTheme = localStorage.getItem('theme') || 
+            const savedTheme = localStorage.getItem('theme') ||
                 (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            
+
             setTheme(savedTheme as 'light' | 'dark');
             applyTheme(savedTheme as 'light' | 'dark');
         } catch (error) {
@@ -43,7 +43,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             setTheme(systemTheme);
             applyTheme(systemTheme);
         }
-        
+
         // For non-authenticated users or completed auth check, we can stop loading
         if (status !== 'loading') {
             setIsLoading(false);
@@ -66,19 +66,19 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             if (!mounted || status !== 'authenticated' || !session?.user?.email) {
                 return;
             }
-            
+
             try {
                 setIsLoading(true);
                 const result = await getThemePreference();
-                
+
                 if (result.success) {
-                    const dbTheme = result.theme === 'system' 
+                    const dbTheme = result.theme === 'system'
                         ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
                         : result.theme;
-                    
+
                     setTheme(dbTheme as 'light' | 'dark');
                     applyTheme(dbTheme as 'light' | 'dark');
-                    
+
                     // Save to localStorage as backup
                     localStorage.setItem('theme', dbTheme);
                 } else if (result.error && result.error !== 'User not authenticated') {
@@ -100,25 +100,27 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     const applyTheme = (newTheme: 'light' | 'dark') => {
         if (typeof window === 'undefined') return;
-        
+
         if (newTheme === 'dark') {
             document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
         } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
         }
         document.documentElement.style.colorScheme = newTheme;
     };
 
     const toggleTheme = async () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
-        
+
         // Apply theme immediately for better UX
         setTheme(newTheme);
         applyTheme(newTheme);
-        
+
         // Always save to localStorage regardless of auth state
         localStorage.setItem('theme', newTheme);
-        
+
         // Only save to database if authenticated
         if (status === 'authenticated' && session?.user?.email) {
             try {
@@ -126,7 +128,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
                 const formData = new FormData();
                 formData.set('theme', newTheme);
                 const result = await saveThemePreference(formData);
-                
+
                 if (!result.success) {
                     // Don't show error for auth issues - just log them
                     if (result.error !== 'User not authenticated') {

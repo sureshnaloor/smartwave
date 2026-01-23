@@ -356,15 +356,15 @@ export default function HomePage() {
       {/* Industry Use Cases */}
       <IndustryUseCases />
 
+      {/* Market Growth / Enterprise Solutions */}
+      <MarketGrowth />
+
       {/* ROI Calculator */}
       <section className="py-20 bg-gray-50 dark:bg-black">
         <div className="max-w-7xl mx-auto px-6">
           <ROICalculator />
         </div>
       </section>
-
-      {/* Market Growth */}
-      <MarketGrowth />
 
       {/* Social Proof */}
       <SocialProof />
