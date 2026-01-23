@@ -5,11 +5,20 @@ import { ProfileData } from "@/app/_actions/profile";
 export function generateGoogleWalletUrl(user: ProfileData) {
     const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
     const serviceAccountEmail = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT;
-    const privateKey = process.env.GOOGLE_WALLET_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    // Deeper sanitization of the private key
+    let privateKey = process.env.GOOGLE_WALLET_PRIVATE_KEY;
+    if (privateKey) {
+        // Remove surrounding quotes if they exist
+        privateKey = privateKey.replace(/^["'](.+)["']$/, '$1');
+        // Restore literal newlines
+        privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+
     const classId = process.env.GOOGLE_WALLET_CLASS_ID || "SmartWaveGenericClass";
 
-    if (!issuerId || !serviceAccountEmail || !privateKey) {
-        throw new Error("Google Wallet credentials missing in environment variables");
+    if (!issuerId || !serviceAccountEmail || !privateKey || privateKey.length < 50) {
+        throw new Error("Google Wallet credentials missing or invalid in environment variables");
     }
 
     const objectId = `${issuerId}.${user._id?.toString() || Math.random().toString(36).substring(7)}`;

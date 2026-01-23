@@ -11,7 +11,7 @@ import { ActionButtons } from "./action-buttons"
 import { ThemeSwitcher } from "./theme-switcher"
 import { Button } from "@/components/ui/button"
 // First, add the Download icon import at the top
-import { Sun, Moon, Download } from "lucide-react"
+import { Sun, Moon, Download, Wallet } from "lucide-react"
 import {
   ThemeType,
   ProfileData
@@ -28,12 +28,21 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
   const [layoutTheme, setLayoutTheme] = useState<ThemeType>("classic")
   // Use light/dark theme with system preference as default
   const [colorTheme, setColorTheme] = useState<"light" | "dark">("light")
+  const [os, setOs] = useState<"ios" | "android" | "other">("other")
 
-  // Check system preference on mount
+  // Check system preference and OS on mount
   useEffect(() => {
     // Check if user prefers dark mode
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
     setColorTheme(prefersDark ? "dark" : "light")
+
+    // Simple OS detection
+    const userAgent = window.navigator.userAgent.toLowerCase()
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      setOs("ios")
+    } else if (/android/.test(userAgent)) {
+      setOs("android")
+    }
   }, [])
 
   // Get clean adaptive background based on color theme
@@ -128,7 +137,7 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
           })
         }
 
-        const url = await QRCode.toDataURL(vCardData, qrOptions)
+        const url = await (QRCode as any).toDataURL(vCardData, qrOptions)
         setQrDataUrl(url)
       } catch (err) {
         // console.error("Error generating QR code:", err)
@@ -146,13 +155,13 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
       if (profileData.photo) {
         const photoResponse = await fetch(profileData.photo);
         const photoBlob = await photoResponse.blob();
-        const base64String = await new Promise((resolve) => {
+        const base64String = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
           reader.readAsDataURL(photoBlob);
         });
 
-        photoData = base64String.toString().split(',')[1];
+        photoData = base64String.split(',')[1];
       }
 
       const vCardData = [
@@ -300,6 +309,30 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
                   <Download className="mr-3 h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:-translate-y-0.5" />
                   Add to Contacts
                 </Button>
+
+                {/* Wallet Buttons */}
+                <div className="mt-4 space-y-3">
+                  {(os === "ios" || os === "other") && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-semibold transition-all group/wallet"
+                      onClick={() => window.open(`/api/wallet/apple?shorturl=${profileData.shorturl}`, "_blank")}
+                    >
+                      <Wallet className="mr-2 h-5 w-5 text-blue-600 group-hover/wallet:scale-110 transition-transform" />
+                      Add to Apple Wallet
+                    </Button>
+                  )}
+                  {(os === "android" || os === "other") && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-500 font-semibold transition-all group/wallet"
+                      onClick={() => window.open(`/api/wallet/google?shorturl=${profileData.shorturl}`, "_blank")}
+                    >
+                      <Wallet className="mr-2 h-5 w-5 text-green-600 group-hover/wallet:scale-110 transition-transform" />
+                      Save to Google Wallet
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

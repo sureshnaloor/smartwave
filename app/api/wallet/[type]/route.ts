@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getProfile } from "@/app/_actions/profile";
+import { getProfile, getProfileByShortUrl } from "@/app/_actions/profile";
 import { generateApplePass } from "@/lib/wallet/apple";
 import { generateGoogleWalletUrl } from "@/lib/wallet/google";
 
@@ -11,12 +11,21 @@ export async function GET(
     { params }: { params: { type: string } }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        const { searchParams } = new URL(req.url);
+        const shorturl = searchParams.get("shorturl");
+
+        let profile = null;
+
+        if (shorturl) {
+            profile = await getProfileByShortUrl(shorturl);
+        } else {
+            const session = await getServerSession(authOptions);
+            if (!session?.user?.email) {
+                return new NextResponse("Unauthorized", { status: 401 });
+            }
+            profile = await getProfile(session.user.email);
         }
 
-        const profile = await getProfile(session.user.email);
         if (!profile) {
             return new NextResponse("Profile not found", { status: 404 });
         }

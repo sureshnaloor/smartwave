@@ -80,6 +80,9 @@ export interface ProfileData {
   dates: DatesInfo
   locations: LocationsInfo
   notes: string
+  name: string
+  website: string
+  shorturl: string
 }
 
 export interface BaseComponentProps {
