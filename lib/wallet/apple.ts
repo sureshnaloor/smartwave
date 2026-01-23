@@ -51,7 +51,7 @@ export async function generateApplePass(user: ProfileData) {
             backgroundColor: "rgb(0, 0, 0)",
             labelColor: "rgb(200, 200, 200)",
             sharingProhibited: false,
-            serialNumber: user._id?.toString() || Math.random().toString(36).substring(7),
+            serialNumber: (user._id?.toString() || Math.random().toString(36).substring(7)) + "_v2",
         });
 
         // Set pass type
@@ -94,18 +94,28 @@ export async function generateApplePass(user: ProfileData) {
 
         pass.auxiliaryFields.push(
             {
+                key: "workPhone",
+                label: "WORK PHONE",
+                value: user.workPhone || "",
+            },
+            {
                 key: "mobile",
                 label: "MOBILE",
                 value: user.mobile || "",
-            },
-            {
-                key: "email",
-                label: "EMAIL",
-                value: user.workEmail || "",
             }
         );
 
         pass.backFields.push(
+            {
+                key: "workEmail",
+                label: "WORK EMAIL",
+                value: user.workEmail || "",
+            },
+            {
+                key: "personalEmail",
+                label: "PERSONAL EMAIL",
+                value: user.personalEmail || "",
+            },
             {
                 key: "company",
                 label: "COMPANY",
@@ -126,7 +136,7 @@ export async function generateApplePass(user: ProfileData) {
         // Set barcodes
         pass.setBarcodes({
             format: "PKBarcodeFormatQR",
-            message: user.shorturl ? `https://smartwave.app/p/${user.shorturl}` : `https://smartwave.app/profile/${user.userEmail}`,
+            message: user.shorturl ? `https://smartwave.name/publicprofile/${user.shorturl}` : `https://smartwave.name/profile/${user.userEmail}`,
             messageEncoding: "iso-8859-1",
             altText: "Scan to view profile"
         });

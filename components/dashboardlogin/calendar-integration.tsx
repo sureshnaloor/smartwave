@@ -55,7 +55,7 @@ export default function CalendarIntegration({ user }: { user: { name: string } }
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
-                    value={`https://smartwave.app/${user.name.toLowerCase().replace(/\s/g, "")}/calendar`}
+                    value={`https://smartwave.name/${user.name.toLowerCase().replace(/\s/g, "")}/calendar`}
                     readOnly
                     className="flex-1 p-2 border rounded-md text-sm"
                   />

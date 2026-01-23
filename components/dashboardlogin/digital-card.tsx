@@ -181,9 +181,10 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       `N:${lastName};${firstName};;;`, // Last;First;Middle;Prefix;Suffix
       `TITLE:${user.title || ''}`,
       `ORG:${user.company || ''}`,
-      `EMAIL:${user.workEmail || ''}`,
-      `TEL:${user.workPhone || ''}`,
-      `TEL:${user.mobile || ''}`,
+      `EMAIL;type=WORK:${user.workEmail || ''}`,
+      `EMAIL;type=HOME:${user.personalEmail || ''}`,
+      `TEL;type=WORK:${user.workPhone || ''}`,
+      `TEL;type=CELL:${user.mobile || ''}`,
       user.website ? `URL:${user.website}` : '',
       'END:VCARD'
     ].filter(Boolean).join('\n')

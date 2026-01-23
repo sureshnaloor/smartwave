@@ -50,7 +50,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
         setIsLoading(true);
         setError(null);
         const profile = await getProfile(userEmail);
-        
+
         if (!isMounted) return;
 
         if (!profile) {
@@ -161,15 +161,15 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
                 <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
                   Download your vCard to easily share your contact information with others.
                 </p>
-               {/* Inside the vCard download button onClick handler, update the vCard generation: */}
-                <Button 
+                {/* Inside the vCard download button onClick handler, update the vCard generation: */}
+                <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-xs md:text-sm"
                   onClick={async () => {
                     try {
                       // Convert image URLs to base64
                       let photoBase64 = '';
                       let logoBase64 = '';
-                  
+
                       if (profileData.photo) {
                         const photoResponse = await fetch(profileData.photo);
                         const photoBlob = await photoResponse.blob();
@@ -179,7 +179,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
                           reader.readAsDataURL(photoBlob);
                         });
                       }
-                  
+
                       if (profileData.companyLogo) {
                         const logoResponse = await fetch(profileData.companyLogo);
                         const logoBlob = await logoResponse.blob();
@@ -189,7 +189,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
                           reader.readAsDataURL(logoBlob);
                         });
                       }
-                  
+
                       // Generate vCard data with photo and logo
                       const vCardData = [
                         'BEGIN:VCARD',
@@ -199,6 +199,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
                         `TITLE:${profileData.title || ''}`,
                         `ORG:${profileData.company || ''}`,
                         `EMAIL;type=WORK:${profileData.workEmail || ''}`,
+                        `EMAIL;type=HOME:${profileData.personalEmail || ''}`,
                         `TEL;type=WORK:${profileData.workPhone || ''}`,
                         `TEL;type=CELL:${profileData.mobile || ''}`,
                         `ADR;type=WORK:;;${profileData.workStreet || ''};${profileData.workCity || ''};${profileData.workState || ''};${profileData.workZipcode || ''};${profileData.workCountry || ''}`,
@@ -283,7 +284,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <p className="text-red-600 mb-4">Please sign in to view your profile</p>
-          <Button 
+          <Button
             onClick={() => window.location.href = '/auth/signin'}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
@@ -299,7 +300,7 @@ export default function CompletedProfileView({ userEmail: propUserEmail, onEditM
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button 
+          <Button
             onClick={() => window.location.reload()}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >

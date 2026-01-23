@@ -21,7 +21,7 @@ export function generateGoogleWalletUrl(user: ProfileData) {
         throw new Error("Google Wallet credentials missing or invalid in environment variables");
     }
 
-    const objectId = `${issuerId}.${user._id?.toString() || Math.random().toString(36).substring(7)}`;
+    const objectId = `${issuerId}.${user._id?.toString() || Math.random().toString(36).substring(7)}_v2`;
 
     const payload = {
         iss: serviceAccountEmail,
@@ -34,6 +34,11 @@ export function generateGoogleWalletUrl(user: ProfileData) {
                     id: objectId,
                     classId: `${issuerId}.${classId}`,
                     genericType: "GENERIC_TYPE_UNSPECIFIED",
+                    barcode: {
+                        type: "QR_CODE",
+                        value: user.shorturl ? `https://smartwave.name/publicprofile/${user.shorturl}` : `https://smartwave.name/profile/${user.userEmail}`,
+                        alternateText: "Scan to view profile"
+                    },
                     cardTitle: {
                         defaultValue: {
                             language: "en-US",
@@ -64,21 +69,26 @@ export function generateGoogleWalletUrl(user: ProfileData) {
                     } : undefined,
                     textModulesData: [
                         {
+                            header: "Work Phone",
+                            body: user.workPhone || "N/A",
+                            id: "work_phone"
+                        },
+                        {
                             header: "Mobile",
                             body: user.mobile || "N/A",
                             id: "mobile"
                         },
                         {
-                            header: "Email",
+                            header: "Work Email",
                             body: user.workEmail || "N/A",
-                            id: "email"
+                            id: "work_email"
+                        },
+                        {
+                            header: "Personal Email",
+                            body: user.personalEmail || "N/A",
+                            id: "personal_email"
                         }
-                    ],
-                    barcode: {
-                        type: "QR_CODE",
-                        value: user.shorturl ? `https://smartwave.app/p/${user.shorturl}` : `https://smartwave.app/profile/${user.userEmail}`,
-                        alternateText: "Scan to view profile"
-                    }
+                    ]
                 }
             ]
         }

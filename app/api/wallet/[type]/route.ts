@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getProfile, getProfileByShortUrl } from "@/app/_actions/profile";
+import { getProfile, getProfileByShortUrl, generateAndUpdateShortUrl } from "@/app/_actions/profile";
 import { generateApplePass } from "@/lib/wallet/apple";
 import { generateGoogleWalletUrl } from "@/lib/wallet/google";
 
@@ -28,6 +28,18 @@ export async function GET(
 
         if (!profile) {
             return new NextResponse("Profile not found", { status: 404 });
+        }
+
+        // Ensure user has a short URL before generating wallet pass
+        if (!profile.shorturl) {
+            const session = await getServerSession(authOptions);
+            const userEmail = profile.userEmail || session?.user?.email;
+            if (userEmail) {
+                const result = await generateAndUpdateShortUrl(userEmail);
+                if (result.success && result.shorturl) {
+                    profile.shorturl = result.shorturl;
+                }
+            }
         }
 
         const type = params.type;

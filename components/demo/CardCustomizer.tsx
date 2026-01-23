@@ -53,11 +53,11 @@ export default function CardCustomizer() {
   useEffect(() => {
     // Generate QR code - only on client side
     if (typeof window === 'undefined') return;
-    
+
     const generateQR = async () => {
       try {
         const QRCode = (await import('qrcode')).default;
-        const qrData = `https://smartwave.app/profile/${encodeURIComponent(cardName)}`;
+        const qrData = `https://smartwave.name/profile/${encodeURIComponent(cardName)}`;
         const dataUrl = await QRCode.toDataURL(qrData, {
           width: 200,
           margin: 2,
@@ -120,25 +120,22 @@ export default function CardCustomizer() {
                 <button
                   key={theme.id}
                   onClick={() => setSelectedTheme(theme)}
-                  className={`flex flex-col items-center space-y-2 transition-all ${
-                    selectedTheme.id === theme.id
+                  className={`flex flex-col items-center space-y-2 transition-all ${selectedTheme.id === theme.id
                       ? 'scale-105'
                       : 'hover:scale-[1.02]'
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`w-full h-20 rounded-lg border-2 transition-all ${
-                      selectedTheme.id === theme.id
+                    className={`w-full h-20 rounded-lg border-2 transition-all ${selectedTheme.id === theme.id
                         ? 'border-smart-teal shadow-lg shadow-smart-teal/50 theme-card-selected'
                         : 'border-white/10 hover:border-white/30'
-                    }`}
+                      }`}
                     style={{ background: theme.gradient }}
                   />
-                  <span className={`text-xs font-medium ${
-                    selectedTheme.id === theme.id
+                  <span className={`text-xs font-medium ${selectedTheme.id === theme.id
                       ? 'text-smart-teal'
                       : 'text-smart-silver'
-                  }`}>
+                    }`}>
                     {theme.name}
                   </span>
                 </button>
@@ -199,11 +196,10 @@ export default function CardCustomizer() {
                   <button
                     key={color.value}
                     onClick={() => setSelectedColor(color.value)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      selectedColor === color.value
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColor === color.value
                         ? 'border-white scale-110'
                         : 'border-white/20 hover:border-white/40'
-                    }`}
+                      }`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
                   />
