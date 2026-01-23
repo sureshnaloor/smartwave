@@ -8,19 +8,35 @@ export async function generateApplePass(user: ProfileData) {
     try {
         const certsDir = path.join(process.cwd(), "lib/wallet/certs");
 
-        // Check if certificates exist
+        // Check if certificates exist as files or in environment variables
+        let wwdr, signerCert, signerKey;
+
         const wwdrPath = path.join(certsDir, "wwdr.pem");
         const signerCertPath = path.join(certsDir, "signerCert.pem");
         const signerKeyPath = path.join(certsDir, "signerKey.pem");
         const password = process.env.APPLE_PASS_KEY_PASSWORD || "";
 
-        if (!fs.existsSync(wwdrPath) || !fs.existsSync(signerCertPath) || !fs.existsSync(signerKeyPath)) {
-            throw new Error("Apple Wallet certificates missing in lib/wallet/certs");
+        if (fs.existsSync(wwdrPath)) {
+            wwdr = fs.readFileSync(wwdrPath);
+        } else if (process.env.APPLE_WWDR_CERT_BASE64) {
+            wwdr = Buffer.from(process.env.APPLE_WWDR_CERT_BASE64, 'base64');
         }
 
-        const wwdr = fs.readFileSync(wwdrPath);
-        const signerCert = fs.readFileSync(signerCertPath);
-        const signerKey = fs.readFileSync(signerKeyPath);
+        if (fs.existsSync(signerCertPath)) {
+            signerCert = fs.readFileSync(signerCertPath);
+        } else if (process.env.APPLE_SIGNER_CERT_BASE64) {
+            signerCert = Buffer.from(process.env.APPLE_SIGNER_CERT_BASE64, 'base64');
+        }
+
+        if (fs.existsSync(signerKeyPath)) {
+            signerKey = fs.readFileSync(signerKeyPath);
+        } else if (process.env.APPLE_SIGNER_KEY_BASE64) {
+            signerKey = Buffer.from(process.env.APPLE_SIGNER_KEY_BASE64, 'base64');
+        }
+
+        if (!wwdr || !signerCert || !signerKey) {
+            throw new Error("Apple Wallet certificates missing (not found as files or environment variables)");
+        }
 
         // Create a new pass
         const pass = new PKPass({}, {

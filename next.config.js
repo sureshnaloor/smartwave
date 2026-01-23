@@ -38,6 +38,10 @@ const nextConfig = {
       }
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['passkit-generator'],
+  },
+  output: 'standalone',
 };
 
 module.exports = nextConfig; 
