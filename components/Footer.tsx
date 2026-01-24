@@ -24,8 +24,8 @@ const Footer = () => {
     {
       title: 'Company',
       links: [
-        { name: 'About Us', href: '/about' },
-        { name: 'Contact', href: '/contact' },
+        { name: 'About Us', href: '/about-smartwave' },
+        { name: 'Contact', href: '/contact-us' },
         { name: 'Terms of Service', href: '/terms' },
         { name: 'Privacy Policy', href: '/privacy' },
       ]
@@ -36,7 +36,7 @@ const Footer = () => {
         { name: 'Help Center', href: '#' },
         { name: 'Documentation', href: '#' },
         { name: 'API Status', href: '#' },
-        { name: 'Custom Orders', href: '/contact' },
+        { name: 'Custom Orders', href: '/contact-us' },
       ]
     }
   ];
