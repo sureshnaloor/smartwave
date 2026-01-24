@@ -9,9 +9,25 @@ import { authOptions } from "@/lib/auth";
 
 // Initialize Razorpay
 const getRazorpayInstance = () => {
+  const key_id = process.env.RAZORPAY_KEY_ID?.trim();
+  const key_secret = process.env.RAZORPAY_KEY_SECRET?.trim();
+
+  if (!key_id || !key_secret) {
+    console.error('Razorpay credentials missing:', {
+      has_key: !!key_id,
+      has_secret: !!key_secret
+    });
+  }
+
+  console.log('Initializing Razorpay with:', {
+    key_id: key_id ? `${key_id.substring(0, 8)}...` : 'not found',
+    has_secret: !!key_secret,
+    secret_len: key_secret?.length
+  });
+
   return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
+    key_id: key_id || '',
+    key_secret: key_secret || ''
   });
 };
 
@@ -47,23 +63,26 @@ export async function createOrder(formData: FormData) {
       email: session.user.email
     });
 
-    if (!userPref || !userPref.orders) {
-      throw new Error('No user profile or orders found');
+    if (!userPref) {
+      throw new Error('User profile not found. Please try adding items to cart again.');
     }
 
-    // Find the specific pending order
+    // If orderId is provided, we use the existing pending order
+    // If not, we are creating a new "draft" order from the cart
     let pendingOrder;
-    if (orderId) {
-      pendingOrder = userPref.orders.find((order: any) => order.id === orderId);
-    } else {
-      // Fallback: Get the most recent order with a pending status
-      pendingOrder = [...userPref.orders].reverse().find((order: any) =>
-        ['pending', 'pending_payment', 'address_added'].includes(order.status)
-      );
-    }
+    let isCartOrder = false;
 
-    if (!pendingOrder) {
-      throw new Error('No valid pending order found');
+    if (orderId) {
+      pendingOrder = userPref.orders?.find((order: any) => order.id === orderId);
+      if (!pendingOrder) {
+        throw new Error('Specific pending order not found');
+      }
+    } else {
+      isCartOrder = true;
+      // Generate a temporary ID for tracking
+      pendingOrder = {
+        id: `DRAFT-${Date.now().toString(36).toUpperCase()}`
+      };
     }
 
     // Create order in Razorpay
@@ -89,12 +108,17 @@ export async function createOrder(formData: FormData) {
     };
 
     // Update userpreferences with razorpay payment info
-    await db.collection('userpreferences').updateOne(
-      { email: session.user.email, 'orders.id': pendingOrder.id } as any,
-      {
-        $push: { 'razorpayPayments': razorpayPayment }
-      } as any
-    );
+    const updateQuery: any = { email: session.user.email };
+    const updateDoc: any = {
+      $push: { 'razorpayPayments': razorpayPayment }
+    };
+
+    // If it was an existing order, we match it for potential status updates later
+    if (!isCartOrder) {
+      updateQuery['orders.id'] = pendingOrder.id;
+    }
+
+    await db.collection('userpreferences').updateOne(updateQuery, updateDoc);
 
     return {
       success: true,
@@ -102,6 +126,7 @@ export async function createOrder(formData: FormData) {
       originalOrderId: pendingOrder.id,
       amount: amountInPaise,
       currency: razorpayOrder.currency,
+      isCartOrder
     };
   } catch (error) {
     console.error('Create order error:', error);
@@ -141,36 +166,64 @@ export async function verifyPayment(formData: FormData) {
     // Verify signature
     const body = orderId + "|" + paymentId;
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || '')
+      .createHmac("sha256", (process.env.RAZORPAY_KEY_SECRET || '').trim())
       .update(body.toString())
       .digest("hex");
 
     const isAuthentic = expectedSignature === signature;
 
     if (isAuthentic) {
-      // Update both razorpayPayment and order status
+      // 1. Create the Final Order object
+      const finalOrderId = razorpayPayment.originalOrderId.startsWith('DRAFT-')
+        ? `ORD-${Date.now().toString(36).toUpperCase()}`
+        : razorpayPayment.originalOrderId;
+
+      const newOrder = {
+        id: finalOrderId,
+        date: new Date().toISOString(),
+        orderDate: new Date().toISOString(),
+        status: 'payment_made', // Final status
+        total: razorpayPayment.amount / 100,
+        items: razorpayPayment.items,
+        shippingAddress: razorpayPayment.shippingDetails,
+        paymentId: paymentId
+      };
+
+      // 2. Perform Atomic Update: Add Order, Update Payment, Clear Cart
+      const updateDoc: any = {
+        $set: {
+          'razorpayPayments.$.paymentId': paymentId,
+          'razorpayPayments.$.paymentSignature': signature,
+          'razorpayPayments.$.paymentStatus': 'completed',
+          'razorpayPayments.$.status': 'payment_completed',
+          'razorpayPayments.$.paymentVerifiedAt': new Date(),
+          'razorpayPayments.$.updatedAt': new Date()
+        }
+      };
+
+      if (razorpayPayment.originalOrderId.startsWith('DRAFT-')) {
+        // From Cart: Add to orders AND clear cart
+        updateDoc.$push = { orders: newOrder };
+        updateDoc.$set.cart = [];
+      } else {
+        // From Existing Order: Update the order status
+        updateDoc.$set['orders.$.status'] = 'payment_made';
+        updateDoc.$set['orders.$.paymentId'] = paymentId;
+      }
+
       await db.collection('userpreferences').updateOne(
         {
           'razorpayPayments.orderId': orderId,
-          'orders.id': razorpayPayment.originalOrderId
+          // Only add orders.id filter if it's not a draft order
+          ...(!razorpayPayment.originalOrderId.startsWith('DRAFT-') && { 'orders.id': razorpayPayment.originalOrderId })
         },
-        {
-          $set: {
-            'razorpayPayments.$.paymentId': paymentId,
-            'razorpayPayments.$.paymentSignature': signature,
-            'razorpayPayments.$.paymentStatus': 'completed',
-            'razorpayPayments.$.status': 'payment_completed',
-            'razorpayPayments.$.paymentVerifiedAt': new Date(),
-            'razorpayPayments.$.updatedAt': new Date(),
-            'orders.$.status': 'payment_made'
-          }
-        }
+        updateDoc
       );
 
       return {
         success: true,
         orderId: orderId,
-        originalOrderId: razorpayPayment.originalOrderId,
+        finalOrderId: finalOrderId,
         paymentId: paymentId,
         status: 'payment_completed'
       };
@@ -230,17 +283,19 @@ export async function getOrderDetails(orderId: string) {
     }
 
     // Return order details without sensitive information
+    const finalAmount = razorpayPayment ? (razorpayPayment.amount / 100) : order?.total;
+
     return {
       success: true,
       order: {
         orderId: razorpayPayment?.orderId || order?.id,
-        amount: orderDetails.amount,
-        currency: orderDetails.currency,
-        status: orderDetails.status,
-        items: orderDetails.items,
+        amount: finalAmount,
+        currency: orderDetails.currency || 'INR',
+        status: orderDetails.status || order?.status,
+        items: orderDetails.items || [],
         shippingDetails: orderDetails.shippingDetails ? {
-          fullName: orderDetails.shippingDetails.fullName,
-          addressLine1: orderDetails.shippingDetails.addressLine1,
+          fullName: orderDetails.shippingDetails.fullName || orderDetails.shippingDetails.name,
+          addressLine1: orderDetails.shippingDetails.addressLine1 || orderDetails.shippingDetails.address,
           addressLine2: orderDetails.shippingDetails.addressLine2,
           city: orderDetails.shippingDetails.city,
           state: orderDetails.shippingDetails.state,

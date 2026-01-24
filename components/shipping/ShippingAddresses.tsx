@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import LoadingSpinner from "@/components/LoadingSpinner";  // Add this import
 import { deleteShippingAddress } from "@/app/_actions/user-preferences";
 
-export default function ShippingAddresses() {
+export default function ShippingAddresses({ onAddressChange }: { onAddressChange?: () => void }) {
   const [addresses, setAddresses] = useState<ShippingAddress[]>([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingAddress, setEditingAddress] = useState<ShippingAddress | null>(null);
@@ -27,6 +27,7 @@ export default function ShippingAddresses() {
       const result = await getUserPreferences();
       if (result.success && result.shippingAddresses) {
         setAddresses(result.shippingAddresses);
+        onAddressChange?.();
       }
     } catch (error) {
       // console.error("Error loading addresses:", error);
@@ -53,6 +54,7 @@ export default function ShippingAddresses() {
           description: "Shipping address has been removed successfully.",
         });
         loadAddresses(); // Refresh the list
+        onAddressChange?.();
       } else {
         throw new Error(result.error);
       }
@@ -113,7 +115,7 @@ export default function ShippingAddresses() {
               </div>
             </Card>
           ))}
-          
+
           {/* Add New Address Button */}
           {!isAddingNew && !editingAddress && (
             <Button

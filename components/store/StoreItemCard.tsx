@@ -31,6 +31,7 @@ interface StoreItemCardProps {
     annual: string;
     fiveYear?: string; // or perpetual
   }
+  colorTheme?: "teal" | "silver" | "gold" | "orange" | "blue"
 }
 
 export default function StoreItemCard({
@@ -42,7 +43,8 @@ export default function StoreItemCard({
   color,
   image,
   category,
-  priceKeys
+  priceKeys,
+  colorTheme
 }: StoreItemCardProps) {
   const router = useRouter()
   const { selectedCountry } = useCountry();
@@ -86,6 +88,7 @@ export default function StoreItemCard({
   // Calculate Final Price
   let finalPrice = convertedBasePrice;
   let unitPriceDisplay = convertedBasePrice;
+  let originalUnitPrice: number | null = null;
   let discountInfo: string | null = null;
   let periodLabel = "";
 
@@ -100,34 +103,40 @@ export default function StoreItemCard({
     if (billingCycle === 'annual') {
       finalPrice = annualPrice;
       unitPriceDisplay = annualPrice;
+      originalUnitPrice = annualPrice; // Before discounts
       periodLabel = "/year";
     } else {
       // 5 Year or Perpetual
       if (isPerpetual) {
         finalPrice = secondaryPrice;
         unitPriceDisplay = secondaryPrice;
+        originalUnitPrice = secondaryPrice;
         periodLabel = " one-time";
         discountInfo = "Lifetime Access";
       } else {
         // 5 Year Plan
-        // Rate in config is per year? Or total?
-        // In plans.tsx I treated it as Unit Rate per Year.
-        // "Billed as X for 5 years" -> Total = Rate * 5.
         finalPrice = secondaryPrice * 5;
         unitPriceDisplay = secondaryPrice; // Display the annual-equivalent rate
+        originalUnitPrice = annualPrice; // Compare 5-year unit rate to 1-year unit rate
         periodLabel = "/year";
-        discountInfo = "5-Year Plan"; // Tag
+        discountInfo = "Special 5-Year Rate";
       }
     }
 
     // India Discount Logic
     const isIndia = selectedCountry.currency === 'INR';
     if (isIndia) {
-      finalPrice = Math.round(finalPrice * 0.5); // 50% discount
+      // Apply 50% discount to everything for India
+      finalPrice = Math.round(finalPrice * 0.5);
       unitPriceDisplay = Math.round(unitPriceDisplay * 0.5);
-      discountInfo = billingCycle === 'annual'
-        ? "50% OFF (India Early Bird)"
-        : (discountInfo ? `${discountInfo} + 50% India OFF` : "50% OFF");
+
+      const earlyBirdText = "50% Early Bird India Discount";
+      discountInfo = discountInfo ? `${discountInfo} + ${earlyBirdText}` : earlyBirdText;
+    }
+
+    // If unitPriceDisplay is less than originalUnitPrice, we show the original
+    if (originalUnitPrice && unitPriceDisplay >= originalUnitPrice) {
+      originalUnitPrice = null; // No discount to show
     }
 
   } else {
@@ -140,8 +149,10 @@ export default function StoreItemCard({
     };
     const discount = getDiscountPercent(quantity);
     finalPrice = convertedBasePrice * (1 - discount) * quantity;
-    unitPriceDisplay = convertedBasePrice;
+    unitPriceDisplay = convertedBasePrice * (1 - discount);
+
     if (discount > 0) {
+      originalUnitPrice = convertedBasePrice;
       discountInfo = `${(discount * 100).toFixed(0)}% Bulk Discount`;
     }
   }
@@ -307,11 +318,22 @@ export default function StoreItemCard({
   }
 
 
+  // Determine theme classes
+  const themeClasses = {
+    teal: "bg-teal-50/30 dark:bg-teal-900/10 border-teal-200 dark:border-teal-800 shadow-teal-500/5",
+    silver: "bg-slate-50/50 dark:bg-slate-800/20 border-slate-300 dark:border-slate-700 shadow-slate-500/5",
+    gold: "bg-amber-50/50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-800 shadow-amber-500/5",
+    orange: "bg-orange-50/30 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800 shadow-orange-500/5",
+    blue: "bg-blue-50/30 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800 shadow-blue-500/5",
+  };
+
+  const selectedTheme = colorTheme ? themeClasses[colorTheme] : "border-gray-200 dark:border-gray-800";
+
   return (
-    <Card className="overflow-hidden flex flex-col h-full border-gray-200 dark:border-gray-800">
+    <Card className={`overflow-hidden flex flex-col h-full border-2 transition-all duration-500 hover:scale-[1.01] ${selectedTheme}`}>
       {/* Visual Header / Image */}
       {image && (
-        <div className="relative h-48 w-full">
+        <div className="relative h-48 w-full border-b dark:border-white/5">
           <Image
             src={image}
             alt={name}
@@ -322,8 +344,15 @@ export default function StoreItemCard({
         </div>
       )}
       {!image && (
-        <div className={`h-32 w-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900`}>
-          <div className="text-4xl text-gray-400">
+        <div className={`h-40 w-full flex items-center justify-center border-b dark:border-white/5 bg-white dark:bg-zinc-900`}>
+          <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-inner
+            ${colorTheme === 'teal' ? 'bg-teal-100 text-teal-600 dark:bg-teal-500/20' :
+              colorTheme === 'blue' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20' :
+                colorTheme === 'silver' ? 'bg-slate-100 text-slate-600 dark:bg-slate-500/20' :
+                  colorTheme === 'gold' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20' :
+                    colorTheme === 'orange' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20' :
+                      'bg-gray-100 text-gray-400 dark:bg-white/5'}
+          `}>
             {type === 'card' ? '💳' : '📱'}
           </div>
         </div>
@@ -333,34 +362,27 @@ export default function StoreItemCard({
         <CardTitle className="text-xl">{name}</CardTitle>
         <div className="flex flex-col">
           {/* Price Display */}
-          {type === 'card' ? (
-            <>
-              {/* Card Pricing: Show Unit Price with strikethrough if discounted */}
-              {discountInfo && (
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatMoney(convertedBasePrice)}/each
-                </span>
-              )}
-              <span className="text-2xl font-bold text-primary">
-                {formatMoney(convertedBasePrice * (1 - (quantity >= 50 ? 0.4 : quantity >= 10 ? 0.3 : quantity >= 5 ? 0.2 : 0)))}
-                <span className="text-xs text-muted-foreground ml-1">/each</span>
+          <div className="flex items-baseline gap-2 flex-wrap">
+            {originalUnitPrice && (
+              <span className="text-sm text-gray-400 line-through font-medium tabular-nums">
+                {formatMoney(originalUnitPrice)}
               </span>
-            </>
-          ) : (
-            <>
-              {/* Plan Pricing: Show Monthly Price */}
-              <span className="text-2xl font-bold text-primary">
-                {formatMoney(unitPriceDisplay)}
-                <span className="text-xs text-muted-foreground ml-1">/month</span>
-              </span>
-            </>
-          )}
+            )}
+            <span className={`text-2xl font-black tabular-nums transition-colors duration-300 ${originalUnitPrice ? 'text-green-600 dark:text-emerald-400' : 'text-primary'}`}>
+              {formatMoney(unitPriceDisplay)}
+            </span>
+            <span className="text-xs text-muted-foreground font-bold tracking-tight uppercase">
+              {type === 'card' ? '/each' : '/year'}
+            </span>
+          </div>
 
           {/* Discount Tag */}
           {discountInfo && (
-            <div className="flex items-center text-xs text-green-600 font-medium mt-1">
-              <Tag className="w-3 h-3 mr-1" />
-              {discountInfo}
+            <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1 bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/20 rounded-full w-fit">
+              <Tag className="w-3 h-3 text-green-600 dark:text-emerald-400" />
+              <span className="text-[10px] font-black text-green-700 dark:text-emerald-300 uppercase tracking-widest leading-none">
+                {discountInfo}
+              </span>
             </div>
           )}
         </div>
@@ -469,17 +491,25 @@ export default function StoreItemCard({
           )}
 
           {/* Total Price Display for Both */}
-          <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-900 p-3 rounded-md mt-4">
-            <span className="text-sm text-gray-500">
-              {type === 'plan' ? (
-                billingCycle === 'annual'
-                  ? 'Billed Annually'
-                  : (priceKeys?.fiveYear?.includes('perpetual') ? 'One-time Payment' : 'Billed every 5 years')
-              ) : 'Total'}
-            </span>
-            <span className="text-lg font-bold">
-              {formatMoney(finalPrice)} <span className="text-xs font-normal text-muted-foreground">{periodLabel}</span>
-            </span>
+          <div className="flex flex-col gap-2 bg-gray-50 dark:bg-zinc-800/50 p-4 rounded-2xl mt-6 border border-gray-100 dark:border-white/5">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                {type === 'plan' ? (
+                  billingCycle === 'annual'
+                    ? 'Billed Annually'
+                    : (priceKeys?.fiveYear?.includes('perpetual') ? 'Lifetime Access' : 'Billed every 5 years')
+                ) : 'Subtotal'}
+              </span>
+              {originalUnitPrice && (
+                <span className="text-[10px] font-bold bg-green-500 text-white px-2 py-0.5 rounded-full uppercase">Discounted</span>
+              )}
+            </div>
+            <div className="flex justify-between items-baseline">
+              <span className="text-2xl font-black text-gray-900 dark:text-white tabular-nums">
+                {formatMoney(finalPrice)}
+              </span>
+              <span className="text-xs font-bold text-muted-foreground uppercase">{periodLabel}</span>
+            </div>
           </div>
         </div>
       </CardContent>

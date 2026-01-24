@@ -253,23 +253,8 @@ export default function CartItems() {
         return;
       }
 
-      const newOrder = {
-        items: cartItems,
-        orderDate: new Date().toISOString(),
-        status: "pending",
-        total: calculateTotal()
-      }
-
-      const orderResult = await saveOrder(newOrder);
-
-      if (orderResult.success && orderResult.order) {
-        await saveCart([]);
-        setCartItems([]);
-        toast.success("Proceeding to payment...");
-        router.push(`/payment?orderId=${orderResult.order.id}`);
-      } else {
-        throw new Error(orderResult.error || "Failed to save order");
-      }
+      toast.success("Proceeding to payment...");
+      router.push(`/payment?source=cart`);
     } catch (error) {
       toast.error("Failed to create order. Please try again.");
     } finally {
@@ -323,7 +308,7 @@ export default function CartItems() {
             <CardTitle>{isDigitalOnly ? "Billing Information" : "Shipping Address"}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ShippingAddresses />
+            <ShippingAddresses onAddressChange={checkShippingAddress} />
           </CardContent>
         </Card>
       )}

@@ -1,6 +1,6 @@
-'use client';
-
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Theme {
   id: string;
@@ -42,6 +42,8 @@ const fonts = [
 ];
 
 export default function CardCustomizer() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [selectedTheme, setSelectedTheme] = useState<Theme>(themes[2]); // Luxury theme selected by default
   const [selectedColor, setSelectedColor] = useState(colors[0].value);
   const [selectedFont, setSelectedFont] = useState(fonts[0].value);
@@ -75,17 +77,12 @@ export default function CardCustomizer() {
     generateQR();
   }, [cardName]);
 
-  const saveDesign = () => {
-    // Save design logic
-    console.log('Saving design:', {
-      theme: selectedTheme,
-      color: selectedColor,
-      font: selectedFont,
-      name: cardName,
-      title: cardTitle,
-      company: cardCompany,
-    });
-    // Could show a toast or navigate to checkout
+  const handleAction = () => {
+    if (status === 'authenticated') {
+      router.push('/myprofile');
+    } else {
+      router.push('/auth/signup?callbackUrl=/myprofile');
+    }
   };
 
   const getFontFamily = (font: string) => {
@@ -121,20 +118,20 @@ export default function CardCustomizer() {
                   key={theme.id}
                   onClick={() => setSelectedTheme(theme)}
                   className={`flex flex-col items-center space-y-2 transition-all ${selectedTheme.id === theme.id
-                      ? 'scale-105'
-                      : 'hover:scale-[1.02]'
+                    ? 'scale-105'
+                    : 'hover:scale-[1.02]'
                     }`}
                 >
                   <div
                     className={`w-full h-20 rounded-lg border-2 transition-all ${selectedTheme.id === theme.id
-                        ? 'border-smart-teal shadow-lg shadow-smart-teal/50 theme-card-selected'
-                        : 'border-white/10 hover:border-white/30'
+                      ? 'border-smart-teal shadow-lg shadow-smart-teal/50 theme-card-selected'
+                      : 'border-white/10 hover:border-white/30'
                       }`}
                     style={{ background: theme.gradient }}
                   />
                   <span className={`text-xs font-medium ${selectedTheme.id === theme.id
-                      ? 'text-smart-teal'
-                      : 'text-smart-silver'
+                    ? 'text-smart-teal'
+                    : 'text-smart-silver'
                     }`}>
                     {theme.name}
                   </span>
@@ -197,8 +194,8 @@ export default function CardCustomizer() {
                     key={color.value}
                     onClick={() => setSelectedColor(color.value)}
                     className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColor === color.value
-                        ? 'border-white scale-110'
-                        : 'border-white/20 hover:border-white/40'
+                      ? 'border-white scale-110'
+                      : 'border-white/20 hover:border-white/40'
                       }`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -259,10 +256,10 @@ export default function CardCustomizer() {
             </div>
 
             <button
-              onClick={saveDesign}
-              className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal py-3 rounded-lg font-semibold transition-colors"
+              onClick={handleAction}
+              className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal py-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-smart-teal/20"
             >
-              Save Design
+              Sign up for digital card experience
             </button>
           </div>
         </div>

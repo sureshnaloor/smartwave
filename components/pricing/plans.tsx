@@ -65,7 +65,7 @@ const PricingCards = () => {
       cta: "Start Free Trial",
       ctaLink: "/auth/signup",
       popular: false,
-      color: "bg-white dark:bg-gray-900"
+      color: "bg-teal-50/30 dark:bg-teal-900/10 border-teal-200 dark:border-teal-800"
     },
     {
       name: "Enterprise - Starter",
@@ -80,7 +80,7 @@ const PricingCards = () => {
       cta: "Buy Now",
       ctaLink: "/cart",
       popular: false,
-      color: "bg-blue-50 dark:bg-blue-950"
+      color: "bg-slate-50/50 dark:bg-slate-800/20 border-slate-300 dark:border-slate-700"
     },
     {
       name: "Enterprise - Growth",
@@ -94,7 +94,7 @@ const PricingCards = () => {
       cta: "Buy Now",
       ctaLink: "/cart",
       popular: true,
-      color: "bg-blue-50 dark:bg-blue-950"
+      color: "bg-amber-50/50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-800"
     },
     {
       name: "Enterprise - Corporate",
@@ -105,7 +105,7 @@ const PricingCards = () => {
       cta: "Contact Sales",
       ctaLink: "mailto:smart@smartwave.name",
       popular: false,
-      color: "bg-blue-50 dark:bg-blue-950"
+      color: "bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800"
     }
   ];
 

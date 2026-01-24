@@ -10,44 +10,66 @@ export const metadata: Metadata = {
 }
 
 interface PageProps {
-  searchParams: { orderId?: string }
+  searchParams: { orderId?: string; source?: string }
 }
 
 export default async function PaymentPage({ searchParams }: PageProps) {
   const orderId = searchParams.orderId;
+  const source = searchParams.source;
 
-  if (!orderId) {
+  if (!orderId && source !== 'cart') {
     redirect('/cart?error=missing_order_id');
   }
 
-  // Get user preferences to fetch order from orders array
+  // Get user preferences
   const userPrefs = await getUserPreferences();
 
   if (!userPrefs.success) {
     redirect('/auth/signin?error=authentication_required');
   }
 
-  // Find the specific order from user's orders
-  const order = userPrefs.orders?.find(order => order.id === orderId);
+  let cartItems: any[] = [];
+  let checkoutOrderId: string | undefined = orderId;
 
-  if (!order) {
-    redirect('/orders?error=order_not_found');
+  if (source === 'cart') {
+    // Check if cart has items
+    if (!userPrefs.cart || userPrefs.cart.length === 0) {
+      redirect('/cart?error=empty_cart');
+    }
+    cartItems = userPrefs.cart.map(item => ({
+      type: item.type,
+      price: item.price,
+      quantity: item.quantity,
+      productId: item.productId,
+      name: item.name,
+      image: item.image,
+      color: item.color
+    }));
+  } else {
+    // Find the specific order from user's orders
+    const order = userPrefs.orders?.find(order => order.id === orderId);
+
+    if (!order) {
+      redirect('/orders?error=order_not_found');
+    }
+
+    cartItems = order.items.map(item => ({
+      type: item.type,
+      price: item.price,
+      quantity: item.quantity
+    }));
   }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-xl font-bold mb-6">Payment</h1>
+      <h1 className="text-xl font-bold mb-6 text-gray-900 dark:text-white px-4">Complete Payment</h1>
       <Suspense fallback={<div className="w-full h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-smart-teal"></div>
       </div>}>
-        <div className="text-center py-12">
+        <div className="text-center">
           <Checkoutcomponent
-            orderId={orderId}
-            cartItems={order.items.map(item => ({
-              type: item.type,
-              price: item.price,
-              quantity: item.quantity
-            }))}
+            orderId={checkoutOrderId}
+            cartItems={cartItems}
           />
         </div>
       </Suspense>

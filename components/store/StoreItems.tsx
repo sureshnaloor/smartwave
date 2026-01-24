@@ -7,12 +7,27 @@ import { useCountry } from '@/context/CountryContext'
 import { CheckCircle, Wifi } from "lucide-react"
 
 // Define data locally to match pricing sections exactly
-const digitalPlans = [
+interface DigitalPlan {
+  id: string;
+  name: string;
+  price: number;
+  type: string;
+  colorTheme: "teal" | "silver" | "gold" | "orange";
+  description: string;
+  features: string[];
+  priceKeys: {
+    annual: string;
+    fiveYear: string;
+  }
+}
+
+const digitalPlans: DigitalPlan[] = [
   {
     id: "plan_individual",
     name: "Individual Plan",
     price: 0,
     type: "plan",
+    colorTheme: "teal",
     description: "Perfect for individuals. Premium themes, QR generation, vCard download.",
     features: ["Digital profile", "Wallet integration", "3 card content"],
     priceKeys: {
@@ -25,6 +40,7 @@ const digitalPlans = [
     name: "Enterprise - Starter",
     price: 0,
     type: "plan",
+    colorTheme: "silver",
     description: "For small teams (up to 10 employees). Analytics & Team management.",
     features: ["Up to 10 employees", "Analytics", "Team management"],
     priceKeys: {
@@ -37,6 +53,7 @@ const digitalPlans = [
     name: "Enterprise - Growth",
     price: 0,
     type: "plan",
+    colorTheme: "gold",
     description: "For growing organizations (up to 25 employees).",
     features: ["Up to 25 employees", "All Starter features", "Priority support"],
     priceKeys: {
@@ -44,9 +61,6 @@ const digitalPlans = [
       fiveYear: 'plan_growth_5y'
     }
   },
-  // Corporate is custom, maybe not in store? or link to contact.
-  // User asked for "same plans", so I include it? But a store item needs a price.
-  // I will skip Corporate for "purchase" or make it Contact.
 ];
 
 const nfcCards = [
@@ -55,6 +69,7 @@ const nfcCards = [
     name: "Basic White",
     price: 9.99,
     type: "card",
+    colorTheme: "teal" as const,
     description: "Simple and elegant NFC business cards. White PVC material.",
     color: ["white"],
     features: ["White PVC", "Printed QR"],
@@ -64,6 +79,7 @@ const nfcCards = [
     name: "Color PVC",
     price: 19.99,
     type: "card",
+    colorTheme: "orange" as const,
     description: "Vibrant full-color business cards.",
     color: ["blue", "red", "black", "orange"], // Example colors
     features: ["Full Color", "Custom design"],
@@ -73,6 +89,7 @@ const nfcCards = [
     name: "Premium NFC",
     price: 29.99,
     type: "card",
+    colorTheme: "silver" as const,
     description: "Premium-finish high-quality cards with advanced design.",
     color: ["silver", "matte_black"],
     features: ["Thick material", "Advanced finish"],
@@ -82,6 +99,7 @@ const nfcCards = [
     name: "Premium Plus",
     price: 49.99,
     type: "card",
+    colorTheme: "gold" as const,
     description: "Luxury metal business cards.",
     color: ["gold", "metal_black"],
     features: ["Metal construction", "Lifetime profile"],
