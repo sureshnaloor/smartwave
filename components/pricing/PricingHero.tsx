@@ -26,6 +26,7 @@ export default function PricingHero() {
               width={300}
               height={300}
               className="rounded-lg shadow-2xl"
+              unoptimized
             />
           </div>
         </div>

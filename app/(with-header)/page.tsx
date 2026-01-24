@@ -377,9 +377,6 @@ export default function HomePage() {
 
       {/* Testimonials */}
       <Testimonials />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

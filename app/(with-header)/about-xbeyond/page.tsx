@@ -196,13 +196,13 @@ export default function AboutXBeyond() {
                 opacity-0 group-hover:opacity-100 transition-opacity duration-700
                 animate-gradient-xy"
               />
-              
+
               {/* Animated Border Glow */}
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500
                 opacity-0 group-hover:opacity-20 dark:group-hover:opacity-10
                 transition-opacity duration-700 blur-2xl"
               />
-              
+
               {/* Content Container */}
               <div className="relative p-8 md:p-12">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6
@@ -221,8 +221,8 @@ export default function AboutXBeyond() {
                       <span className="font-semibold text-purple-600 dark:text-purple-400">
                         Suresh Menon
                       </span>
-                      , Engineer with 40 years of experience managing supply chain and projects management of mega-projects, 
-                      with the vision of bridging traditional business practices in Supply Chain and 
+                      , Engineer with 40 years of experience managing supply chain and projects management of mega-projects,
+                      with the vision of bridging traditional business practices in Supply Chain and
                       Projects with digital innovations, to make business processes easier and more efficient.
                     </p>
                   </div>
@@ -234,10 +234,10 @@ export default function AboutXBeyond() {
                     Our flagship products,{' '}
                     <span className="font-semibold text-purple-600 dark:text-purple-400">
                       SmartWave, SmartLink, SmartFlow, SmartClass,
-                      SmartTag & SmartProject  . 
+                      SmartTag & SmartProject  .
                     </span>
-                     represent our commitment to combine cutting-edge 
-                    technology with user-friendly design patterns and pleasant user experience to create solutions that make business 
+                    represent our commitment to combine cutting-edge
+                    technology with user-friendly design patterns and pleasant user experience to create solutions that make business
                     more efficient and environmentally conscious.
                   </p>
                 </div>
@@ -260,7 +260,6 @@ export default function AboutXBeyond() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

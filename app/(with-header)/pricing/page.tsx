@@ -21,7 +21,6 @@ export default function PricingPage() {
       <PricingFeatures />
       <PricingCommunity />
       <PricingCTA />
-      <Footer />
     </div>
   )
 }

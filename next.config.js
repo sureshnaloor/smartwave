@@ -13,11 +13,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: [
-      'res.cloudinary.com',
-      'lh3.googleusercontent.com', // Google profile pictures 
-      'googleusercontent.com'      // Alternative Google domain
-    ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
@@ -35,13 +30,17 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'googleusercontent.com',
+        pathname: '/**',
       }
     ],
   },
   experimental: {
     serverComponentsExternalPackages: ['passkit-generator'],
   },
-  output: 'standalone',
 };
 
 module.exports = nextConfig; 
