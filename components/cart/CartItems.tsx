@@ -256,16 +256,20 @@ export default function CartItems() {
       const newOrder = {
         items: cartItems,
         orderDate: new Date().toISOString(),
-        status: "pending_payment",
+        status: "pending",
         total: calculateTotal()
       }
 
-      await saveOrder(newOrder);
-      await saveCart([]);
-      setCartItems([]);
+      const orderResult = await saveOrder(newOrder);
 
-      toast.success("Proceeding to payment...");
-      router.push("/payment");
+      if (orderResult.success && orderResult.order) {
+        await saveCart([]);
+        setCartItems([]);
+        toast.success("Proceeding to payment...");
+        router.push(`/payment?orderId=${orderResult.order.id}`);
+      } else {
+        throw new Error(orderResult.error || "Failed to save order");
+      }
     } catch (error) {
       toast.error("Failed to create order. Please try again.");
     } finally {

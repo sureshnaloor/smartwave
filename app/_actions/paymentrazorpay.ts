@@ -4,6 +4,8 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 // Initialize Razorpay
 const getRazorpayInstance = () => {
@@ -15,14 +17,20 @@ const getRazorpayInstance = () => {
 
 export async function createOrder(formData: FormData) {
   try {
+    // Get authenticated user
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { error: "User not authenticated" };
+    }
+
     // Parse form data
     const formDataValue = formData.get('data');
     if (!formDataValue) {
-        throw new Error('Form data is missing');
+      throw new Error('Form data is missing');
     }
     const data = JSON.parse(formDataValue.toString());
-    const { cartItems, amount, shippingDetails } = data;
-    
+    const { cartItems, amount, shippingDetails, orderId } = data;
+
     // Validate request data
     if (!cartItems || !amount) {
       return { error: 'Missing required fields' };
@@ -30,23 +38,34 @@ export async function createOrder(formData: FormData) {
 
     // Calculate amount in smallest currency unit (paise for INR)
     const amountInPaise = Math.round(amount * 100);
-    
-    // Connect to database and find pending order
+
+    // Connect to database
     const { db } = await connectToDatabase();
+
+    // Find specify user preference
     const userPref = await db.collection('userpreferences').findOne({
-      'orders.status': 'address_added'
+      email: session.user.email
     });
 
     if (!userPref || !userPref.orders) {
-      throw new Error('No pending order found');
+      throw new Error('No user profile or orders found');
     }
 
-    // Get the most recent order with status 'address_added'
-    const pendingOrder = userPref.orders.find((order: { status: string }) => order.status === 'address_added');
-    if (!pendingOrder) {
-      throw new Error('No pending order found');
+    // Find the specific pending order
+    let pendingOrder;
+    if (orderId) {
+      pendingOrder = userPref.orders.find((order: any) => order.id === orderId);
+    } else {
+      // Fallback: Get the most recent order with a pending status
+      pendingOrder = [...userPref.orders].reverse().find((order: any) =>
+        ['pending', 'pending_payment', 'address_added'].includes(order.status)
+      );
     }
-    
+
+    if (!pendingOrder) {
+      throw new Error('No valid pending order found');
+    }
+
     // Create order in Razorpay
     const razorpay = getRazorpayInstance();
     const razorpayOrder = await razorpay.orders.create({
@@ -71,10 +90,10 @@ export async function createOrder(formData: FormData) {
 
     // Update userpreferences with razorpay payment info
     await db.collection('userpreferences').updateOne(
-      { 'orders.id': pendingOrder.id },
-      { 
+      { email: session.user.email, 'orders.id': pendingOrder.id } as any,
+      {
         $push: { 'razorpayPayments': razorpayPayment }
-      }
+      } as any
     );
 
     return {
@@ -86,7 +105,7 @@ export async function createOrder(formData: FormData) {
     };
   } catch (error) {
     console.error('Create order error:', error);
-    return { error: 'Failed to create order' };
+    return { error: error instanceof Error ? error.message : 'Failed to create order' };
   }
 }
 
@@ -96,7 +115,7 @@ export async function verifyPayment(formData: FormData) {
     if (!formDataValue) {
       throw new Error('Form data is missing');
     }
-    
+
     const data = JSON.parse(formDataValue.toString());
     const { orderId, paymentId, signature } = data;
 
@@ -131,11 +150,11 @@ export async function verifyPayment(formData: FormData) {
     if (isAuthentic) {
       // Update both razorpayPayment and order status
       await db.collection('userpreferences').updateOne(
-        { 
+        {
           'razorpayPayments.orderId': orderId,
-          'orders.id': razorpayPayment.originalOrderId 
+          'orders.id': razorpayPayment.originalOrderId
         },
-        { 
+        {
           $set: {
             'razorpayPayments.$.paymentId': paymentId,
             'razorpayPayments.$.paymentSignature': signature,
@@ -160,7 +179,7 @@ export async function verifyPayment(formData: FormData) {
     // Handle failed payment
     await db.collection('userpreferences').updateOne(
       { 'razorpayPayments.orderId': orderId },
-      { 
+      {
         $set: {
           'razorpayPayments.$.paymentId': paymentId,
           'razorpayPayments.$.paymentStatus': 'failed',
@@ -175,7 +194,7 @@ export async function verifyPayment(formData: FormData) {
 
   } catch (error) {
     console.error('Verify payment error:', error);
-    return { 
+    return {
       error: error instanceof Error ? error.message : 'Failed to verify payment'
     };
   }
@@ -188,7 +207,7 @@ export async function getOrderDetails(orderId: string) {
 
   try {
     const { db } = await connectToDatabase();
-    
+
     // Find order in userpreferences collection
     const userPref = await db.collection('userpreferences').findOne({
       $or: [
@@ -196,7 +215,7 @@ export async function getOrderDetails(orderId: string) {
         { 'orders.id': orderId }
       ]
     });
-    
+
     if (!userPref) {
       return { error: 'Order not found' };
     }
@@ -204,15 +223,15 @@ export async function getOrderDetails(orderId: string) {
     // Find the specific order/payment
     const razorpayPayment = userPref.razorpayPayments?.find((p: { orderId: string }) => p.orderId === orderId);
     const order = userPref.orders?.find((o: { id: string }) => o.id === orderId);
-    
+
     const orderDetails = razorpayPayment || order;
     if (!orderDetails) {
       return { error: 'Order details not found' };
     }
-    
+
     // Return order details without sensitive information
-    return { 
-      success: true, 
+    return {
+      success: true,
       order: {
         orderId: razorpayPayment?.orderId || order?.id,
         amount: orderDetails.amount,

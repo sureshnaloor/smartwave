@@ -15,21 +15,21 @@ interface PageProps {
 
 export default async function PaymentPage({ searchParams }: PageProps) {
   const orderId = searchParams.orderId;
-  
+
   if (!orderId) {
     redirect('/cart?error=missing_order_id');
   }
 
   // Get user preferences to fetch order from orders array
   const userPrefs = await getUserPreferences();
-  
+
   if (!userPrefs.success) {
     redirect('/auth/signin?error=authentication_required');
   }
 
   // Find the specific order from user's orders
   const order = userPrefs.orders?.find(order => order.id === orderId);
-  
+
   if (!order) {
     redirect('/orders?error=order_not_found');
   }
@@ -41,12 +41,13 @@ export default async function PaymentPage({ searchParams }: PageProps) {
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
       </div>}>
         <div className="text-center py-12">
-          <Checkoutcomponent 
+          <Checkoutcomponent
+            orderId={orderId}
             cartItems={order.items.map(item => ({
               type: item.type,
               price: item.price,
               quantity: item.quantity
-            }))} 
+            }))}
           />
         </div>
       </Suspense>

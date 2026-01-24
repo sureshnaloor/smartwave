@@ -24,7 +24,7 @@ interface OrderItem {
   quantity: number;
 }
 
-export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
+export default function Checkout({ cartItems, orderId }: { cartItems: OrderItem[], orderId?: string }) {
   const [isPhysicalGoods, setIsPhysicalGoods] = useState(false);
   const [shippingAddresses, setShippingAddresses] = useState<ShippingAddress[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<ShippingAddress | null>(null);
@@ -36,7 +36,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
   useEffect(() => {
     const checkItemsAndFetchData = async () => {
       // Check for physical items (cards)
-      const hasPhysicalItems = cartItems.some(item => 
+      const hasPhysicalItems = cartItems.some(item =>
         item.type.toLowerCase().includes('card') && !item.type.toLowerCase().includes('edit')
       );
       setIsPhysicalGoods(hasPhysicalItems);
@@ -73,19 +73,20 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
 
     try {
       setIsLoading(true);
-      
+
       const totalAmount = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-      
+
       const formData = new FormData();
       formData.append('data', JSON.stringify({
         cartItems,
         amount: totalAmount,
         shippingDetails: isPhysicalGoods ? selectedAddress : null,
-        email: userEmail
+        email: userEmail,
+        orderId // Pass the orderId to createOrder
       }));
-      
+
       const response = await createOrder(formData);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
@@ -97,7 +98,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
         name: 'Smartwave',
         description: `Order ${response.id}`,
         order_id: response.id,
-        handler: async function(response: {
+        handler: async function (response: {
           razorpay_payment_id: string;
           razorpay_order_id: string;
           razorpay_signature: string;
@@ -110,9 +111,9 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature
             }));
-    
+
             const result = await verifyPayment(formData);
-    
+
             if (result.success) {
               toast.success('Payment successful!');
               router.push('/orders');
@@ -130,8 +131,8 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
           contact: selectedAddress?.mobileNumber || ''
         },
         notes: {
-          shipping_address: isPhysicalGoods && selectedAddress ? 
-            `${selectedAddress.fullName}, ${selectedAddress.addressLine1}${selectedAddress.addressLine2 ? ', ' + selectedAddress.addressLine2 : ''}, ${selectedAddress.city}, ${selectedAddress.state}, ${selectedAddress.country} - ${selectedAddress.postalCode}` : 
+          shipping_address: isPhysicalGoods && selectedAddress ?
+            `${selectedAddress.fullName}, ${selectedAddress.addressLine1}${selectedAddress.addressLine2 ? ', ' + selectedAddress.addressLine2 : ''}, ${selectedAddress.city}, ${selectedAddress.state}, ${selectedAddress.country} - ${selectedAddress.postalCode}` :
             'Digital Product',
           order_type: isPhysicalGoods ? 'Physical' : 'Digital'
         },
@@ -174,7 +175,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
           {!selectedAddress && (
             <div className="space-y-4">
               {shippingAddresses.map((address) => (
-                <div 
+                <div
                   key={address.id}
                   className="border p-4 rounded-lg cursor-pointer hover:border-blue-500"
                   onClick={() => handleAddressSelect(address)}
@@ -189,7 +190,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
               ))}
             </div>
           )}
-          
+
           {selectedAddress && (
             <div className="border p-4 rounded-lg">
               <p className="font-semibold">{selectedAddress.fullName}</p>
@@ -198,7 +199,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
               <p>{selectedAddress.city}, {selectedAddress.state}</p>
               <p>{selectedAddress.postalCode}, {selectedAddress.country}</p>
               <p>Phone: {selectedAddress.mobileNumber}</p>
-              <button 
+              <button
                 onClick={() => setSelectedAddress(null)}
                 className="mt-2 text-blue-500 hover:text-blue-700"
               >
@@ -209,7 +210,7 @@ export default function Checkout({ cartItems }: { cartItems: OrderItem[] }) {
         </div>
       )}
 
-      <button 
+      <button
         onClick={handlePayment}
         disabled={isLoading || (isPhysicalGoods && !selectedAddress)}
         className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
