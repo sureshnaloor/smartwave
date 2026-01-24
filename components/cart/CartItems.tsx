@@ -11,7 +11,7 @@ import { ShoppingBag, Trash, Plus, Minus, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { useCountry } from '@/context/CountryContext';
 import { currencyConfig } from '@/lib/currencyConfig';
-import ShippingAddresses  from "@/components/shipping/ShippingAddresses"
+import ShippingAddresses from "@/components/shipping/ShippingAddresses"
 
 interface CartItem {
   productId: string
@@ -45,8 +45,8 @@ function CartItemRow({
       <div className="flex flex-col sm:flex-row">
         {item.image && (
           <div className="relative h-48 sm:h-auto sm:w-48 flex-shrink-0">
-            <Image 
-              src={item.image} 
+            <Image
+              src={item.image}
               alt={item.name}
               fill
               className="object-cover"
@@ -142,13 +142,13 @@ export default function CartItems() {
   // Add new state for shipping address
   const [hasShippingAddress, setHasShippingAddress] = useState(false);
   const [showShippingForm, setShowShippingForm] = useState(false);
-  
+
   // Add check for shipping address in useEffect
   useEffect(() => {
     fetchCart();
     checkShippingAddress();
   }, []);
-  
+
   const checkShippingAddress = async () => {
     try {
       const userPrefs = await getUserPreferences();
@@ -157,30 +157,30 @@ export default function CartItems() {
       toast.error("Failed to check shipping address");
     }
   };
-  
+
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     try {
       setProcessingQuantity(itemId)
-      
+
       if (newQuantity < 1) {
         newQuantity = 1
       }
-      
+
       // Update quantity for specific item
       const updatedCart = cartItems.map(item =>
         item.productId === itemId ? { ...item, quantity: newQuantity } : item
       )
-      
+
       // Save to server
       await saveCart(updatedCart)
-      
+
       // Update local state
       setCartItems(updatedCart)
       toast.success("Cart updated")
     } catch (error) {
       // console.error("Failed to update cart:", error)
       toast.error("Failed to update cart. Please try again.")
-      
+
       // Refresh cart state from server in case of error
       fetchCart()
     } finally {
@@ -191,20 +191,20 @@ export default function CartItems() {
   const handleRemoveItem = async (itemId: string) => {
     try {
       setProcessingQuantity(itemId)
-      
+
       // Create a new array without the item to remove
       const updatedCart = cartItems.filter(item => item.productId !== itemId)
-      
+
       // Save to server
       await saveCart(updatedCart)
-      
+
       // Update local state
       setCartItems(updatedCart)
       toast.success("Item removed from cart")
     } catch (error) {
       // console.error("Failed to remove item:", error)
       toast.error("Failed to remove item. Please try again.")
-      
+
       // Refresh cart state from server in case of error
       fetchCart()
     } finally {
@@ -222,43 +222,50 @@ export default function CartItems() {
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
   }
-  
+
   const getFormattedTotal = () => {
     return formatPrice(calculateTotal());
   };
 
+  const isDigitalOnly = cartItems.length > 0 && cartItems.every(item => item.type === 'plan');
+
   const handleCheckout = async () => {
     try {
       setProcessingCheckout(true);
-      
+
       if (!cartItems.length) {
         toast.error("Your cart is empty");
         return;
       }
-  
+
       if (!hasShippingAddress) {
         setShowShippingForm(true);
+        if (!isDigitalOnly) {
+          toast.info("Please add a shipping address");
+        } else {
+          toast.info("Please provide billing information");
+        }
         return;
       }
-  
+
       if (selectedCountry.code !== 'IN') {
         toast.error("Payment gateway is currently available only in India");
         return;
       }
-      
+
       const newOrder = {
         items: cartItems,
         orderDate: new Date().toISOString(),
-        status: "address_added",
+        status: "pending_payment",
         total: calculateTotal()
       }
-      
+
       await saveOrder(newOrder);
       await saveCart([]);
       setCartItems([]);
-  
-      toast.success("Order created successfully");
-      router.push("/orders"); // Changed from "/payment" to "/orders"
+
+      toast.success("Proceeding to payment...");
+      router.push("/payment");
     } catch (error) {
       toast.error("Failed to create order. Please try again.");
     } finally {
@@ -305,18 +312,18 @@ export default function CartItems() {
           />
         ))}
       </div>
-      
+
       {showShippingForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
+            <CardTitle>{isDigitalOnly ? "Billing Information" : "Shipping Address"}</CardTitle>
           </CardHeader>
           <CardContent>
             <ShippingAddresses />
           </CardContent>
         </Card>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Order Summary</CardTitle>
@@ -327,6 +334,11 @@ export default function CartItems() {
               <span>Subtotal</span>
               <span>{getFormattedTotal()}</span>
             </div>
+            {isDigitalOnly && selectedCountry.code === 'IN' && (
+              <div className="text-xs text-green-600 mt-1">
+                * Early Bird Discount applied on applicable items
+              </div>
+            )}
             <div className="flex justify-between font-bold text-lg pt-4 border-t">
               <span>Total</span>
               <span>{getFormattedTotal()}</span>
@@ -334,10 +346,10 @@ export default function CartItems() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button 
-            className="w-full" 
+          <Button
+            className="w-full"
             onClick={handleCheckout}
-            disabled={processingCheckout || !cartItems.length || selectedCountry.code !== 'IN'}
+            disabled={processingCheckout || !cartItems.length}
           >
             {processingCheckout ? (
               <span className="flex items-center">
@@ -347,7 +359,7 @@ export default function CartItems() {
             ) : (
               <span className="flex items-center">
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Complete Order
+                {selectedCountry.code === 'IN' ? 'Proceed to Payment' : 'Complete Order'}
               </span>
             )}
           </Button>
@@ -356,6 +368,3 @@ export default function CartItems() {
     </div>
   )
 }
-
-// Move handleCheckout here, before any return statements
-  

@@ -1,111 +1,135 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getStoreItems } from "@/app/_actions/user-preferences"
 import StoreItemCard from "@/components/store/StoreItemCard"
-import { toast } from "sonner"
-import { CurrencyInfo, DEFAULT_CURRENCY } from "@/lib/currencyTypes"
 import { useCountry } from '@/context/CountryContext'
+import { CheckCircle, Wifi } from "lucide-react"
 
-interface StoreItem {
-  id: string
-  name: string
-  price: number
-  currency?: string
-  type: string
-  description: string
-  color?: string[] | string
-  image?: string
-}
+// Define data locally to match pricing sections exactly
+const digitalPlans = [
+  {
+    id: "plan_individual",
+    name: "Individual Plan",
+    price: 0,
+    type: "plan",
+    description: "Perfect for individuals. Premium themes, QR generation, vCard download.",
+    features: ["Digital profile", "Wallet integration", "3 card content"],
+    priceKeys: {
+      annual: 'plan_individual_annual',
+      fiveYear: 'plan_individual_perpetual'
+    }
+  },
+  {
+    id: "plan_starter",
+    name: "Enterprise - Starter",
+    price: 0,
+    type: "plan",
+    description: "For small teams (up to 10 employees). Analytics & Team management.",
+    features: ["Up to 10 employees", "Analytics", "Team management"],
+    priceKeys: {
+      annual: 'plan_starter_annual',
+      fiveYear: 'plan_starter_5y'
+    }
+  },
+  {
+    id: "plan_growth",
+    name: "Enterprise - Growth",
+    price: 0,
+    type: "plan",
+    description: "For growing organizations (up to 25 employees).",
+    features: ["Up to 25 employees", "All Starter features", "Priority support"],
+    priceKeys: {
+      annual: 'plan_growth_annual',
+      fiveYear: 'plan_growth_5y'
+    }
+  },
+  // Corporate is custom, maybe not in store? or link to contact.
+  // User asked for "same plans", so I include it? But a store item needs a price.
+  // I will skip Corporate for "purchase" or make it Contact.
+];
 
-interface StoreData {
-  cards: StoreItem[]
-  editPlans: StoreItem[]
-}
+const nfcCards = [
+  {
+    id: "card_basic",
+    name: "Basic White",
+    price: 9.99,
+    type: "card",
+    description: "Simple and elegant NFC business cards. White PVC material.",
+    color: ["white"],
+    features: ["White PVC", "Printed QR"],
+  },
+  {
+    id: "card_color",
+    name: "Color PVC",
+    price: 19.99,
+    type: "card",
+    description: "Vibrant full-color business cards.",
+    color: ["blue", "red", "black", "orange"], // Example colors
+    features: ["Full Color", "Custom design"],
+  },
+  {
+    id: "card_premium",
+    name: "Premium NFC",
+    price: 29.99,
+    type: "card",
+    description: "Premium-finish high-quality cards with advanced design.",
+    color: ["silver", "matte_black"],
+    features: ["Thick material", "Advanced finish"],
+  },
+  {
+    id: "card_plus",
+    name: "Premium Plus",
+    price: 49.99,
+    type: "card",
+    description: "Luxury metal business cards.",
+    color: ["gold", "metal_black"],
+    features: ["Metal construction", "Lifetime profile"],
+  }
+];
 
 export default function StoreItems() {
-  const router = useRouter()
   const { selectedCountry } = useCountry();
-  const [storeData, setStoreData] = useState<StoreData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchStoreItems = async () => {
-    try {
-      setLoading(true)
-      const data = await getStoreItems(selectedCountry.currency)
-      setStoreData(data)
-    } catch (error) {
-      // console.error("Failed to load store items:", error)
-      toast.error("Failed to load store items. Please refresh the page.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchStoreItems()
-  }, [selectedCountry]) // Refetch when country/currency changes
-
-  if (loading) {
-    return (
-      <div className="w-full h-64 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  if (!storeData) {
-    return (
-      <Card className="w-full">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center py-12">
-            <p className="text-gray-500">No store items available at the moment.</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <Tabs defaultValue="cards" className="w-full">
-      <TabsList className="mb-6">
-        <TabsTrigger value="cards">Cards</TabsTrigger>
-        <TabsTrigger value="editPlans">Edit Plans</TabsTrigger>
-      </TabsList>
-      
+      <div className="flex justify-center mb-8">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="cards">NFC Cards</TabsTrigger>
+          <TabsTrigger value="plans">Digital Plans</TabsTrigger>
+        </TabsList>
+      </div>
+
       <TabsContent value="cards" className="space-y-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {storeData.cards.map((item) => (
+          {nfcCards.map((item) => (
             <StoreItemCard
               key={item.id}
-              id={item.id}
-              name={item.name}
-              price={item.price}
-              currency={item.currency || DEFAULT_CURRENCY.code}
-              type={item.type}
-              description={item.description}
-              color={typeof item.color === 'string' ? [item.color] : item.color}
-              image={item.image}
+              {...item}
+              category="card"
             />
           ))}
         </div>
       </TabsContent>
-      
-      <TabsContent value="editPlans" className="space-y-8">
+
+      <TabsContent value="plans" className="space-y-8">
+        {/* India Advisory Banner */}
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border border-orange-200 dark:border-orange-800 p-4 rounded-lg flex items-start gap-3">
+          <div className="text-2xl">🇮🇳</div>
+          <div>
+            <h4 className="font-bold text-orange-800 dark:text-orange-200">Exclusive Offer for India!</h4>
+            <p className="text-sm text-orange-700 dark:text-orange-300">
+              Select <strong>India</strong> as your country to get a flat <strong className="text-red-600 dark:text-red-400">50% Early Bird Discount</strong> on all Digital Plans! (First 1000 users only)
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {storeData.editPlans.map((item) => (
+          {digitalPlans.map((item) => (
             <StoreItemCard
               key={item.id}
-              id={item.id}
-              name={item.name}
-              price={item.price}
-              currency={item.currency || DEFAULT_CURRENCY.code}
-              type={item.type}
-              description={item.description}
-              image={item.image}
+              {...item}
+              category="plan"
             />
           ))}
         </div>

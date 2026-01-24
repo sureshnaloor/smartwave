@@ -10,10 +10,13 @@ import Avatar from './Avatar';
 import Navigation from './Navigation';
 import { Menu, X, DollarSign, ShoppingBag, BookOpen, IdCard, Globe } from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/context/CartContext";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { status } = useSession();
+  const { itemCount } = useCart();
   const pathname = usePathname();
   const isAuthenticated = status === 'authenticated';
 
@@ -36,8 +39,8 @@ export default function Header() {
               <Link
                 href="/pricing"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/pricing'
-                    ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
-                    : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                  ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                  : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
                   }`}
               >
                 <DollarSign className="h-4 w-4" />
@@ -47,8 +50,8 @@ export default function Header() {
                 <Link
                   href="/store"
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/store'
-                      ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
-                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                    ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                    : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
                     }`}
                 >
                   <ShoppingBag className="h-4 w-4" />
@@ -79,11 +82,23 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated && (
               <>
+                {/* Checkout Button - Prominent & Pulsing if items exist */}
+                {itemCount > 0 && (
+                  <Link href="/cart">
+                    <Button
+                      className="animate-breathe-x shadow-lg font-bold bg-sky-500 hover:bg-sky-600 text-white rounded-tl-2xl rounded-br-2xl rounded-tr-sm rounded-bl-sm border-none transition-colors duration-300 hover:scale-105"
+                      size="sm"
+                    >
+                      Checkout ({itemCount})
+                    </Button>
+                  </Link>
+                )}
+
                 <Link
                   href="/myprofile"
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/myprofile'
-                      ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
-                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                    ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                    : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
                     }`}
                 >
                   <IdCard className="h-4 w-4" />
@@ -92,8 +107,8 @@ export default function Header() {
                 <Link
                   href="/guide-me"
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/guide-me'
-                      ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
-                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
+                    ? 'bg-smart-teal text-white dark:bg-smart-teal dark:text-white'
+                    : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300 dark:hover:bg-smart-teal/20 dark:hover:text-smart-teal'
                     }`}
                 >
                   <BookOpen className="h-4 w-4" />
@@ -115,8 +130,8 @@ export default function Header() {
                   <Link
                     href="/pricing"
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/pricing'
-                        ? 'bg-smart-teal text-white'
-                        : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300'
+                      ? 'bg-smart-teal text-white'
+                      : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300'
                       }`}
                   >
                     <DollarSign className="h-5 w-5" />
@@ -126,8 +141,8 @@ export default function Header() {
                     <Link
                       href="/store"
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${pathname === '/store'
-                          ? 'bg-smart-teal text-white'
-                          : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300'
+                        ? 'bg-smart-teal text-white'
+                        : 'text-gray-700 hover:bg-smart-teal/10 hover:text-smart-teal dark:text-gray-300'
                         }`}
                     >
                       <ShoppingBag className="h-5 w-5" />
@@ -145,8 +160,8 @@ export default function Header() {
                     <Link
                       href="/myprofile"
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${pathname === '/myprofile'
-                          ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                        ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
                         }`}
                     >
                       <IdCard className="h-5 w-5" />
@@ -155,8 +170,8 @@ export default function Header() {
                     <Link
                       href="/guide-me"
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${pathname === '/guide-me'
-                          ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                        ? 'bg-smart-teal/10 text-smart-teal dark:bg-smart-teal/20 dark:text-smart-teal'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
                         }`}
                     >
                       <BookOpen className="h-5 w-5" />
