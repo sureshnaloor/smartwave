@@ -11,7 +11,7 @@ import { ShoppingBag, Trash, Plus, Minus, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { useCountry } from '@/context/CountryContext';
 import { currencyConfig } from '@/lib/currencyConfig';
-import ShippingAddresses from "@/components/shipping/ShippingAddresses"
+import { useCart } from '@/context/CartContext';
 
 interface CartItem {
   productId: string
@@ -120,6 +120,7 @@ function CartItemRow({
 export default function CartItems() {
   const router = useRouter()
   const { selectedCountry } = useCountry();
+  const { refreshCart } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [processingQuantity, setProcessingQuantity] = useState<string | null>(null)
@@ -139,24 +140,9 @@ export default function CartItems() {
     }
   }
 
-  // Add new state for shipping address
-  const [hasShippingAddress, setHasShippingAddress] = useState(false);
-  const [showShippingForm, setShowShippingForm] = useState(false);
-
-  // Add check for shipping address in useEffect
   useEffect(() => {
     fetchCart();
-    checkShippingAddress();
   }, []);
-
-  const checkShippingAddress = async () => {
-    try {
-      const userPrefs = await getUserPreferences();
-      setHasShippingAddress(!!userPrefs?.shippingAddresses?.length);
-    } catch (error) {
-      toast.error("Failed to check shipping address");
-    }
-  };
 
   const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     try {
@@ -176,6 +162,10 @@ export default function CartItems() {
 
       // Update local state
       setCartItems(updatedCart)
+      
+      // Refresh cart context to update header badge
+      await refreshCart()
+      
       toast.success("Cart updated")
     } catch (error) {
       // console.error("Failed to update cart:", error)
@@ -200,6 +190,10 @@ export default function CartItems() {
 
       // Update local state
       setCartItems(updatedCart)
+      
+      // Refresh cart context to update header badge
+      await refreshCart()
+      
       toast.success("Item removed from cart")
     } catch (error) {
       // console.error("Failed to remove item:", error)
@@ -229,7 +223,7 @@ export default function CartItems() {
 
   const isDigitalOnly = cartItems.length > 0 && cartItems.every(item => item.type === 'plan');
 
-  const handleCheckout = async () => {
+  const handleConfirmCart = async () => {
     try {
       setProcessingCheckout(true);
 
@@ -238,25 +232,15 @@ export default function CartItems() {
         return;
       }
 
-      if (!hasShippingAddress) {
-        setShowShippingForm(true);
-        if (!isDigitalOnly) {
-          toast.info("Please add a shipping address");
-        } else {
-          toast.info("Please provide billing information");
-        }
-        return;
-      }
-
       if (selectedCountry.code !== 'IN') {
         toast.error("Payment gateway is currently available only in India");
         return;
       }
 
-      toast.success("Proceeding to payment...");
-      router.push(`/payment?source=cart`);
+      // Navigate to address step
+      router.push(`/checkout/address?source=cart`);
     } catch (error) {
-      toast.error("Failed to create order. Please try again.");
+      toast.error("Failed to proceed. Please try again.");
     } finally {
       setProcessingCheckout(false);
     }
@@ -289,56 +273,120 @@ export default function CartItems() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6">
-        {cartItems.map((item) => (
-          <CartItemRow
-            key={item.productId}
-            item={item}
-            formatPrice={formatPrice}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemove={handleRemoveItem}
-            processingQuantity={processingQuantity}
-          />
-        ))}
-      </div>
-
-      {showShippingForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{isDigitalOnly ? "Billing Information" : "Shipping Address"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ShippingAddresses onAddressChange={checkShippingAddress} />
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
+      {/* Step 1: Cart Review */}
+      <Card className="border-2">
         <CardHeader>
-          <CardTitle>Order Summary</CardTitle>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-smart-teal text-white text-sm font-bold">1</span>
+            <CardTitle className="text-2xl">Review Your Cart</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{getFormattedTotal()}</span>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4">
+            {cartItems.map((item) => (
+              <div key={item.productId} className="flex items-start gap-4 p-4 border rounded-lg">
+                {item.image && (
+                  <div className="relative h-24 w-24 flex-shrink-0">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover rounded"
+                    />
+                  </div>
+                )}
+                <div className="flex-grow">
+                  <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {item.color && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {item.color}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      {item.type}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+                    <div>
+                      <span className="text-gray-500">Quantity:</span>
+                      <span className="ml-2 font-semibold">{item.quantity}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Unit Price:</span>
+                      <span className="ml-2 font-semibold">{formatPrice(item.price)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Total:</span>
+                      <span className="ml-2 font-bold text-lg">{formatPrice(item.price * item.quantity)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-r-none"
+                      onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
+                      disabled={processingQuantity === item.productId || item.quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => handleUpdateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                      className="h-8 w-12 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      disabled={processingQuantity === item.productId}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-l-none"
+                      onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                      disabled={processingQuantity === item.productId}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveItem(item.productId)}
+                    disabled={processingQuantity === item.productId}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-t pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Subtotal</span>
+              <span className="font-medium">{getFormattedTotal()}</span>
             </div>
             {isDigitalOnly && selectedCountry.code === 'IN' && (
-              <div className="text-xs text-green-600 mt-1">
+              <div className="text-xs text-green-600">
                 * Early Bird Discount applied on applicable items
               </div>
             )}
-            <div className="flex justify-between font-bold text-lg pt-4 border-t">
+            <div className="flex justify-between font-bold text-xl pt-2 border-t">
               <span>Total</span>
-              <span>{getFormattedTotal()}</span>
+              <span className="text-smart-teal">{getFormattedTotal()}</span>
             </div>
           </div>
         </CardContent>
         <CardFooter>
           <Button
-            className="w-full"
-            onClick={handleCheckout}
+            className="w-full bg-smart-teal hover:bg-smart-teal/90 text-white"
+            onClick={handleConfirmCart}
             disabled={processingCheckout || !cartItems.length}
+            size="lg"
           >
             {processingCheckout ? (
               <span className="flex items-center">
@@ -347,8 +395,8 @@ export default function CartItems() {
               </span>
             ) : (
               <span className="flex items-center">
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {selectedCountry.code === 'IN' ? 'Proceed to Payment' : 'Complete Order'}
+                <CheckCircle2 className="mr-2 h-5 w-5" />
+                Confirm & Continue
               </span>
             )}
           </Button>

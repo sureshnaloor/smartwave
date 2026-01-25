@@ -10,6 +10,7 @@ import { Heart, ShoppingBag, Trash, Check } from "lucide-react"
 import Image from "next/image"
 import { useCountry } from '@/context/CountryContext';
 import { currencyConfig } from '@/lib/currencyConfig';
+import { useCart } from '@/context/CartContext';
 
 interface WishlistItem {
   productId: string
@@ -105,6 +106,7 @@ function WishlistItemRow({
 export default function WishlistItems() {
   const router = useRouter()
   const { selectedCountry } = useCountry();
+  const { refreshCart } = useCart();
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -183,6 +185,9 @@ export default function WishlistItems() {
       
       // Update local cart state
       setCartItems(updatedCart)
+      
+      // Refresh cart context to update header badge
+      await refreshCart()
       
       // Remove from wishlist
       const updatedWishlist = wishlistItems.filter(wishlistItem => 

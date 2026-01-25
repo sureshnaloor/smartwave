@@ -62,16 +62,13 @@ export default async function PaymentPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-xl font-bold mb-6 text-gray-900 dark:text-white px-4">Complete Payment</h1>
       <Suspense fallback={<div className="w-full h-64 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-smart-teal"></div>
       </div>}>
-        <div className="text-center">
-          <Checkoutcomponent
-            orderId={checkoutOrderId}
-            cartItems={cartItems}
-          />
-        </div>
+        <Checkoutcomponent
+          orderId={checkoutOrderId}
+          cartItems={cartItems}
+        />
       </Suspense>
     </div>
   )
