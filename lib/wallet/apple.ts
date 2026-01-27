@@ -85,10 +85,14 @@ export async function generateApplePass(user: ProfileData) {
         // Load images if they exist in the certs directory (including high-res variations)
         const imageNames = ["icon.png", "logo.png", "strip.png", "icon@2x.png", "logo@2x.png", "strip@2x.png", "icon@3x.png", "logo@3x.png", "strip@3x.png"];
 
+        console.log("Loading images from:", certsDir);
         for (const name of imageNames) {
             const imgPath = path.join(certsDir, name);
             if (fs.existsSync(imgPath)) {
+                console.log(`- Added image: ${name}`);
                 pass.addBuffer(name, fs.readFileSync(imgPath));
+            } else if (name === "icon.png") {
+                console.error(`- CRITICAL: Missing required image: ${name} at ${imgPath}`);
             }
         }
 
