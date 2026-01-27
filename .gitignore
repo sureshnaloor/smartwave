@@ -41,10 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# wallet certificates and secrets (ignore certs but keep images)
-/lib/wallet/certs/*.pem
-/lib/wallet/certs/*.p12
-/lib/wallet/certs/*.txt
+# wallet certificates and secrets (moved assets to public/wallet)
+/lib/wallet/certs/
 *.json
 !package.json
 !package-lock.json

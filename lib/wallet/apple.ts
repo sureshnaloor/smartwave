@@ -7,6 +7,7 @@ import { ProfileData } from "@/app/_actions/profile";
 export async function generateApplePass(user: ProfileData) {
     try {
         const certsDir = path.join(process.cwd(), "lib/wallet/certs");
+        const imageDir = path.join(process.cwd(), "public/wallet");
 
         // Check if certificates exist as files or in environment variables
         let wwdr, signerCert, signerKey;
@@ -85,9 +86,9 @@ export async function generateApplePass(user: ProfileData) {
         // Load images if they exist in the certs directory (including high-res variations)
         const imageNames = ["icon.png", "logo.png", "strip.png", "icon@2x.png", "logo@2x.png", "strip@2x.png", "icon@3x.png", "logo@3x.png", "strip@3x.png"];
 
-        console.log("Loading images from:", certsDir);
+        console.log("Loading images from:", imageDir);
         for (const name of imageNames) {
-            const imgPath = path.join(certsDir, name);
+            const imgPath = path.join(imageDir, name);
             if (fs.existsSync(imgPath)) {
                 console.log(`- Added image: ${name}`);
                 pass.addBuffer(name, fs.readFileSync(imgPath));
