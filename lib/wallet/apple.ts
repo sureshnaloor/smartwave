@@ -38,33 +38,39 @@ export async function generateApplePass(user: ProfileData) {
             throw new Error("Apple Wallet certificates missing (not found as files or environment variables)");
         }
 
-        // Create a new pass
-        const pass = new PKPass({}, {
+        // Prepare certificates
+        const certificates = {
             wwdr,
             signerCert,
             signerKey,
-            signerKeyPassphrase: password,
-        }, {
+            ...(password ? { signerKeyPassphrase: password } : {}),
+        };
+
+        // Create a new pass
+        const pass = new PKPass({}, certificates as any, {
             organizationName: "SmartWave",
             description: `${user.name}'s Business Card`,
             foregroundColor: "rgb(255, 255, 255)",
             backgroundColor: "rgb(0, 0, 0)",
             labelColor: "rgb(200, 200, 200)",
             sharingProhibited: false,
-            serialNumber: (user._id?.toString() || Math.random().toString(36).substring(7)) + "_v2",
+            serialNumber: `${user._id?.toString() || Math.random().toString(36).substring(7)}_${Date.now()}`,
+            passTypeIdentifier: "pass.com.smartwave.card",
+            teamIdentifier: "943Y3M5QVZ",
         });
 
         // Set pass type
         pass.type = "generic";
 
-        // Load images if they exist in the certs directory
-        const iconPath = path.join(certsDir, "icon.png");
-        const logoPath = path.join(certsDir, "logo.png");
-        const stripPath = path.join(certsDir, "strip.png");
+        // Load images if they exist in the certs directory (including high-res variations)
+        const imageNames = ["icon.png", "logo.png", "strip.png", "icon@2x.png", "logo@2x.png", "strip@2x.png", "icon@3x.png", "logo@3x.png", "strip@3x.png"];
 
-        if (fs.existsSync(iconPath)) pass.addBuffer("icon.png", fs.readFileSync(iconPath));
-        if (fs.existsSync(logoPath)) pass.addBuffer("logo.png", fs.readFileSync(logoPath));
-        if (fs.existsSync(stripPath)) pass.addBuffer("strip.png", fs.readFileSync(stripPath));
+        for (const name of imageNames) {
+            const imgPath = path.join(certsDir, name);
+            if (fs.existsSync(imgPath)) {
+                pass.addBuffer(name, fs.readFileSync(imgPath));
+            }
+        }
 
         // Use user's photo as thumbnail if available
         if (user.photo) {
