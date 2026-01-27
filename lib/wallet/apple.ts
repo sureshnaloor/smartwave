@@ -38,13 +38,33 @@ export async function generateApplePass(user: ProfileData) {
             throw new Error("Apple Wallet certificates missing (not found as files or environment variables)");
         }
 
+        // Helper to convert Buffer to string and extract pure PEM block
+        const toPemString = (buf: Buffer | string) => {
+            const str = buf.toString();
+            // Look for Certificate blocks
+            const certMatch = str.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
+            if (certMatch) return certMatch[0];
+
+            // Look for Private Key blocks (including RSA specific or PKCS#8)
+            const keyMatch = str.match(/-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA )?PRIVATE KEY-----/);
+            if (keyMatch) return keyMatch[0];
+
+            return buf;
+        };
+
         // Prepare certificates
         const certificates = {
-            wwdr,
-            signerCert,
-            signerKey,
+            wwdr: toPemString(wwdr),
+            signerCert: toPemString(signerCert),
+            signerKey: toPemString(signerKey),
             ...(password ? { signerKeyPassphrase: password } : {}),
         };
+
+        // Log certificate formats for debugging (first 30 chars)
+        console.log("Certificate diagnostics:");
+        console.log("- WWDR starts with:", wwdr.toString().substring(0, 30).replace(/\n/g, "\\n"));
+        console.log("- SignerCert starts with:", signerCert.toString().substring(0, 30).replace(/\n/g, "\\n"));
+        console.log("- SignerKey starts with:", signerKey.toString().substring(0, 30).replace(/\n/g, "\\n"));
 
         // Create a new pass
         const pass = new PKPass({}, certificates as any, {
