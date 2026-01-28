@@ -53,9 +53,9 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
 
     if (!userEmail || typeof userEmail !== 'string' || userEmail.trim() === '') {
       // console.error('Invalid userEmail in saveProfile:', { userEmail });
-      return { 
-        success: false, 
-        error: 'User email is required' 
+      return {
+        success: false,
+        error: 'User email is required'
       };
     }
 
@@ -77,7 +77,7 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       // console.log('Updating existing profile for user:', userEmail);
       await db.collection('profiles').updateOne(
         { userEmail },
-        { 
+        {
           $set: profileData,
           $setOnInsert: { createdAt: now }
         }
@@ -90,8 +90,24 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
         isPremium: false
       });
     }
-    // Avoid triggering app-wide refreshes during client-side autosave.
-    // If needed, revalidation can be reintroduced via tags or scoped routes.
+
+    // Trigger Google Wallet update
+    console.log(`[Profile Action] Save successful for ${userEmail}. Triggering Google Wallet update...`);
+    try {
+      const updatedProfile = await getProfile(userEmail);
+      if (updatedProfile) {
+        console.log(`[Profile Action] Profile found. Calling update...`);
+        const { updateGoogleWalletObject } = await import('@/lib/wallet/google');
+        updateGoogleWalletObject(updatedProfile).catch(err =>
+          console.error('[Profile Action] Background Google Wallet update failed:', err)
+        );
+      } else {
+        console.warn(`[Profile Action] Profile NOT found for update.`);
+      }
+    } catch (walletErr) {
+      console.error('[Profile Action] Error initiating Google Wallet update:', walletErr);
+    }
+
     return { success: true };
   } catch (error) {
     // console.error('Profile save error:', {
@@ -99,9 +115,9 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
     //   userEmail,
     //   stack: error instanceof Error ? error.stack : undefined
     // });
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to save profile' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to save profile'
     };
   }
 }
@@ -115,10 +131,10 @@ export async function getProfile(userEmail: string): Promise<ProfileData | null>
 
     const client = await clientPromise;
     const db = client.db('smartwave');
-    
+
     // console.log(`Fetching profile for user: ${userEmail}`);
     const profile = await db.collection('profiles').findOne({ userEmail });
-    
+
     if (!profile) {
       // console.log(`No profile found for user: ${userEmail}`);
       return null;
@@ -137,7 +153,7 @@ export async function deleteProfile(userEmail: string) {
   try {
     const client = await clientPromise;
     const db = client.db('smartwave');
-    
+
     await db.collection('profiles').deleteOne({ userEmail });
     revalidatePath('/dashboard');
     return { success: true };
@@ -151,10 +167,10 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
   try {
     const client = await clientPromise;
     const db = client.db('smartwave');
-    
+
     // console.log(`Fetching profile by shortURL: ${shorturl}`);
     const profile = await db.collection('profiles').findOne({ shorturl });
-    
+
     if (!profile) {
       // console.log(`No profile found for shortURL: ${shorturl}`);
       return null;
@@ -172,7 +188,7 @@ export async function generateAndUpdateShortUrl(userEmail: string) {
   try {
     const client = await clientPromise;
     const db = client.db('smartwave');
-    
+
     // Get the user's profile
     const profile = await db.collection('profiles').findOne({ userEmail });
     if (!profile) {

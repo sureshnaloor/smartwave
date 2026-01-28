@@ -69,7 +69,8 @@ export async function generateApplePass(user: ProfileData) {
 
         // Create a new pass
         const pass = new PKPass({}, certificates as any, {
-            organizationName: "SmartWave",
+            organizationName: user.company || "SmartWave",
+            logoText: "Digital Card",
             description: `${user.name}'s Business Card`,
             foregroundColor: "rgb(255, 255, 255)",
             backgroundColor: "rgb(0, 0, 0)",
@@ -83,19 +84,43 @@ export async function generateApplePass(user: ProfileData) {
         // Set pass type
         pass.type = "generic";
 
-        // Load images if they exist in the certs directory (including high-res variations)
+        // Fetch company logo first if available
+        let companyLogoBuffer: Buffer | null = null;
+        if (user.companyLogo) {
+            try {
+                const response = await fetch(user.companyLogo);
+                if (response.ok) {
+                    companyLogoBuffer = Buffer.from(await response.arrayBuffer());
+                    console.log("- Successfully fetched company logo");
+                }
+            } catch (err) {
+                console.error("Could not fetch company logo:", err);
+            }
+        }
+
+        // Load images
         const imageNames = ["icon.png", "logo.png", "strip.png", "icon@2x.png", "logo@2x.png", "strip@2x.png", "icon@3x.png", "logo@3x.png", "strip@3x.png"];
 
         console.log("Loading images from:", imageDir);
         for (const name of imageNames) {
             const imgPath = path.join(imageDir, name);
-            if (fs.existsSync(imgPath)) {
-                console.log(`- Added image: ${name}`);
+            if (name.startsWith("logo") && companyLogoBuffer) {
+                // Use fetched company logo instead of disk logo
+                pass.addBuffer(name, companyLogoBuffer);
+                console.log(`- Added company logo buffer for ${name}`);
+            } else if (fs.existsSync(imgPath)) {
+                console.log(`- Added image from disk: ${name}`);
                 pass.addBuffer(name, fs.readFileSync(imgPath));
             } else if (name === "icon.png") {
                 console.error(`- CRITICAL: Missing required image: ${name} at ${imgPath}`);
             }
         }
+
+        // Add SmartWave branding to the top right (header field)
+        pass.headerFields.push({
+            key: "brand",
+            value: "SmartWave",
+        });
 
         // Use user's photo as thumbnail if available
         if (user.photo) {

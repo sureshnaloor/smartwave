@@ -15,15 +15,17 @@ type Props = {
 
 export default function MyProfileSidebar({ profile }: Props) {
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
+  const [initialShortUrl, setInitialShortUrl] = useState(profile?.shorturl);
 
   const handleGenerateShortUrl = async () => {
     if (!profile) return;
     try {
       setIsGeneratingUrl(true);
       const result = await generateAndUpdateShortUrl(profile.userEmail);
-      if (result.success) {
+      if (result.success && result.shorturl) {
         toast.success("Short URL generated successfully!");
-        // Force page reload to update the profile data
+        setInitialShortUrl(result.shorturl);
+        // We still reload to sync everything, but the state update above handles immediate UI
         window.location.reload();
       } else {
         toast.error(result.error || "Failed to generate short URL");
@@ -36,6 +38,10 @@ export default function MyProfileSidebar({ profile }: Props) {
   };
 
   if (!profile) return null;
+
+  // Use either the passed shorturl (from preview/edit) or the one we know exists
+  const activeShortUrl = profile.shorturl || initialShortUrl;
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
@@ -43,9 +49,14 @@ export default function MyProfileSidebar({ profile }: Props) {
         <DigitalCard user={profile} />
       </div>
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
-        <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Generate Shareable Link</div>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">Create a shareable short URL for your digital profile.</p>
-        {!profile.shorturl ? (
+        <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Shareable Profile</div>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+          {activeShortUrl
+            ? "Your profile is live! Share this link with others."
+            : "Create a shareable short URL for your digital profile."
+          }
+        </p>
+        {!activeShortUrl ? (
           <Button
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
             onClick={handleGenerateShortUrl}
@@ -57,7 +68,7 @@ export default function MyProfileSidebar({ profile }: Props) {
         ) : (
           <Button
             className="w-full bg-gradient-to-r from-green-600 to-cyan-500 text-white"
-            onClick={() => window.open(`/publicprofile/${profile.shorturl}`, '_blank')}
+            onClick={() => window.open(`/publicprofile/${activeShortUrl}`, '_blank')}
           >
             <Link className="h-4 w-4 mr-2" />
             Share Profile
