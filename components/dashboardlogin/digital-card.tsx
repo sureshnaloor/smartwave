@@ -792,16 +792,18 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {(os === "ios" || os === "other") && (
-          <Button
-            className="flex-1 h-12 bg-black hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
-            onClick={() => window.open("/api/wallet/apple", "_blank")}
+          <a
+            href={user.shorturl ? `/api/wallet/apple?shorturl=${user.shorturl}` : "/api/wallet/apple"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 h-12 bg-black hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 no-underline decoration-0"
           >
-            <Wallet className="h-5 w-5" />
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-[10px] opacity-70">Add to</span>
+            <Wallet className="h-5 w-5 text-white" />
+            <div className="flex flex-col items-start leading-none text-white">
+              <span className="text-[10px] opacity-70 uppercase font-bold tracking-wider">Add to</span>
               <span className="text-base font-semibold">Apple Wallet</span>
             </div>
-          </Button>
+          </a>
         )}
 
         {(os === "android" || os === "other") && (

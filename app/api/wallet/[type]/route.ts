@@ -47,17 +47,24 @@ export async function GET(
 
         if (type === "apple") {
             try {
+                console.log(`[Wallet API] Generating Apple Pass for ${profile.userEmail}...`);
                 const buffer = await generateApplePass(profile);
-                return new NextResponse(new Uint8Array(buffer), {
+
+                console.log(`[Wallet API] Sending Apple Pass response (${buffer.length} bytes)`);
+
+                return new NextResponse(buffer as any, {
+                    status: 200,
                     headers: {
                         "Content-Type": "application/vnd.apple.pkpass",
                         "Content-Disposition": 'attachment; filename="smartwave.pkpass"',
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
                     },
                 });
             } catch (err) {
-                return new NextResponse(
-                    JSON.stringify({ error: (err as Error).message }),
-                    { status: 500, headers: { "Content-Type": "application/json" } }
+                console.error("[Wallet API] Apple Pass error:", err);
+                return NextResponse.json(
+                    { error: (err as Error).message },
+                    { status: 500 }
                 );
             }
         } else if (type === "google") {

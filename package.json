@@ -45,6 +45,7 @@
     "next": "^14.2.33",
     "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.0",
+    "node-apn": "^3.0.0",
     "passkit-generator": "^3.5.7",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",

@@ -91,21 +91,29 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       });
     }
 
-    // Trigger Google Wallet update
-    console.log(`[Profile Action] Save successful for ${userEmail}. Triggering Google Wallet update...`);
+    // Trigger Wallet updates
+    console.log(`[Profile Action] Save successful for ${userEmail}. Triggering Wallet updates...`);
     try {
       const updatedProfile = await getProfile(userEmail);
       if (updatedProfile) {
-        console.log(`[Profile Action] Profile found. Calling update...`);
+        console.log(`[Profile Action] Profile found. Calling updates...`);
+
+        // Google Wallet update
         const { updateGoogleWalletObject } = await import('@/lib/wallet/google');
         updateGoogleWalletObject(updatedProfile).catch(err =>
           console.error('[Profile Action] Background Google Wallet update failed:', err)
+        );
+
+        // Apple Wallet update
+        const { sendApplePushNotification } = await import('@/lib/wallet/push');
+        sendApplePushNotification(userEmail).catch(err =>
+          console.error('[Profile Action] Background Apple Wallet update failed:', err)
         );
       } else {
         console.warn(`[Profile Action] Profile NOT found for update.`);
       }
     } catch (walletErr) {
-      console.error('[Profile Action] Error initiating Google Wallet update:', walletErr);
+      console.error('[Profile Action] Error initiating Wallet updates:', walletErr);
     }
 
     return { success: true };

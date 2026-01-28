@@ -67,6 +67,19 @@ export async function generateApplePass(user: ProfileData) {
         console.log("- SignerCert starts with:", signerCert.toString().substring(0, 30).replace(/\n/g, "\\n"));
         console.log("- SignerKey starts with:", signerKey.toString().substring(0, 30).replace(/\n/g, "\\n"));
 
+        // Use a stable serial number and authentication token for updates
+        const userId = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
+        const authenticationToken = process.env.APPLE_PASS_AUTH_TOKEN || "smartwave_secret_token_" + userId;
+        const rawWebServiceURL = `${process.env.NEXTAUTH_URL || 'https://smartwave.name'}/api/wallet`;
+
+        // IMPORTANT: Apple Wallet updates ONLY work over HTTPS. 
+        // If we are on localhost/HTTP, including this URL will cause the pass to fail silently.
+        const webServiceURL = rawWebServiceURL.startsWith('https') ? rawWebServiceURL : undefined;
+
+        if (!webServiceURL) {
+            console.warn("[Apple Pass] webServiceURL skipped because it is not HTTPS. Automatic updates will be disabled.");
+        }
+
         // Create a new pass
         const pass = new PKPass({}, certificates as any, {
             organizationName: user.company || "SmartWave",
@@ -76,9 +89,10 @@ export async function generateApplePass(user: ProfileData) {
             backgroundColor: "rgb(0, 0, 0)",
             labelColor: "rgb(200, 200, 200)",
             sharingProhibited: false,
-            serialNumber: `${user._id?.toString() || Math.random().toString(36).substring(7)}_${Date.now()}`,
+            serialNumber: userId,
             passTypeIdentifier: "pass.com.smartwave.card",
             teamIdentifier: "943Y3M5QVZ",
+            ...(webServiceURL ? { webServiceURL, authenticationToken } : {}),
         });
 
         // Set pass type
@@ -197,7 +211,9 @@ export async function generateApplePass(user: ProfileData) {
             altText: "Scan to view profile"
         });
 
-        return pass.getAsBuffer();
+        const passBuffer = await pass.getAsBuffer();
+        console.log(`[Apple Pass] Generated buffer of size: ${passBuffer.length}`);
+        return passBuffer;
     } catch (error) {
         console.error("Error generating Apple Pass:", error);
         throw error;
