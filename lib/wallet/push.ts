@@ -1,7 +1,7 @@
 import apn from "node-apn";
 import path from "path";
 import fs from "fs";
-import { getRegistrationsByUser } from "./db";
+import { getRegistrationsByUser, updateRegistrationsTimestamp } from "./db";
 
 export async function sendApplePushNotification(userEmail: string) {
     try {
@@ -10,6 +10,9 @@ export async function sendApplePushNotification(userEmail: string) {
             console.log(`[Apple Push] No registered devices for user: ${userEmail}`);
             return;
         }
+
+        // Update timestamps so that when the device asks for updates, it finds the record
+        await updateRegistrationsTimestamp(userEmail);
 
         const certsDir = path.join(process.cwd(), "lib/wallet/certs");
         const signerKeyPath = path.join(certsDir, "signerKey.pem");

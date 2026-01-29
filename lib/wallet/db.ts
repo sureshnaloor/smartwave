@@ -56,3 +56,14 @@ export async function getRegistrationsByUser(userEmail: string) {
 
     return await db.collection("wallet_registrations").find({ userEmail }).toArray();
 }
+
+export async function updateRegistrationsTimestamp(userEmail: string) {
+    console.log(`[DB] Updating registration timestamps for user: ${userEmail}`);
+    const client = await clientPromise;
+    const db = client.db("smartwave");
+
+    await db.collection("wallet_registrations").updateMany(
+        { userEmail },
+        { $set: { updatedAt: new Date() } }
+    );
+}
