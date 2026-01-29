@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import { ProfileData } from "@/app/_actions/profile";
 
-export async function generateApplePass(user: ProfileData) {
+export async function generateApplePass(user: ProfileData, host?: string) {
     try {
         const certsDir = path.join(process.cwd(), "lib/wallet/certs");
         const imageDir = path.join(process.cwd(), "public/wallet");
@@ -76,8 +76,13 @@ export async function generateApplePass(user: ProfileData) {
         const userId = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
         const authenticationToken = process.env.APPLE_PASS_AUTH_TOKEN || "smartwave_secret_token_" + userId;
 
-        // Remove trailing slash if present
-        const baseUrl = (process.env.NEXTAUTH_URL || 'https://smartwave.name').replace(/\/$/, "");
+        // Use dynamic host if provided, otherwise fallback to .env
+        let baseUrl = (process.env.NEXTAUTH_URL || 'https://smartwave.name').replace(/\/$/, "");
+        if (host) {
+            const protocol = host.includes("localhost") ? "http" : "https";
+            baseUrl = `${protocol}://${host}`;
+        }
+
         const rawWebServiceURL = `${baseUrl}/api/wallet`;
 
         // IMPORTANT: Apple Wallet updates ONLY work over HTTPS. 

@@ -49,10 +49,12 @@ export async function GET(
             try {
                 console.log(`[Wallet API] Generating Apple Pass for ${profile.userEmail}...`);
                 const userId = profile._id?.toString() || "manual_id";
-                const webUrl = `${process.env.NEXTAUTH_URL || 'https://smartwave.name'}/api/wallet`;
+                const host = req.headers.get("host") || "www.smartwave.name";
+                const protocol = host.includes("localhost") ? "http" : "https";
+                const webUrl = `${protocol}://${host}/api/wallet`;
                 console.log(`[Wallet API] DEBUG - webServiceURL: ${webUrl}, serialNumber: ${userId}`);
 
-                const buffer = await generateApplePass(profile);
+                const buffer = await generateApplePass(profile, host);
 
                 console.log(`[Wallet API] Sending Apple Pass response (${buffer.length} bytes)`);
 
