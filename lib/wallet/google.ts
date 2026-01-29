@@ -32,7 +32,7 @@ function createGenericObject(user: ProfileData, issuerId: string) {
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         barcode: {
             type: "QR_CODE",
-            value: user.shorturl ? `https://smartwave.name/publicprofile/${user.shorturl}` : `https://smartwave.name/profile/${user.userEmail}`,
+            value: user.shorturl ? `https://www.smartwave.name/publicprofile/${user.shorturl}` : `https://www.smartwave.name/profile/${user.userEmail}`,
             alternateText: "Scan to view profile"
         },
         cardTitle: {

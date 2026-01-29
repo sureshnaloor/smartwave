@@ -76,11 +76,15 @@ export async function generateApplePass(user: ProfileData, host?: string) {
         const userId = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
         const authenticationToken = process.env.APPLE_PASS_AUTH_TOKEN || "smartwave_secret_token_" + userId;
 
-        // Use dynamic host if provided, otherwise fallback to .env
-        let baseUrl = (process.env.NEXTAUTH_URL || 'https://smartwave.name').replace(/\/$/, "");
-        if (host) {
-            const protocol = host.includes("localhost") ? "http" : "https";
-            baseUrl = `${protocol}://${host}`;
+        // For production, ALWAYS use www.smartwave.name to avoid redirects from smartwave.name to www.smartwave.name
+        // because Apple Wallet strips the Authorization header on redirects.
+        let baseUrl = 'https://www.smartwave.name';
+
+        if (host && host.includes("localhost")) {
+            baseUrl = `http://${host}`;
+        } else if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes("smartwave.name")) {
+            // Fallback for other environments (preview branches etc)
+            baseUrl = process.env.NEXTAUTH_URL.replace(/\/$/, "");
         }
 
         const rawWebServiceURL = `${baseUrl}/api/wallet`;
