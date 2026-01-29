@@ -104,14 +104,14 @@ export async function updateGoogleWalletObject(user: ProfileData) {
 
         const walletobjects = google.walletobjects({ version: 'v1', auth });
 
-        console.log(`[Google Wallet] Attempting update for object ID: ${genericObject.id}`);
+        console.log(`[Google Wallet] Patching ID: ${genericObject.id} for user: ${user.name} (${user.company || 'No Company'})`);
 
         const response = await walletobjects.genericObject.patch({
             resourceId: genericObject.id,
             requestBody: genericObject
         });
 
-        console.log("[Google Wallet] Update successful. Status:", response.status);
+        console.log("[Google Wallet] API Response Status:", response.status);
         return { success: true };
     } catch (error: any) {
         console.error("[Google Wallet] Update failed.");

@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { registerDevice, unregisterDevice } from "@/lib/wallet/db";
 import { verifyAuthToken, getProfileBySerialNumber } from "@/lib/wallet/api-helpers";
 
-// POST v1/devices/{deviceLibraryIdentifier}/registrations/{passTypeIdentifier}/{serialNumber}
 export async function POST(
     req: NextRequest,
     { params }: { params: { deviceId: string, passType: string, serialNumber: string } }
 ) {
+    console.log(`[Apple Wallet API] POST Registration attempt: deviceId=${params.deviceId}, serialNumber=${params.serialNumber}`);
     try {
         const { deviceId, passType, serialNumber } = params;
 

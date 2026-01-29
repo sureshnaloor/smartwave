@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        console.log("[Apple Wallet Device Log]:", JSON.stringify(body, null, 2));
+        console.log("-----------------------------------------");
+        console.log("[Apple Wallet DEVICE ERROR LOG]:", JSON.stringify(body, null, 2));
+        console.log("-----------------------------------------");
         return new NextResponse(null, { status: 200 });
     } catch (error) {
         return new NextResponse(null, { status: 500 });

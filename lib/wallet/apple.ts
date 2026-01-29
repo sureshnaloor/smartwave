@@ -61,23 +61,32 @@ export async function generateApplePass(user: ProfileData) {
             ...(password ? { signerKeyPassphrase: password } : {}),
         };
 
-        // Log certificate formats for debugging (first 30 chars)
+        const certInfo = (name: string, buf: Buffer | string) => {
+            const str = buf.toString();
+            const hasPem = str.includes("-----BEGIN");
+            return `${name}: ${hasPem ? "PEM detected" : "No PEM block"} (starts with: ${str.substring(0, 40).replace(/\n/g, "\\n")}...)`;
+        };
+
         console.log("Certificate diagnostics:");
-        console.log("- WWDR starts with:", wwdr.toString().substring(0, 30).replace(/\n/g, "\\n"));
-        console.log("- SignerCert starts with:", signerCert.toString().substring(0, 30).replace(/\n/g, "\\n"));
-        console.log("- SignerKey starts with:", signerKey.toString().substring(0, 30).replace(/\n/g, "\\n"));
+        console.log("- " + certInfo("WWDR", wwdr));
+        console.log("- " + certInfo("SignerCert", signerCert));
+        console.log("- " + certInfo("SignerKey", signerKey));
 
         // Use a stable serial number and authentication token for updates
         const userId = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
         const authenticationToken = process.env.APPLE_PASS_AUTH_TOKEN || "smartwave_secret_token_" + userId;
-        const rawWebServiceURL = `${process.env.NEXTAUTH_URL || 'https://smartwave.name'}/api/wallet`;
+
+        // Remove trailing slash if present
+        const baseUrl = (process.env.NEXTAUTH_URL || 'https://smartwave.name').replace(/\/$/, "");
+        const rawWebServiceURL = `${baseUrl}/api/wallet`;
 
         // IMPORTANT: Apple Wallet updates ONLY work over HTTPS. 
-        // If we are on localhost/HTTP, including this URL will cause the pass to fail silently.
         const webServiceURL = rawWebServiceURL.startsWith('https') ? rawWebServiceURL : undefined;
 
         if (!webServiceURL) {
-            console.warn("[Apple Pass] webServiceURL skipped because it is not HTTPS. Automatic updates will be disabled.");
+            console.warn(`[Apple Pass] webServiceURL SKIPPED (not HTTPS): ${rawWebServiceURL}`);
+        } else {
+            console.log(`[Apple Pass] webServiceURL INCLUDED: ${webServiceURL}`);
         }
 
         // Create a new pass
