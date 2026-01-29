@@ -26,6 +26,18 @@ function createGenericObject(user: ProfileData, issuerId: string) {
     const userIdentifier = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
     const objectId = `${issuerId}.${userIdentifier}`;
 
+    // Cache-busting for images - append a timestamp if available
+    const timeTag = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now();
+    const addCacheBuster = (url: string) => {
+        if (!url) return url;
+        try {
+            const separator = url.includes('?') ? '&' : '?';
+            return `${url}${separator}v=${timeTag}`;
+        } catch (e) {
+            return url;
+        }
+    };
+
     return {
         id: objectId,
         classId: `${issuerId}.${classId}`,
@@ -55,12 +67,12 @@ function createGenericObject(user: ProfileData, issuerId: string) {
         },
         logo: user.companyLogo ? {
             sourceUri: {
-                uri: user.companyLogo
+                uri: addCacheBuster(user.companyLogo)
             }
         } : undefined,
         heroImage: user.photo ? {
             sourceUri: {
-                uri: user.photo
+                uri: addCacheBuster(user.photo)
             }
         } : undefined,
         textModulesData: [
@@ -68,6 +80,14 @@ function createGenericObject(user: ProfileData, issuerId: string) {
             { header: "Mobile", body: user.mobile || "N/A", id: "mobile" },
             { header: "Work Email", body: user.workEmail || "N/A", id: "work_email" },
             { header: "Personal Email", body: user.personalEmail || "N/A", id: "personal_email" }
+        ],
+        // Adding a message can help trigger a sync/notification on the device
+        messages: [
+            {
+                header: "Card Updated",
+                body: `Your digital card was updated on ${new Date(user.updatedAt || Date.now()).toLocaleDateString()}`,
+                id: "update_notification"
+            }
         ]
     };
 }
@@ -104,9 +124,10 @@ export async function updateGoogleWalletObject(user: ProfileData) {
 
         const walletobjects = google.walletobjects({ version: 'v1', auth });
 
-        console.log(`[Google Wallet] Patching ID: ${genericObject.id} for user: ${user.name} (${user.company || 'No Company'})`);
+        console.log(`[Google Wallet] Updating ID: ${genericObject.id} for user: ${user.name}`);
 
-        const response = await walletobjects.genericObject.patch({
+        // Use update (PUT) instead of patch to ensure full resource synchronization
+        const response = await walletobjects.genericObject.update({
             resourceId: genericObject.id,
             requestBody: genericObject
         });
@@ -118,6 +139,12 @@ export async function updateGoogleWalletObject(user: ProfileData) {
         if (error.response) {
             console.error("- Status:", error.response.status);
             console.error("- Data:", JSON.stringify(error.response.data, null, 2));
+
+            // If the object doesn't exist yet (404), that's expected if the user hasn't added it.
+            if (error.response.status === 404) {
+                console.log("[Google Wallet] Object not found. This is normal if the user hasn't saved the pass yet.");
+                return { success: true, warning: "Object not found" };
+            }
         } else {
             console.error("- Error message:", error.message);
         }
