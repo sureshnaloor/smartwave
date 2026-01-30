@@ -71,7 +71,7 @@ function createWalletObject(user: ProfileData, issuerId: string) {
         subheader: {
             defaultValue: {
                 language: "en-US",
-                value: user.title || "User"
+                value: [user.title, user.company].filter(Boolean).join(" · ") || "User"
             }
         },
         logo: user.companyLogo ? {
@@ -85,7 +85,6 @@ function createWalletObject(user: ProfileData, issuerId: string) {
             }
         } : undefined,
         textModulesData: [
-            { header: "Company", body: user.company || "N/A", id: "company" },
             { header: "Work Phone", body: user.workPhone || "N/A", id: "work_phone" },
             { header: "Mobile", body: user.mobile || "N/A", id: "mobile" },
             { header: "Work Email", body: user.workEmail || "N/A", id: "work_email" },

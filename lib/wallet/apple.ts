@@ -98,14 +98,14 @@ export async function generateApplePass(user: ProfileData, host?: string) {
             console.log(`[Apple Pass] webServiceURL INCLUDED: ${webServiceURL}`);
         }
 
-        // Create a new pass
+        // Create a new pass – modern dark theme with clean typography
         const pass = new PKPass({}, certificates as any, {
             organizationName: user.company || "SmartWave",
             logoText: "Digital Card",
             description: `${user.name}'s Business Card`,
             foregroundColor: "rgb(255, 255, 255)",
             backgroundColor: "rgb(0, 0, 0)",
-            labelColor: "rgb(200, 200, 200)",
+            labelColor: "rgb(160, 160, 165)",
             sharingProhibited: false,
             serialNumber: userId,
             passTypeIdentifier: "pass.com.smartwave.card",
@@ -167,7 +167,7 @@ export async function generateApplePass(user: ProfileData, host?: string) {
             }
         }
 
-        // Add fields using getters
+        // Primary: name. Secondary: job title · company. Auxiliary (below QR area): work phone, mobile, work email.
         pass.primaryFields.push({
             key: "name",
             label: "NAME",
@@ -176,7 +176,7 @@ export async function generateApplePass(user: ProfileData, host?: string) {
 
         pass.secondaryFields.push({
             key: "title",
-            label: "TITLE",
+            label: "JOB TITLE",
             value: user.title || "",
         });
         pass.secondaryFields.push({
@@ -185,54 +185,65 @@ export async function generateApplePass(user: ProfileData, host?: string) {
             value: user.company || "",
         });
 
+        // Neat row below primary/secondary: work phone, mobile, company email (2–3 fields)
         pass.auxiliaryFields.push(
             {
                 key: "workPhone",
-                label: "WORK PHONE",
+                label: "WORK",
                 value: user.workPhone || "",
             },
             {
                 key: "mobile",
                 label: "MOBILE",
                 value: user.mobile || "",
-            }
-        );
-
-        pass.backFields.push(
-            {
-                key: "web_app",
-                label: "WEB APP (SIGN UP/PROFILE)",
-                value: "https://www.smartwave.name",
-            },
-            {
-                key: "mobile_app",
-                label: "MOBILE APP (COMING SOON)",
-                value: "https://www.smartwave.name/app",
             },
             {
                 key: "workEmail",
-                label: "WORK EMAIL",
+                label: "EMAIL",
+                value: user.workEmail || "",
+            }
+        );
+
+        // Back: catchy link CTAs first, then contact details. Apple controls font/size; we use labels + link detection.
+        pass.backFields.push(
+            {
+                key: "web_app",
+                label: "Open in Browser",
+                value: "https://www.smartwave.name",
+                dataDetectorTypes: ["PKDataDetectorTypeLink" as const],
+            },
+            {
+                key: "mobile_app",
+                label: "Get the App · Coming Soon",
+                value: "https://www.smartwave.name/app",
+                dataDetectorTypes: ["PKDataDetectorTypeLink" as const],
+            },
+            {
+                key: "workEmailBack",
+                label: "Work Email",
                 value: user.workEmail || "",
             },
             {
                 key: "personalEmail",
-                label: "PERSONAL EMAIL",
+                label: "Personal Email",
                 value: user.personalEmail || "",
             },
             {
-                key: "company",
-                label: "COMPANY",
+                key: "companyBack",
+                label: "Company",
                 value: user.company || "",
             },
             {
                 key: "website",
-                label: "WEBSITE",
+                label: "Website",
                 value: user.website || "",
+                ...(user.website ? { dataDetectorTypes: ["PKDataDetectorTypeLink" as const] } : {}),
             },
             {
                 key: "linkedin",
-                label: "LINKEDIN",
+                label: "LinkedIn",
                 value: user.linkedin || "",
+                ...(user.linkedin ? { dataDetectorTypes: ["PKDataDetectorTypeLink" as const] } : {}),
             }
         );
 

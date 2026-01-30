@@ -183,7 +183,13 @@ export function ProfileHeader({
             <h1 className="mb-3 text-5xl font-extrabold md:text-6xl drop-shadow-lg transition-all duration-300 group-hover:drop-shadow-2xl">
               {fullName}
             </h1>
-            {title && <p className="text-2xl text-white/95 mb-6 font-medium drop-shadow-md">{title}</p>}
+            {(title || company) && (
+              <p className="text-2xl text-white/95 mb-6 font-medium drop-shadow-md">
+                {title}
+                {title && company && <span className="text-white/80"> · </span>}
+                {company}
+              </p>
+            )}
             <div className="mb-2 inline-block transition-all duration-300 hover:scale-110">
               {logo && (
                 <Image
@@ -223,7 +229,13 @@ export function ProfileHeader({
           <h1 className="mb-3 text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent transition-all duration-300">
             {fullName}
           </h1>
-          {title && <p className="text-xl text-slate-600 dark:text-slate-400 mb-6 font-medium">{title}</p>}
+          {(title || company) && (
+            <p className="text-xl text-slate-600 dark:text-slate-400 mb-6 font-medium">
+              {title}
+              {title && company && <span className="text-slate-400 dark:text-slate-500"> · </span>}
+              {company}
+            </p>
+          )}
           <div className="mb-2 inline-block transition-all duration-300 hover:scale-110">
             {logo && (
               <Image
