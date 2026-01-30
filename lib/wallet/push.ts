@@ -35,7 +35,7 @@ export async function sendApplePushNotification(userEmail: string) {
             cert: cert,
             key: key,
             passphrase: process.env.APPLE_PASS_KEY_PASSWORD || "",
-            production: process.env.NODE_ENV === "production"
+            production: true // Apple Wallet certificates are typically production-type, even in development
         };
 
         const apnProvider = new apn.Provider(options);

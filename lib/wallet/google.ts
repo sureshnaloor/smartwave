@@ -9,7 +9,16 @@ function getCredentials() {
     let privateKey = process.env.GOOGLE_WALLET_PRIVATE_KEY;
 
     if (privateKey) {
-        privateKey = privateKey.replace(/^["'](.+)["']$/, '$1').replace(/\\n/g, '\n');
+        // Handle quotes, escaped newlines, and literal newlines.
+        privateKey = privateKey
+            .replace(/^["'](.+)["']$/, '$1')
+            .replace(/\\n/g, '\n')
+            .trim();
+
+        // Ensure it starts with the correct header if it's missing or mangled
+        if (!privateKey.includes("-----BEGIN PRIVATE KEY-----") && !privateKey.includes("-----BEGIN RSA PRIVATE KEY-----")) {
+            console.warn("[Google Wallet] Private key seems to be missing PEM headers.");
+        }
     }
 
     if (!issuerId || !serviceAccountEmail || !privateKey || privateKey.length < 50) {
@@ -19,7 +28,7 @@ function getCredentials() {
     return { issuerId, serviceAccountEmail, privateKey };
 }
 
-function createGenericObject(user: ProfileData, issuerId: string) {
+function createWalletObject(user: ProfileData, issuerId: string) {
     const classId = process.env.GOOGLE_WALLET_CLASS_ID || "SmartWaveGenericClass";
 
     // Ensure we have a stable ID. Use MongoDB ID if available, otherwise a stable hash of the email.
@@ -94,7 +103,7 @@ function createGenericObject(user: ProfileData, issuerId: string) {
 
 export function generateGoogleWalletUrl(user: ProfileData) {
     const { issuerId, serviceAccountEmail, privateKey } = getCredentials();
-    const genericObject = createGenericObject(user, issuerId);
+    const walletObject = createWalletObject(user, issuerId);
 
     const payload = {
         iss: serviceAccountEmail,
@@ -102,7 +111,7 @@ export function generateGoogleWalletUrl(user: ProfileData) {
         typ: "savetowallet",
         iat: Math.floor(Date.now() / 1000),
         payload: {
-            genericObjects: [genericObject]
+            genericObjects: [walletObject]
         }
     };
 
@@ -113,23 +122,27 @@ export function generateGoogleWalletUrl(user: ProfileData) {
 export async function updateGoogleWalletObject(user: ProfileData) {
     try {
         const { issuerId, serviceAccountEmail, privateKey } = getCredentials();
-        const genericObject = createGenericObject(user, issuerId);
+        const walletObject = createWalletObject(user, issuerId);
 
-        const auth = new google.auth.JWT(
-            serviceAccountEmail,
-            undefined,
-            privateKey,
-            ['https://www.googleapis.com/auth/wallet_object.issuer']
-        );
+        const auth = new google.auth.JWT({
+            email: serviceAccountEmail,
+            key: privateKey,
+            scopes: ['https://www.googleapis.com/auth/wallet_object.issuer']
+        });
 
-        const walletobjects = google.walletobjects({ version: 'v1', auth });
+        // Diagnostic log (safe) - Helps verify if credentials are even present
+        const keySnippet = privateKey.substring(0, 30).replace(/\n/g, '\\n');
+        console.log(`[Google Wallet] JWT Auth initializing. Key starts with: ${keySnippet}...`);
 
-        console.log(`[Google Wallet] Updating ID: ${genericObject.id} for user: ${user.name}`);
+        const walletobjects = google.walletobjects({ version: 'v1' });
 
-        // Use update (PUT) instead of patch to ensure full resource synchronization
-        const response = await walletobjects.genericObject.update({
-            resourceId: genericObject.id,
-            requestBody: genericObject
+        console.log(`[Google Wallet] Updating ID: ${walletObject.id} for user: ${user.name}`);
+
+        // Perform the update call, explicitly passing the auth object
+        const response = await walletobjects.genericobject.update({
+            resourceId: walletObject.id,
+            requestBody: walletObject,
+            auth: auth as any // Explicitly pass auth to the method call
         });
 
         console.log("[Google Wallet] API Response Status:", response.status);

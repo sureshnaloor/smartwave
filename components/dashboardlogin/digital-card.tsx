@@ -809,7 +809,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         {(os === "android" || os === "other") && (
           <Button
             className="flex-1 h-12 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
-            onClick={() => window.open("/api/wallet/google", "_blank")}
+            onClick={() => window.open(user.shorturl ? `/api/wallet/google?shorturl=${user.shorturl}` : "/api/wallet/google", "_blank")}
           >
             <Wallet className="h-5 w-5" />
             <div className="flex flex-col items-start leading-none">

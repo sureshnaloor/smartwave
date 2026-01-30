@@ -98,13 +98,13 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       if (updatedProfile) {
         console.log(`[Profile Action] Profile found. Calling updates...`);
 
-        // Google Wallet update
+        // Google Wallet update - Await this to ensure Google's servers are updated immediately
         const { updateGoogleWalletObject } = await import('@/lib/wallet/google');
-        updateGoogleWalletObject(updatedProfile).catch(err =>
+        await updateGoogleWalletObject(updatedProfile).catch(err =>
           console.error('[Profile Action] Background Google Wallet update failed:', err)
         );
 
-        // Apple Wallet update
+        // Apple Wallet update - Still background as it's just a push trigger
         const { sendApplePushNotification } = await import('@/lib/wallet/push');
         sendApplePushNotification(userEmail).catch(err =>
           console.error('[Profile Action] Background Apple Wallet update failed:', err)
