@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getProfile, getProfileByShortUrl, generateAndUpdateShortUrl } from "@/app/_actions/profile";
 import { generateApplePass } from "@/lib/wallet/apple";
-import { generateGoogleWalletUrl } from "@/lib/wallet/google";
+import { generateGoogleWalletUrl, updateGoogleWalletObject } from "@/lib/wallet/google";
 
 export async function GET(
     req: NextRequest,
@@ -75,9 +75,15 @@ export async function GET(
             }
         } else if (type === "google") {
             try {
+                // Force an update to Google's servers before redirecting.
+                // This ensures that if the object ID already exists on Google's side,
+                // it is updated with the latest profile data before the user 'adds' it.
+                await updateGoogleWalletObject(profile);
+
                 const url = generateGoogleWalletUrl(profile);
                 return NextResponse.redirect(url);
             } catch (err) {
+                console.error("[Wallet API] Google Wallet error:", err);
                 return new NextResponse(
                     JSON.stringify({ error: (err as Error).message }),
                     { status: 500, headers: { "Content-Type": "application/json" } }
