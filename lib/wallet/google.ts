@@ -85,11 +85,26 @@ function createWalletObject(user: ProfileData, issuerId: string) {
             }
         } : undefined,
         textModulesData: [
+            { header: "Company", body: user.company || "N/A", id: "company" },
             { header: "Work Phone", body: user.workPhone || "N/A", id: "work_phone" },
             { header: "Mobile", body: user.mobile || "N/A", id: "mobile" },
             { header: "Work Email", body: user.workEmail || "N/A", id: "work_email" },
             { header: "Personal Email", body: user.personalEmail || "N/A", id: "personal_email" }
         ],
+        linksModuleData: {
+            uris: [
+                {
+                    uri: "https://www.smartwave.name",
+                    description: "SmartWave Web App (Sign up/Profile)",
+                    id: "web_app_link"
+                },
+                {
+                    uri: "https://www.smartwave.name/app",
+                    description: "Get the SmartWave App (Coming Soon)",
+                    id: "phone_app_link"
+                }
+            ]
+        },
         // Adding a message can help trigger a sync/notification on the device
         messages: [
             {

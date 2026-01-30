@@ -179,6 +179,11 @@ export async function generateApplePass(user: ProfileData, host?: string) {
             label: "TITLE",
             value: user.title || "",
         });
+        pass.secondaryFields.push({
+            key: "company",
+            label: "COMPANY",
+            value: user.company || "",
+        });
 
         pass.auxiliaryFields.push(
             {
@@ -194,6 +199,16 @@ export async function generateApplePass(user: ProfileData, host?: string) {
         );
 
         pass.backFields.push(
+            {
+                key: "web_app",
+                label: "WEB APP (SIGN UP/PROFILE)",
+                value: "https://www.smartwave.name",
+            },
+            {
+                key: "mobile_app",
+                label: "MOBILE APP (COMING SOON)",
+                value: "https://www.smartwave.name/app",
+            },
             {
                 key: "workEmail",
                 label: "WORK EMAIL",
