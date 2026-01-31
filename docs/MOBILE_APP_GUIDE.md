@@ -183,7 +183,43 @@ The backend already supports `shorturl` in the wallet API; the app only needs th
 
 ---
 
-## 11. Next steps (order that makes sense)
+## 11. Troubleshooting: 401 Unauthorized after Google sign-in
+
+If Google sign-in completes (password + 2FA succeed) but **GET /api/mobile/profile** returns **401 Unauthorized**, it is **not** a Google Cloud Console or OAuth config issue — the callback succeeded (you see a 307 redirect). The problem is that the **client calling the profile API does not have the JWT**.
+
+The API returns a JSON body on 401: `{ error, code, hint }`. Use **code** to debug:
+- **`missing_token`** – no `Authorization: Bearer <token>` header. The app is not sending the JWT (e.g. it never captured it from the redirect).
+- **`invalid_token`** – header present but token expired or wrong. Check NEXTAUTH_SECRET and that you store and send the same token from the redirect.
+
+**Cause:** After the callback, the server redirects to `returnUrl?token=JWT`. The **mobile app** must:
+
+1. **Handle that URL** – `returnUrl` must be a **deep link** your app owns (e.g. `smartwave://auth/callback` or `exp://...`), so the app opens (or a WebView/in-app browser hands control back to the app).
+2. **Extract the token** from the query string (`token=...`).
+3. **Store it** (e.g. in expo-secure-store).
+4. **Send it** on every request: `Authorization: Bearer <token>` for GET/PATCH `/api/mobile/profile`.
+
+If `returnUrl` is an `https://` web URL and the user lands in an external or in-app browser, the **native app** often never receives that URL, so it never gets the token and later calls to `/api/mobile/profile` are sent without a token → 401.
+
+**Fix (recommended – use the redirector page):**
+
+1. When calling `POST /api/mobile/auth/google/start`, set **returnUrl** to your backend’s redirector page:
+   ```ts
+   returnUrl = `${API_BASE}/auth/mobile-callback`
+   ```
+   Example: `https://www.smartwave.name/auth/mobile-callback` or `https://xxx.ngrok.io/auth/mobile-callback`.
+
+2. After Google sign-in, the server redirects to that URL with `?token=JWT`. The **redirector page** (`/auth/mobile-callback`) then redirects the browser to **`smartwave://auth/callback?token=JWT`**, so your native app can open via that deep link.
+
+3. In your **Expo app**:
+   - In **app.json** (or **app.config.js**), set **`scheme`** to `smartwave` (or the value of `NEXT_PUBLIC_MOBILE_DEEP_LINK_SCHEME` if you set it on the server).
+   - When the app opens from that link, use **expo-linking** (e.g. `Linking.getInitialURL()` or a listener) to read the URL, parse the `token` query param, **store it** (e.g. in expo-secure-store), and then call `GET /api/mobile/profile` with `Authorization: Bearer <token>`.
+
+4. Ensure **NEXTAUTH_SECRET** is set on the server (it is used to sign and verify the mobile JWT).
+5. When testing behind **ngrok**, set **MOBILE_GOOGLE_CALLBACK_BASE** to your public ngrok URL so the OAuth `redirect_uri` matches Google Cloud Console.
+
+---
+
+## 12. Next steps (order that makes sense)
 
 1. Create the Expo project (Step 4 above) and run it in the iOS simulator.
 2. Add the three screens (Sign In, Profile, Add to Wallet) and wire them to the APIs above.

@@ -18,15 +18,6 @@ export default function EmployeeDashboardPage() {
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.email || !isEmployee) return;
-    fetch("/api/mobile/profile", {
-      headers: { Authorization: `Bearer ${(session as any).mobileToken ?? ""}` },
-    }).catch(() => {
-      // Fallback: get profile via server action would need to be called from server.
-      // We'll use a dedicated API for employee profile by session.
-      return null;
-    });
-    // Get profile by session - we need an API that returns current user's profile (for employees too).
-    // Use getProfile server action from a server component or add GET /api/profile/me.
     import("@/app/_actions/profile").then(({ getProfile }) => {
       getProfile(session.user!.email!).then(setProfile);
     });

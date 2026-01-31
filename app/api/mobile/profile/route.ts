@@ -11,9 +11,22 @@ export const dynamic = "force-dynamic";
  * Returns: profile JSON or 401. Ensures shorturl exists so the app can show Add to Wallet.
  */
 export async function GET(req: NextRequest) {
-  const user = getBearerUser(req.headers.get("authorization"));
+  const authHeader = req.headers.get("authorization");
+  const user = getBearerUser(authHeader);
   if (!user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const hasBearer = authHeader?.toLowerCase().startsWith("bearer ");
+    const tokenLen = hasBearer ? (authHeader!.slice(7).trim().length ?? 0) : 0;
+    if (hasBearer && tokenLen > 0) {
+      console.warn("[mobile profile GET] 401 invalid_token – received token length:", tokenLen);
+    }
+    const payload = {
+      error: "Unauthorized",
+      code: hasBearer ? "invalid_token" : "missing_token",
+      hint: hasBearer
+        ? "Token may be expired or invalid. Sign in again to get a new token."
+        : "Send the JWT from the OAuth redirect: Authorization: Bearer <token>",
+    };
+    return NextResponse.json(payload, { status: 401 });
   }
 
   try {
@@ -40,9 +53,18 @@ export async function GET(req: NextRequest) {
  * Returns: { success: true } or error
  */
 export async function PATCH(req: NextRequest) {
-  const user = getBearerUser(req.headers.get("authorization"));
+  const authHeader = req.headers.get("authorization");
+  const user = getBearerUser(authHeader);
   if (!user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const hasBearer = authHeader?.toLowerCase().startsWith("bearer ");
+    const payload = {
+      error: "Unauthorized",
+      code: hasBearer ? "invalid_token" : "missing_token",
+      hint: hasBearer
+        ? "Token may be expired or invalid. Sign in again to get a new token."
+        : "Send the JWT from the OAuth redirect: Authorization: Bearer <token>",
+    };
+    return NextResponse.json(payload, { status: 401 });
   }
 
   try {

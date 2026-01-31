@@ -25,11 +25,22 @@ export function signMobileToken(payload: Omit<MobileJwtPayload, "iat" | "exp">):
 }
 
 export function verifyMobileToken(token: string): MobileJwtPayload | null {
-  if (!secret) return null;
+  if (!secret) {
+    console.warn("[mobile-auth] NEXTAUTH_SECRET not set; cannot verify token.");
+    return null;
+  }
   try {
     const decoded = jwt.verify(token, secret) as MobileJwtPayload;
     return decoded;
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("secret") || msg.includes("signature")) {
+      console.warn("[mobile-auth] Token verification failed (signature): check NEXTAUTH_SECRET matches the secret used to sign the token.");
+    } else if (msg.includes("expired")) {
+      console.warn("[mobile-auth] Token verification failed: token expired.");
+    } else {
+      console.warn("[mobile-auth] Token verification failed:", msg);
+    }
     return null;
   }
 }
