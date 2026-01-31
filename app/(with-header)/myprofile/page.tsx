@@ -54,7 +54,10 @@ export default function MyProfilePage() {
           />
         </div>
         <div className="lg:col-span-1">
-          <MyProfileSidebar profile={(preview || profile) || undefined} />
+          <MyProfileSidebar
+            profile={(preview || profile) || undefined}
+            userEmail={session.user.email}
+          />
         </div>
       </div>
     </div>

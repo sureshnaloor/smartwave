@@ -43,6 +43,7 @@ export async function PATCH(
     }
     if (typeof body.password === "string" && body.password.length >= 6) {
       update.password = await hashPassword(body.password);
+      update.firstLoginDone = false;
     }
 
     const result = await coll.updateOne(

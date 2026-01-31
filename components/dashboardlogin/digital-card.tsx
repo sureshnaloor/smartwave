@@ -756,14 +756,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
           variant="outline"
           size="sm"
           className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={() => {
-            // Share functionality
-            if (navigator.share) {
-              navigator.share({
+          onClick={async () => {
+            if (!navigator.share) return;
+            try {
+              await navigator.share({
                 title: `${user.name}'s Digital Business Card`,
                 text: `Check out ${user.name}'s digital business card`,
                 url: window.location.href
-              })
+              });
+            } catch (err) {
+              if (err instanceof Error && err.name === "AbortError") return;
+              console.warn("Share failed:", err);
             }
           }}
         >

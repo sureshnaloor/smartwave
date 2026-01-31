@@ -27,8 +27,12 @@ export default function SuperAdminDashboardPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ email: "", username: "", password: "", profiles: 10, passes: 5 });
   const [editForm, setEditForm] = useState({ username: "", profiles: 10, passes: 5 });
+  const [resetPasswordId, setResetPasswordId] = useState<string | null>(null);
+  const [resetPasswordForm, setResetPasswordForm] = useState({ password: "" });
+  const [resetPasswordResult, setResetPasswordResult] = useState<{ email: string; temporaryPassword: string } | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -118,6 +122,40 @@ export default function SuperAdminDashboardPage() {
     if (res.ok) setUsers((prev) => prev.filter((u) => u._id !== id));
   };
 
+  const resetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetPasswordId || !resetPasswordForm.password || resetPasswordForm.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setError("");
+    setResetSubmitting(true);
+    setResetPasswordResult(null);
+    try {
+      const res = await fetch(`/api/admin/super/users/${resetPasswordId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: resetPasswordForm.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to reset password");
+        return;
+      }
+      const user = users.find((u) => u._id === resetPasswordId);
+      setResetPasswordResult({
+        email: user?.email ?? "",
+        temporaryPassword: resetPasswordForm.password,
+      });
+      setUsers((prev) => prev.map((u) => (u._id === resetPasswordId ? { ...u, firstLoginDone: false } : u)));
+      setResetPasswordForm({ password: "" });
+    } catch {
+      setError("Network error");
+    } finally {
+      setResetSubmitting(false);
+    }
+  };
+
   if (session === "loading") {
     return <div className="pt-8 text-center text-slate-600 dark:text-slate-400">Loading...</div>;
   }
@@ -183,11 +221,40 @@ export default function SuperAdminDashboardPage() {
         </Card>
       )}
 
+      {resetPasswordId && (
+        <Card className={cardClass}>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className={titleClass}>Reset admin password</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => { setResetPasswordId(null); setResetPasswordResult(null); setResetPasswordForm({ password: "" }); }}>Cancel</Button>
+          </CardHeader>
+          <CardContent>
+            {resetPasswordResult ? (
+              <div className="rounded-lg border-2 border-amber-500 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-600 p-4 space-y-2">
+                <p className="font-semibold text-amber-800 dark:text-amber-200">Temporary password set</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">Share this password with <strong>{resetPasswordResult.email}</strong> once. They must sign in and change it immediately.</p>
+                <p className="font-mono text-lg text-amber-900 dark:text-amber-100">{resetPasswordResult.temporaryPassword}</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setResetPasswordId(null); setResetPasswordResult(null); }}>Done</Button>
+              </div>
+            ) : (
+              <form onSubmit={resetPassword} className="space-y-4">
+                <p className={`text-sm ${descClass}`}>Set a new temporary password. The admin must use it once to sign in, then change it on the change-password screen.</p>
+                <div>
+                  <Label className={labelClass}>New temporary password (min 6 characters)</Label>
+                  <Input type="password" value={resetPasswordForm.password} onChange={(e) => setResetPasswordForm({ password: e.target.value })} className={inputClass} minLength={6} required placeholder="••••••••" />
+                </div>
+                {error && <p className={errorClass}>{error}</p>}
+                <Button type="submit" disabled={resetSubmitting}>{resetSubmitting ? "Resetting..." : "Reset password"}</Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {editId && (
         <Card className={cardClass}>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className={titleClass}>Edit Admin User</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setEditId(null)}>Cancel</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setEditId(null); setResetPasswordId(null); }}>Cancel</Button>
           </CardHeader>
           <CardContent>
             <form onSubmit={updateUser} className="space-y-4">
@@ -234,8 +301,9 @@ export default function SuperAdminDashboardPage() {
                       {!u.firstLoginDone && " · Must change password on first login"}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600" onClick={() => { setEditId(u._id); setEditForm({ username: u.username, profiles: u.limits.profiles, passes: u.limits.passes }); setError(""); }}>Edit</Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600" onClick={() => { setEditId(u._id); setEditForm({ username: u.username, profiles: u.limits.profiles, passes: u.limits.passes }); setError(""); setResetPasswordId(null); }}>Edit</Button>
+                    <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20" onClick={() => { setResetPasswordId(u._id); setResetPasswordForm({ password: "" }); setResetPasswordResult(null); setError(""); setEditId(null); }}>Reset password</Button>
                     <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => deleteUser(u._id)}>Delete</Button>
                   </div>
                 </div>

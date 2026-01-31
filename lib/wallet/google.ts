@@ -144,36 +144,23 @@ export async function updateGoogleWalletObject(user: ProfileData) {
             scopes: ['https://www.googleapis.com/auth/wallet_object.issuer']
         });
 
-        // Diagnostic log (safe) - Helps verify if credentials are even present
-        const keySnippet = privateKey.substring(0, 30).replace(/\n/g, '\\n');
-        console.log(`[Google Wallet] JWT Auth initializing. Key starts with: ${keySnippet}...`);
-
         const walletobjects = google.walletobjects({ version: 'v1' });
 
-        console.log(`[Google Wallet] Updating ID: ${walletObject.id} for user: ${user.name}`);
-
-        // Perform the update call, explicitly passing the auth object
         const response = await walletobjects.genericobject.update({
             resourceId: walletObject.id,
             requestBody: walletObject,
-            auth: auth as any // Explicitly pass auth to the method call
+            auth: auth as any
         });
 
-        console.log("[Google Wallet] API Response Status:", response.status);
         return { success: true };
     } catch (error: any) {
-        console.error("[Google Wallet] Update failed.");
-        if (error.response) {
-            console.error("- Status:", error.response.status);
-            console.error("- Data:", JSON.stringify(error.response.data, null, 2));
-
-            // If the object doesn't exist yet (404), that's expected if the user hasn't added it.
-            if (error.response.status === 404) {
-                console.log("[Google Wallet] Object not found. This is normal if the user hasn't saved the pass yet.");
-                return { success: true, warning: "Object not found" };
-            }
-        } else {
-            console.error("- Error message:", error.message);
+        // 404 is expected when the user hasn't added the pass to their wallet yet
+        if (error.response?.status === 404) {
+            return { success: true, warning: "Object not found" };
+        }
+        console.error("[Google Wallet] Update failed:", error.response?.status ?? error.message);
+        if (error.response?.data) {
+            console.error("[Google Wallet] Response:", JSON.stringify(error.response.data, null, 2));
         }
         return { success: false, error };
     }

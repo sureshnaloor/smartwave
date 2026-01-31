@@ -62,25 +62,25 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
     }
 
     const client = await clientPromise;
-    const db = client.db('smartwave');
+    const db = client.db(process.env.MONGODB_DB || "smartwave");
     const now = new Date();
+    const normalizedEmail = userEmail.toLowerCase().trim();
 
     // Ensure userEmail is included in profileData
     const profileData = {
       ...data,
-      userEmail: userEmail.toLowerCase().trim(), // Normalize email
+      userEmail: normalizedEmail,
       updatedAt: now,
     };
 
-    const existingProfile = await db.collection('profiles').findOne({ userEmail });
+    const existingProfile = await db.collection('profiles').findOne({ userEmail: normalizedEmail });
     if (existingProfile?.createdByAdminId) {
       return { success: false, error: "Only your company admin can edit this profile." };
     }
 
     if (existingProfile) {
-      // console.log('Updating existing profile for user:', userEmail);
       await db.collection('profiles').updateOne(
-        { userEmail },
+        { userEmail: normalizedEmail },
         {
           $set: profileData,
           $setOnInsert: { createdAt: now }
@@ -95,26 +95,17 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       });
     }
 
-    // Trigger Wallet updates
-    console.log(`[Profile Action] Save successful for ${userEmail}. Triggering Wallet updates...`);
+    // Trigger Wallet updates (only for users who may have added the pass; 404 is normal if not yet added)
     try {
-      const updatedProfile = await getProfile(userEmail);
+      const updatedProfile = await getProfile(normalizedEmail);
       if (updatedProfile) {
-        console.log(`[Profile Action] Profile found. Calling updates...`);
-
-        // Google Wallet update - Await this to ensure Google's servers are updated immediately
+        // Google Wallet update (404 is normal if user hasn't added the pass yet)
         const { updateGoogleWalletObject } = await import('@/lib/wallet/google');
-        await updateGoogleWalletObject(updatedProfile).catch(err =>
-          console.error('[Profile Action] Background Google Wallet update failed:', err)
-        );
+        await updateGoogleWalletObject(updatedProfile).catch(() => {});
 
-        // Apple Wallet update - Still background as it's just a push trigger
+        // Apple Wallet push (no-op if no devices registered)
         const { sendApplePushNotification } = await import('@/lib/wallet/push');
-        sendApplePushNotification(userEmail).catch(err =>
-          console.error('[Profile Action] Background Apple Wallet update failed:', err)
-        );
-      } else {
-        console.warn(`[Profile Action] Profile NOT found for update.`);
+        sendApplePushNotification(normalizedEmail).catch(() => {});
       }
     } catch (walletErr) {
       console.error('[Profile Action] Error initiating Wallet updates:', walletErr);
@@ -136,16 +127,12 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
 
 export async function getProfile(userEmail: string): Promise<ProfileData | null> {
   try {
-    if (!userEmail) {
-      // console.error('No userEmail provided to getProfile');
-      return null;
-    }
+    if (!userEmail) return null;
+    const normalizedEmail = userEmail.trim().toLowerCase();
 
     const client = await clientPromise;
-    const db = client.db('smartwave');
-
-    // console.log(`Fetching profile for user: ${userEmail}`);
-    const profile = await db.collection('profiles').findOne({ userEmail });
+    const db = client.db(process.env.MONGODB_DB || "smartwave");
+    const profile = await db.collection('profiles').findOne({ userEmail: normalizedEmail });
 
     if (!profile) {
       // console.log(`No profile found for user: ${userEmail}`);
@@ -164,9 +151,9 @@ export async function getProfile(userEmail: string): Promise<ProfileData | null>
 export async function deleteProfile(userEmail: string) {
   try {
     const client = await clientPromise;
-    const db = client.db('smartwave');
-
-    await db.collection('profiles').deleteOne({ userEmail });
+    const db = client.db(process.env.MONGODB_DB || "smartwave");
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    await db.collection('profiles').deleteOne({ userEmail: normalizedEmail });
     revalidatePath('/dashboard');
     return { success: true };
   } catch (error) {
@@ -178,9 +165,7 @@ export async function deleteProfile(userEmail: string) {
 export async function getProfileByShortUrl(shorturl: string): Promise<ProfileData | null> {
   try {
     const client = await clientPromise;
-    const db = client.db('smartwave');
-
-    // console.log(`Fetching profile by shortURL: ${shorturl}`);
+    const db = client.db(process.env.MONGODB_DB || "smartwave");
     const profile = await db.collection('profiles').findOne({ shorturl });
 
     if (!profile) {
@@ -198,23 +183,67 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
 
 export async function generateAndUpdateShortUrl(userEmail: string) {
   try {
+    if (!userEmail?.trim()) return { success: false, error: 'Profile not found' };
+    const normalizedEmail = userEmail.trim().toLowerCase();
+
     const client = await clientPromise;
-    const db = client.db('smartwave');
+    const db = client.db(process.env.MONGODB_DB || "smartwave");
+    let profile = await db.collection('profiles').findOne({ userEmail: normalizedEmail });
 
-    // Get the user's profile
-    const profile = await db.collection('profiles').findOne({ userEmail });
+    // If no profile yet (user hasn't saved), create a minimal one so we can generate shorturl
     if (!profile) {
-      return { success: false, error: 'Profile not found' };
+      const now = new Date();
+      await db.collection('profiles').insertOne({
+        userEmail: normalizedEmail,
+        name: normalizedEmail,
+        firstName: '',
+        lastName: '',
+        middleName: '',
+        photo: '',
+        birthday: '',
+        title: '',
+        company: '',
+        companyLogo: '',
+        workEmail: '',
+        personalEmail: '',
+        mobile: '',
+        workPhone: '',
+        fax: '',
+        homePhone: '',
+        workStreet: '',
+        workDistrict: '',
+        workCity: '',
+        workState: '',
+        workZipcode: '',
+        workCountry: '',
+        homeStreet: '',
+        homeDistrict: '',
+        homeCity: '',
+        homeState: '',
+        homeZipcode: '',
+        homeCountry: '',
+        website: '',
+        linkedin: '',
+        twitter: '',
+        facebook: '',
+        instagram: '',
+        youtube: '',
+        notes: '',
+        workAddress: '',
+        isPremium: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+      profile = await db.collection('profiles').findOne({ userEmail: normalizedEmail });
     }
+    if (!profile) return { success: false, error: 'Profile not found' };
 
-    // Generate short URL from MongoDB _id
     const id = profile._id.toString();
     const shorturl = id.substring(0, 5) + id.substring(id.length - 5);
 
-    // Update the profile with the short URL
     await db.collection('profiles').updateOne(
-      { userEmail },
-      { $set: { shorturl } }
+      { userEmail: normalizedEmail },
+      { $set: { shorturl, updatedAt: new Date() } }
     );
 
     revalidatePath('/dashboard');

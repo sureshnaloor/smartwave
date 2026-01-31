@@ -6,10 +6,7 @@ import { getRegistrationsByUser, updateRegistrationsTimestamp } from "./db";
 export async function sendApplePushNotification(userEmail: string) {
     try {
         const registrations = await getRegistrationsByUser(userEmail);
-        if (registrations.length === 0) {
-            console.log(`[Apple Push] No registered devices for user: ${userEmail}`);
-            return;
-        }
+        if (registrations.length === 0) return;
 
         // Update timestamps so that when the device asks for updates, it finds the record
         await updateRegistrationsTimestamp(userEmail);

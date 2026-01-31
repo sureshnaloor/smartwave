@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -14,8 +15,9 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
     setError("");
     setLoading(true);
     try {
@@ -52,7 +54,15 @@ export default function AdminLoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit(e);
+            }}
+            action="#"
+            className="space-y-4"
+          >
             <div>
               <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email</Label>
               <Input
@@ -76,8 +86,15 @@ export default function AdminLoginPage() {
               />
             </div>
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+            <Button type="button" className="w-full min-h-11" disabled={loading} onClick={() => handleSubmit()}>
+              {loading ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                  <span>Signing in...</span>
+                </span>
+              ) : (
+                "Sign In"
+              )}
             </Button>
           </form>
         </CardContent>

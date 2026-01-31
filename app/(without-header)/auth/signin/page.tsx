@@ -48,7 +48,7 @@ export default function SignInPage() {
           setError('Error occurred during authentication callback.');
           break;
         case 'OAuthAccountNotLinked':
-          setError('This email is already associated with another account.');
+          setError('This email is already used for a company profile. Sign in with your work email and password instead.');
           break;
         case 'EmailSignin':
           setError('Error occurred while sending verification email.');
@@ -101,9 +101,16 @@ export default function SignInPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md dark:text-red-400 dark:bg-red-900/20 dark:border-red-800">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>{error}</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md dark:text-red-400 dark:bg-red-900/20 dark:border-red-800">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+                {errorParam === "OAuthAccountNotLinked" && (
+                  <Button asChild variant="secondary" className="w-full">
+                    <Link href="/auth/employee-signin">Sign in with work email & password</Link>
+                  </Button>
+                )}
               </div>
             )}
             

@@ -36,6 +36,7 @@
     "date-fns": "^2.30.0",
     "echarts": "^6.0.0",
     "framer-motion": "^12.4.10",
+    "google-auth-library": "^9.0.0",
     "googleapis": "^170.1.0",
     "html-to-image": "^1.11.13",
     "jsonwebtoken": "^9.0.3",
