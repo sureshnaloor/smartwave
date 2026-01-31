@@ -189,7 +189,18 @@ If Google sign-in completes (password + 2FA succeed) but **GET /api/mobile/profi
 
 The API returns a JSON body on 401: `{ error, code, hint }`. Use **code** to debug:
 - **`missing_token`** – no `Authorization: Bearer <token>` header. The app is not sending the JWT (e.g. it never captured it from the redirect).
-- **`invalid_token`** – header present but token expired or wrong. Check NEXTAUTH_SECRET and that you store and send the same token from the redirect.
+- **`invalid_token`** – header present but token expired or wrong. See below.
+
+**If you see `invalid_token` and server log "Token verification failed (malformed/invalid)" or "invalid token":**  
+The app is sending the **wrong value** as the Bearer token. It must send **only** the value from the **`token`** query param of the **redirect URL** (e.g. `exp://192.168.8.222:8081?token=eyJ...` → use the `eyJ...` part). Do **not** send:
+- the **state** param from the callback URL (`/api/mobile/auth/google/callback?state=...&code=...`),
+- the **code** param,
+- or Google’s **id_token** / **access_token**.
+
+Parse the URL that opens your app (from the deep link). That URL is `returnUrl?token=<our JWT>`. Read the **`token`** query param and send it as `Authorization: Bearer <that value>`.
+
+**If you see `invalid_token` and server log "invalid signature":**  
+The token was signed with a different `NEXTAUTH_SECRET`. Ensure the same secret is used everywhere (no extra quotes in env), and the app is not sending a token from another environment.
 
 **Cause:** After the callback, the server redirects to `returnUrl?token=JWT`. The **mobile app** must:
 

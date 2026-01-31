@@ -33,13 +33,18 @@ export function verifyMobileToken(token: string): MobileJwtPayload | null {
     const decoded = jwt.verify(token, secret) as MobileJwtPayload;
     return decoded;
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (msg.includes("secret") || msg.includes("signature")) {
-      console.warn("[mobile-auth] Token verification failed (signature): check NEXTAUTH_SECRET matches the secret used to sign the token.");
-    } else if (msg.includes("expired")) {
+    const err = e as { message?: string; name?: string };
+    const msg = err?.message ?? String(e);
+    const name = err?.name ?? "";
+    // Log exact reason so we can tell signature vs expired vs malformed
+    if (name === "TokenExpiredError" || msg.includes("expired")) {
       console.warn("[mobile-auth] Token verification failed: token expired.");
+    } else if (name === "JsonWebTokenError" && (msg.includes("signature") || msg.includes("invalid signature"))) {
+      console.warn("[mobile-auth] Token verification failed (invalid signature): the token was signed with a different secret. Ensure NEXTAUTH_SECRET is the same everywhere, and the app sends the token from the redirect URL (returnUrl?token=...), not the OAuth state or Google id_token.");
+    } else if (name === "JsonWebTokenError" && (msg.includes("malformed") || msg.includes("invalid token"))) {
+      console.warn("[mobile-auth] Token verification failed (malformed/invalid): the value sent as Bearer token is not our JWT. The app must use the `token` query param from the redirect URL (e.g. exp://...?token=...), not state or code from the callback URL.");
     } else {
-      console.warn("[mobile-auth] Token verification failed:", msg);
+      console.warn("[mobile-auth] Token verification failed:", name, msg);
     }
     return null;
   }
