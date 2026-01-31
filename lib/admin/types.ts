@@ -7,6 +7,8 @@ export interface AdminUser {
   username: string;
   password: string; // bcrypt hash
   firstLoginDone: boolean;
+  /** Company logo URL; used for all employees created by this admin */
+  companyLogo?: string;
   limits: {
     profiles: number;
     passes: number;

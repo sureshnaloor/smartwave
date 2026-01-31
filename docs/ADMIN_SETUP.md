@@ -55,11 +55,11 @@ Documents have this shape:
 
 ## MongoDB collections used by admin
 
-| Collection                  | Purpose |
-|----------------------------|--------|
-| `adminusers`               | Admin users created by super admin (email, username, hashed password, limits, firstLoginDone). |
-| `admin_employee_profiles`  | Employee profiles created by admin users (createdByAdminId, name, title, company, contact fields). |
-| `admin_passes`             | Event/access passes created by admin users (createdByAdminId, name, description, type, status). |
+| Collection   | Purpose |
+|-------------|--------|
+| `adminusers` | Admin users created by super admin (email, username, hashed password, limits, firstLoginDone). |
+| `profiles`   | Main profile collection. Admin-created employee profiles have `createdByAdminId` set to the admin’s `_id`; they are listed/filtered by that field. |
+| `admin_passes` | Event/access passes created by admin users (createdByAdminId, name, description, type, status). |
 
 ---
 

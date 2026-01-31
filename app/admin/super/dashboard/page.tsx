@@ -119,82 +119,64 @@ export default function SuperAdminDashboardPage() {
   };
 
   if (session === "loading") {
-    return <div className="pt-8 text-center text-slate-400">Loading...</div>;
+    return <div className="pt-8 text-center text-slate-600 dark:text-slate-400">Loading...</div>;
   }
   if (!session || session.type !== "super") {
     router.replace("/admin/super");
     return null;
   }
 
+  const cardClass = "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900";
+  const titleClass = "text-slate-900 dark:text-slate-100";
+  const descClass = "text-slate-600 dark:text-slate-400";
+  const labelClass = "text-slate-700 dark:text-slate-300";
+  const inputClass = "mt-1 border-slate-300 bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white";
+  const mutedClass = "text-slate-500 dark:text-slate-500";
+  const errorClass = "text-sm text-red-600 dark:text-red-400";
+  const rowClass = "flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50";
+  const rowTitleClass = "font-medium text-slate-900 dark:text-slate-100";
+  const rowSubClass = "text-sm text-slate-600 dark:text-slate-400";
+  const rowMutedClass = "text-xs text-slate-500 dark:text-slate-500";
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-100">Super Admin Dashboard</h1>
+        <h1 className={`text-2xl font-bold ${titleClass}`}>Super Admin Dashboard</h1>
         <Button onClick={() => { setCreateOpen(true); setError(""); }}>Create Admin User</Button>
       </div>
 
       {createOpen && (
-        <Card className="border-slate-700 bg-slate-900">
+        <Card className={cardClass}>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-slate-100">New Admin User</CardTitle>
+            <CardTitle className={titleClass}>New Admin User</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => setCreateOpen(false)}>Cancel</Button>
           </CardHeader>
           <CardContent>
             <form onSubmit={createUser} className="space-y-4">
               <div>
-                <Label className="text-slate-300">Email</Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  required
-                />
+                <Label className={labelClass}>Email</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className={inputClass} required />
               </div>
               <div>
-                <Label className="text-slate-300">Username</Label>
-                <Input
-                  value={form.username}
-                  onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-                  className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  required
-                />
+                <Label className={labelClass}>Username</Label>
+                <Input value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))} className={inputClass} required />
               </div>
               <div>
-                <Label className="text-slate-300">Initial Password</Label>
-                <Input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                  className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  minLength={6}
-                  required
-                />
-                <p className="mt-1 text-xs text-slate-500">User must change on first login.</p>
+                <Label className={labelClass}>Initial Password</Label>
+                <Input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} className={inputClass} minLength={6} required />
+                <p className={`mt-1 text-xs ${mutedClass}`}>User must change on first login.</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Profile limit</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={form.profiles}
-                    onChange={(e) => setForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))}
-                    className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  />
+                  <Label className={labelClass}>Profile limit</Label>
+                  <Input type="number" min={0} value={form.profiles} onChange={(e) => setForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Pass limit</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={form.passes}
-                    onChange={(e) => setForm((f) => ({ ...f, passes: parseInt(e.target.value, 10) || 0 }))}
-                    className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  />
+                  <Label className={labelClass}>Pass limit</Label>
+                  <Input type="number" min={0} value={form.passes} onChange={(e) => setForm((f) => ({ ...f, passes: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
                 </div>
               </div>
-              {error && <p className="text-sm text-red-400">{error}</p>}
+              {error && <p className={errorClass}>{error}</p>}
               <Button type="submit" disabled={submitting}>{submitting ? "Creating..." : "Create"}</Button>
             </form>
           </CardContent>
@@ -202,97 +184,59 @@ export default function SuperAdminDashboardPage() {
       )}
 
       {editId && (
-        <Card className="border-slate-700 bg-slate-900">
+        <Card className={cardClass}>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-slate-100">Edit Admin User</CardTitle>
+            <CardTitle className={titleClass}>Edit Admin User</CardTitle>
             <Button variant="ghost" size="sm" onClick={() => setEditId(null)}>Cancel</Button>
           </CardHeader>
           <CardContent>
             <form onSubmit={updateUser} className="space-y-4">
               <div>
-                <Label className="text-slate-300">Username</Label>
-                <Input
-                  value={editForm.username}
-                  onChange={(e) => setEditForm((f) => ({ ...f, username: e.target.value }))}
-                  className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  required
-                />
+                <Label className={labelClass}>Username</Label>
+                <Input value={editForm.username} onChange={(e) => setEditForm((f) => ({ ...f, username: e.target.value }))} className={inputClass} required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Profile limit</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={editForm.profiles}
-                    onChange={(e) => setEditForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))}
-                    className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  />
+                  <Label className={labelClass}>Profile limit</Label>
+                  <Input type="number" min={0} value={editForm.profiles} onChange={(e) => setEditForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
                 </div>
                 <div>
-                  <Label className="text-slate-300">Pass limit</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={editForm.passes}
-                    onChange={(e) => setEditForm((f) => ({ ...f, passes: parseInt(e.target.value, 10) || 0 }))}
-                    className="mt-1 border-slate-600 bg-slate-800 text-white"
-                  />
+                  <Label className={labelClass}>Pass limit</Label>
+                  <Input type="number" min={0} value={editForm.passes} onChange={(e) => setEditForm((f) => ({ ...f, passes: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
                 </div>
               </div>
-              {error && <p className="text-sm text-red-400">{error}</p>}
+              {error && <p className={errorClass}>{error}</p>}
               <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : "Save"}</Button>
             </form>
           </CardContent>
         </Card>
       )}
 
-      <Card className="border-slate-700 bg-slate-900">
+      <Card className={cardClass}>
         <CardHeader>
-          <CardTitle className="text-slate-100">Admin Users</CardTitle>
-          <CardDescription className="text-slate-400">Create, edit, delete admin users and set their limits.</CardDescription>
+          <CardTitle className={titleClass}>Admin Users</CardTitle>
+          <CardDescription className={descClass}>Create, edit, delete admin users and set their limits.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-slate-400">Loading...</p>
+            <p className={descClass}>Loading...</p>
           ) : users.length === 0 ? (
-            <p className="text-slate-400">No admin users yet. Create one above.</p>
+            <p className={descClass}>No admin users yet. Create one above.</p>
           ) : (
             <div className="space-y-2">
               {users.map((u) => (
-                <div
-                  key={u._id}
-                  className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4"
-                >
+                <div key={u._id} className={rowClass}>
                   <div>
-                    <p className="font-medium text-slate-100">{u.username}</p>
-                    <p className="text-sm text-slate-400">{u.email}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className={rowTitleClass}>{u.username}</p>
+                    <p className={rowSubClass}>{u.email}</p>
+                    <p className={rowMutedClass}>
                       Limits: {u.limits.profiles} profiles, {u.limits.passes} passes
                       {!u.firstLoginDone && " · Must change password on first login"}
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600"
-                      onClick={() => {
-                        setEditId(u._id);
-                        setEditForm({ username: u.username, profiles: u.limits.profiles, passes: u.limits.passes });
-                        setError("");
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-800 text-red-400 hover:bg-red-900/20"
-                      onClick={() => deleteUser(u._id)}
-                    >
-                      Delete
-                    </Button>
+                    <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600" onClick={() => { setEditId(u._id); setEditForm({ username: u.username, profiles: u.limits.profiles, passes: u.limits.passes }); setError(""); }}>Edit</Button>
+                    <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => deleteUser(u._id)}>Delete</Button>
                   </div>
                 </div>
               ))}

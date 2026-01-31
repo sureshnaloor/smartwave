@@ -45,6 +45,8 @@ export type ProfileData = {
   createdAt: Date;
   updatedAt: Date;
   shorturl?: string;
+  /** When set, profile is owned by company admin; only admin can edit/delete */
+  createdByAdminId?: ObjectId;
 }
 
 export async function saveProfile(data: Partial<ProfileData>, userEmail: string) {
@@ -70,8 +72,10 @@ export async function saveProfile(data: Partial<ProfileData>, userEmail: string)
       updatedAt: now,
     };
 
-    // console.log('Checking existing profile for user:', userEmail);
     const existingProfile = await db.collection('profiles').findOne({ userEmail });
+    if (existingProfile?.createdByAdminId) {
+      return { success: false, error: "Only your company admin can edit this profile." };
+    }
 
     if (existingProfile) {
       // console.log('Updating existing profile for user:', userEmail);

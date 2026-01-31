@@ -8,11 +8,6 @@ export async function getAdminUsersCollection() {
   return client.db(DB_NAME).collection<AdminUser>("adminusers");
 }
 
-export async function getAdminEmployeeProfilesCollection() {
-  const client = await clientPromise;
-  return client.db(DB_NAME).collection("admin_employee_profiles");
-}
-
 export async function getAdminPassesCollection() {
   const client = await clientPromise;
   return client.db(DB_NAME).collection("admin_passes");

@@ -13,9 +13,11 @@ type Props = {
   userEmail: string;
   initialData?: ProfileData;
   onPreviewChange?: (p: Partial<ProfileData>) => void;
+  /** When true (e.g. employee profile), display only; no edit/save/upload */
+  readOnly?: boolean;
 };
 
-export default function ProfileCard({ userEmail, initialData, onPreviewChange }: Props) {
+export default function ProfileCard({ userEmail, initialData, onPreviewChange, readOnly = false }: Props) {
   const [form, setForm] = useState<Partial<ProfileData>>(() => ({
     firstName: initialData?.firstName || "",
     middleName: initialData?.middleName || "",
@@ -126,18 +128,26 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
             <div className="relative group">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-white p-1.5 shadow-xl shadow-indigo-900/10 rotate-[-2deg] group-hover:rotate-0 transition-transform duration-300 ease-out">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-slate-50 relative">
-                  <PhotoUpload
-                    value={form.photo || ""}
-                    onUploaded={(url) => {
-                      setForm((p) => ({ ...p, photo: url }));
-                      setIsDirty(true);
-                      void saveProfile({ photo: url, userEmail }, userEmail).then(() => {
-                        snapshotRef.current = { ...snapshotRef.current, photo: url };
-                        setIsDirty(false);
-                        setLastSavedAt(Date.now());
-                      });
-                    }}
-                  />
+                  {readOnly ? (
+                    form.photo ? (
+                      <img src={form.photo} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">No photo</div>
+                    )
+                  ) : (
+                    <PhotoUpload
+                      value={form.photo || ""}
+                      onUploaded={(url) => {
+                        setForm((p) => ({ ...p, photo: url }));
+                        setIsDirty(true);
+                        void saveProfile({ photo: url, userEmail }, userEmail).then(() => {
+                          snapshotRef.current = { ...snapshotRef.current, photo: url };
+                          setIsDirty(false);
+                          setLastSavedAt(Date.now());
+                        });
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -145,30 +155,38 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
             {/* Name & Title */}
             <div className="flex-1 min-w-0 pb-2">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <EditableField label="First Name" value={form.firstName || ""} placeholder="First Name" onChange={(v) => updateField("firstName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
-                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle Name" onChange={(v) => updateField("middleName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
-                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last Name" onChange={(v) => updateField("lastName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" />
+                <EditableField label="First Name" value={form.firstName || ""} placeholder="First Name" onChange={(v) => updateField("firstName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
+                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle Name" onChange={(v) => updateField("middleName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
+                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last Name" onChange={(v) => updateField("lastName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <EditableField label="Job Title" value={form.title || ""} placeholder="What do you do?" onChange={(v) => updateField("title", v)} className="!bg-white/50" />
-                <EditableField label="Company" value={form.company || ""} placeholder="Where do you work?" onChange={(v) => updateField("company", v)} className="!bg-white/50" />
+                <EditableField label="Job Title" value={form.title || ""} placeholder="What do you do?" onChange={(v) => updateField("title", v)} className="!bg-white/50" readOnly={readOnly} />
+                <EditableField label="Company" value={form.company || ""} placeholder="Where do you work?" onChange={(v) => updateField("company", v)} className="!bg-white/50" readOnly={readOnly} />
               </div>
             </div>
 
             {/* Company Logo */}
             <div className="hidden md:block w-24 h-24 rounded-2xl bg-white p-2 shadow-lg shadow-slate-200/50 border border-slate-100 rotate-[2deg] hover:rotate-0 transition-transform duration-300">
-              <CompanyLogoUpload
-                value={form.companyLogo || ""}
-                onUploaded={(url) => {
-                  setForm((p) => ({ ...p, companyLogo: url }));
-                  setIsDirty(true);
-                  void saveProfile({ companyLogo: url, userEmail }, userEmail).then(() => {
-                    snapshotRef.current = { ...snapshotRef.current, companyLogo: url };
-                    setIsDirty(false);
-                    setLastSavedAt(Date.now());
-                  });
-                }}
-              />
+              {readOnly ? (
+                form.companyLogo ? (
+                  <img src={form.companyLogo} alt="Company" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No logo</div>
+                )
+              ) : (
+                <CompanyLogoUpload
+                  value={form.companyLogo || ""}
+                  onUploaded={(url) => {
+                    setForm((p) => ({ ...p, companyLogo: url }));
+                    setIsDirty(true);
+                    void saveProfile({ companyLogo: url, userEmail }, userEmail).then(() => {
+                      snapshotRef.current = { ...snapshotRef.current, companyLogo: url };
+                      setIsDirty(false);
+                      setLastSavedAt(Date.now());
+                    });
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -186,11 +204,11 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white">Contact Details</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-blue-50 dark:border-blue-900/30">
-                  <EditableField label="Mobile" value={form.mobile || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("mobile", v)} icon="phone" />
-                  <EditableField label="Work Phone" value={form.workPhone || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("workPhone", v)} icon="phone" />
-                  <EditableField label="Work Email" value={form.workEmail || ""} placeholder="you@company.com" onChange={(v) => updateField("workEmail", v)} icon="mail" />
-                  <EditableField label="Personal Email" value={form.personalEmail || ""} placeholder="you@gmail.com" onChange={(v) => updateField("personalEmail", v)} icon="mail" />
-                  <EditableField label="Website" value={form.website || ""} placeholder="https://yourwebsite.com" onChange={(v) => updateField("website", v)} icon="link" />
+                  <EditableField label="Mobile" readOnly={readOnly} value={form.mobile || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("mobile", v)} icon="phone" />
+                  <EditableField label="Work Phone" readOnly={readOnly} value={form.workPhone || ""} placeholder="+1 (555) 000-0000" onChange={(v) => updateField("workPhone", v)} icon="phone" />
+                  <EditableField label="Work Email" readOnly={readOnly} value={form.workEmail || ""} placeholder="you@company.com" onChange={(v) => updateField("workEmail", v)} icon="mail" />
+                  <EditableField label="Personal Email" readOnly={readOnly} value={form.personalEmail || ""} placeholder="you@gmail.com" onChange={(v) => updateField("personalEmail", v)} icon="mail" />
+                  <EditableField label="Website" readOnly={readOnly} value={form.website || ""} placeholder="https://yourwebsite.com" onChange={(v) => updateField("website", v)} icon="link" />
                 </div>
               </section>
 
@@ -203,10 +221,10 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white">Social Profiles</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-2 border-l-2 border-purple-50 dark:border-purple-900/30">
-                  <EditableField label="LinkedIn" value={form.linkedin || ""} placeholder="LinkedIn Profile" onChange={(v) => updateField("linkedin", v)} icon="linkedin" />
-                  <EditableField label="Twitter/X" value={form.twitter || ""} placeholder="Twitter Handle" onChange={(v) => updateField("twitter", v)} icon="twitter" />
-                  <EditableField label="Instagram" value={form.instagram || ""} placeholder="Instagram Handle" onChange={(v) => updateField("instagram", v)} icon="instagram" />
-                  <EditableField label="Facebook" value={form.facebook || ""} placeholder="Facebook Profile" onChange={(v) => updateField("facebook", v)} icon="facebook" />
+                  <EditableField label="LinkedIn" readOnly={readOnly} value={form.linkedin || ""} placeholder="LinkedIn Profile" onChange={(v) => updateField("linkedin", v)} icon="linkedin" />
+                  <EditableField label="Twitter/X" readOnly={readOnly} value={form.twitter || ""} placeholder="Twitter Handle" onChange={(v) => updateField("twitter", v)} icon="twitter" />
+                  <EditableField label="Instagram" readOnly={readOnly} value={form.instagram || ""} placeholder="Instagram Handle" onChange={(v) => updateField("instagram", v)} icon="instagram" />
+                  <EditableField label="Facebook" readOnly={readOnly} value={form.facebook || ""} placeholder="Facebook Profile" onChange={(v) => updateField("facebook", v)} icon="facebook" />
                 </div>
               </section>
             </div>
@@ -222,11 +240,11 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white">Work Address</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-emerald-50 dark:border-emerald-900/30">
-                  <div className="col-span-2"><EditableField label="Street Address" value={form.workStreet || ""} placeholder="123 Business Rd" onChange={(v) => updateField("workStreet", v)} icon="map" /></div>
-                  <EditableField label="City" value={form.workCity || ""} placeholder="City" onChange={(v) => updateField("workCity", v)} icon="map" />
-                  <EditableField label="State" value={form.workState || ""} placeholder="State" onChange={(v) => updateField("workState", v)} icon="map" />
-                  <EditableField label="Zip Code" value={form.workZipcode || ""} placeholder="12345" onChange={(v) => updateField("workZipcode", v)} icon="hash" />
-                  <EditableField label="Country" value={form.workCountry || ""} placeholder="Country" onChange={(v) => updateField("workCountry", v)} icon="flag" />
+                  <div className="col-span-2"><EditableField label="Street Address" value={form.workStreet || ""} readOnly={readOnly} placeholder="123 Business Rd" onChange={(v) => updateField("workStreet", v)} icon="map" /></div>
+                  <EditableField label="City" value={form.workCity || ""} readOnly={readOnly} placeholder="City" onChange={(v) => updateField("workCity", v)} icon="map" />
+                  <EditableField label="State" value={form.workState || ""} readOnly={readOnly} placeholder="State" onChange={(v) => updateField("workState", v)} icon="map" />
+                  <EditableField label="Zip Code" value={form.workZipcode || ""} readOnly={readOnly} placeholder="12345" onChange={(v) => updateField("workZipcode", v)} icon="hash" />
+                  <EditableField label="Country" value={form.workCountry || ""} readOnly={readOnly} placeholder="Country" onChange={(v) => updateField("workCountry", v)} icon="flag" />
                 </div>
               </section>
 
@@ -239,11 +257,11 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white">Home Address</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3 pl-2 border-l-2 border-orange-50 dark:border-orange-900/30">
-                  <div className="col-span-2"><EditableField label="Street Address" value={form.homeStreet || ""} placeholder="456 Home Ln" onChange={(v) => updateField("homeStreet", v)} icon="map" /></div>
-                  <EditableField label="City" value={form.homeCity || ""} placeholder="City" onChange={(v) => updateField("homeCity", v)} icon="map" />
-                  <EditableField label="State" value={form.homeState || ""} placeholder="State" onChange={(v) => updateField("homeState", v)} icon="map" />
-                  <EditableField label="Zip Code" value={form.homeZipcode || ""} placeholder="12345" onChange={(v) => updateField("homeZipcode", v)} icon="hash" />
-                  <EditableField label="Country" value={form.homeCountry || ""} placeholder="Country" onChange={(v) => updateField("homeCountry", v)} icon="flag" />
+                  <div className="col-span-2"><EditableField label="Street Address" value={form.homeStreet || ""} readOnly={readOnly} placeholder="456 Home Ln" onChange={(v) => updateField("homeStreet", v)} icon="map" /></div>
+                  <EditableField label="City" value={form.homeCity || ""} readOnly={readOnly} placeholder="City" onChange={(v) => updateField("homeCity", v)} icon="map" />
+                  <EditableField label="State" value={form.homeState || ""} readOnly={readOnly} placeholder="State" onChange={(v) => updateField("homeState", v)} icon="map" />
+                  <EditableField label="Zip Code" value={form.homeZipcode || ""} readOnly={readOnly} placeholder="12345" onChange={(v) => updateField("homeZipcode", v)} icon="hash" />
+                  <EditableField label="Country" value={form.homeCountry || ""} readOnly={readOnly} placeholder="Country" onChange={(v) => updateField("homeCountry", v)} icon="flag" />
                 </div>
               </section>
 
@@ -256,8 +274,8 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange }:
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white">Additional Info</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-pink-50 dark:border-pink-900/30">
-                  <EditableField label="Birthday" value={form.birthday || ""} placeholder="YYYY-MM-DD" onChange={(v) => updateField("birthday", v)} icon="calendar" inputType="date" />
-                  <EditableField label="Notes" value={form.notes || ""} placeholder="Any additional notes..." onChange={(v) => updateField("notes", v)} icon="note" multiline />
+                  <EditableField label="Birthday" readOnly={readOnly} value={form.birthday || ""} placeholder="YYYY-MM-DD" onChange={(v) => updateField("birthday", v)} icon="calendar" inputType="date" />
+                  <EditableField label="Notes" readOnly={readOnly} value={form.notes || ""} placeholder="Any additional notes..." onChange={(v) => updateField("notes", v)} icon="note" multiline />
                 </div>
               </section>
             </div>

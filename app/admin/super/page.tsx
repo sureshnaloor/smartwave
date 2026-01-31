@@ -40,38 +40,38 @@ export default function SuperAdminLoginPage() {
 
   return (
     <div className="mx-auto max-w-sm pt-8">
-      <Card className="border-slate-700 bg-slate-900">
+      <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <CardHeader>
-          <CardTitle className="text-slate-100">Super Admin Login</CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardTitle className="text-slate-900 dark:text-slate-100">Super Admin Login</CardTitle>
+          <CardDescription className="text-slate-600 dark:text-slate-400">
             Use credentials from .env (SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD)
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-slate-300">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 border-slate-600 bg-slate-800 text-white"
+                className="mt-1 border-slate-300 bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="password" className="text-slate-300">Password</Label>
+              <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 border-slate-600 bg-slate-800 text-white"
+                className="mt-1 border-slate-300 bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>

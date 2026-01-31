@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { verifyAdminSession } from "@/lib/admin/auth";
+import { verifyAdminSession, COOKIE_NAME } from "@/lib/admin/auth";
 import { getAdminUsersCollection } from "@/lib/admin/db";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 /** GET /api/admin/me - Returns current admin session (super or admin user) from cookie */
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("admin_session")?.value;
+    const token = req.cookies.get(COOKIE_NAME)?.value;
     if (!token) {
       return NextResponse.json({ session: null }, { status: 200 });
     }

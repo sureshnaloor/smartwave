@@ -11,10 +11,20 @@ type Props = {
   icon?: "phone" | "mail" | "link" | "map" | "hash" | "flag" | "linkedin" | "twitter" | "facebook" | "instagram" | "youtube" | "calendar" | "note";
   inputType?: string;
   multiline?: boolean;
+  readOnly?: boolean;
 };
 
-export default function EditableField({ label, value, placeholder, onChange, className, inputType = "text", multiline = false }: Props) {
+export default function EditableField({ label, value, placeholder, onChange, className, inputType = "text", multiline = false, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false);
+
+  if (readOnly) {
+    return (
+      <div className={`rounded-xl bg-slate-50/50 dark:bg-gray-800/50 border border-slate-200/60 dark:border-gray-700 px-4 py-2.5 ${className || ""}`}>
+        <div className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-gray-500 font-bold mb-0.5">{label}</div>
+        <div className="text-slate-700 dark:text-white font-medium">{value || placeholder || "—"}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="group relative">

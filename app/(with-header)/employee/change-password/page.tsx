@@ -1,35 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function AdminChangePasswordPage() {
+export default function EmployeeChangePasswordPage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [session, setSession] = useState<{ type: string } | null | "loading">("loading");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/admin/me")
-      .then((r) => r.json())
-      .then((data) => {
-        setSession(data.session ?? null);
-        if (!data.session || data.session.type !== "admin") {
-          router.replace("/admin/login");
-          return;
-        }
-        if (data.session.firstLoginDone) {
-          router.replace("/admin/dashboard");
-        }
-      })
-      .catch(() => setSession(null));
-  }, [router]);
+  const user = session?.user as { role?: string; firstLoginDone?: boolean; email?: string } | undefined;
+  const isEmployee = user?.role === "employee";
+  const mustChange = user?.firstLoginDone === false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +31,13 @@ export default function AdminChangePasswordPage() {
       setError("Passwords do not match");
       return;
     }
+    if (!session?.user?.email) {
+      setError("Session expired. Please sign in again.");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/change-password", {
+      const res = await fetch("/api/employee/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword }),
@@ -54,7 +47,18 @@ export default function AdminChangePasswordPage() {
         setError(data.error ?? "Failed to update password");
         return;
       }
-      router.push("/admin/dashboard");
+      // Re-sign-in with new password so the JWT gets firstLoginDone: true from DB
+      const signInResult = await signIn("credentials", {
+        email: session.user.email,
+        password: newPassword,
+        callbackUrl: "/employee/dashboard",
+        redirect: false,
+      });
+      if (signInResult?.error) {
+        setError("Password updated but session refresh failed. Please sign in again with your new password.");
+        return;
+      }
+      router.push("/employee/dashboard");
       router.refresh();
     } catch {
       setError("Network error");
@@ -63,48 +67,52 @@ export default function AdminChangePasswordPage() {
     }
   };
 
-  if (session === "loading" || (session && session.type !== "admin")) {
-    return <div className="pt-8 text-center text-slate-600 dark:text-slate-400">Loading...</div>;
+  if (status === "loading") return <div className="container mx-auto px-4 py-8 text-center">Loading...</div>;
+  if (status === "unauthenticated" || !isEmployee) {
+    router.replace("/auth/signin");
+    return null;
+  }
+  if (!mustChange) {
+    router.replace("/employee/dashboard");
+    return null;
   }
 
   return (
-    <div className="mx-auto max-w-sm pt-8">
-      <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <div className="container mx-auto max-w-md px-4 py-12">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-slate-100">Change Password</CardTitle>
-          <CardDescription className="text-slate-600 dark:text-slate-400">
-            You must set a new password before using the dashboard.
+          <CardTitle>Set your password</CardTitle>
+          <CardDescription>
+            You must set a new password before using your profile. Use your work email and this new password for future sign-ins.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="new" className="text-slate-700 dark:text-slate-300">New Password</Label>
+              <Label htmlFor="new">New password</Label>
               <Input
                 id="new"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1 border-slate-300 bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 minLength={6}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="confirm" className="text-slate-700 dark:text-slate-300">Confirm Password</Label>
+              <Label htmlFor="confirm">Confirm password</Label>
               <Input
                 id="confirm"
                 type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="mt-1 border-slate-300 bg-white text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                 minLength={6}
                 required
               />
             </div>
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Updating..." : "Set Password"}
+              {loading ? "Updating…" : "Set password"}
             </Button>
           </form>
         </CardContent>

@@ -63,11 +63,18 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // Credentials sign-in is only for admin-created employees (email/password)
+          if ((user as { role?: string }).role !== "employee") {
+            return null;
+          }
+
           return {
             id: user._id.toString(),
             name: user.name,
             email: user.email,
             image: user.image,
+            role: "employee" as const,
+            firstLoginDone: (user as { firstLoginDone?: boolean }).firstLoginDone ?? true,
           };
         } catch (error) {
           // console.error("Error during authentication:", error);
@@ -87,28 +94,26 @@ export const authOptions: NextAuthOptions = {
       return !!user.email;
     },
     async jwt({ token, user, account }) {
-      // Add user data to token when first created
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
+        token.role = (user as { role?: "user" | "employee" }).role ?? "user";
+        token.firstLoginDone = (user as { firstLoginDone?: boolean }).firstLoginDone ?? true;
       }
-      
-      if (account) {
-        token.provider = account.provider;
-      }
-      
+      if (account) token.provider = account.provider;
       return token;
     },
     async session({ session, token }) {
-      // Add token data to session
       if (session.user && token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.image = token.image as string;
         session.user.provider = token.provider as string;
+        session.user.role = (token.role as "user" | "employee") ?? "user";
+        session.user.firstLoginDone = token.firstLoginDone ?? true;
       }
       return session;
     },
