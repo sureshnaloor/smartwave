@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/admin/auth";
 import { getAdminUsersCollection, getAdminPassesCollection } from "@/lib/admin/db";
-import type { AdminPassType } from "@/lib/admin/pass";
+import type { AdminPassType, AdminPass } from "@/lib/admin/pass";
 
 export const dynamic = "force-dynamic";
 
@@ -70,11 +70,33 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date();
+
+    // Parse location
+    let location: AdminPass["location"] | undefined = undefined;
+    if (body.location) {
+      if (typeof body.location === 'string') {
+        location = { name: body.location };
+      } else if (typeof body.location === 'object') {
+        location = {
+          name: body.location.name || "Unknown Location",
+          lat: typeof body.location.lat === 'number' ? body.location.lat : undefined,
+          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined
+        };
+      }
+    }
+
+    // Parse dates
+    const dateStart = body.dateStart ? new Date(body.dateStart) : undefined;
+    const dateEnd = body.dateEnd ? new Date(body.dateEnd) : undefined;
+
     const doc = {
       createdByAdminId: new ObjectId(adminId),
       name,
       description: typeof body.description === "string" ? body.description.trim() : undefined,
       type,
+      location,
+      dateStart,
+      dateEnd,
       status: "draft" as const,
       createdAt: now,
       updatedAt: now,

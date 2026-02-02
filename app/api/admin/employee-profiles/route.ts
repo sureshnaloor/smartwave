@@ -118,7 +118,8 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     });
 
-    const companyLogo = (admin as any)?.companyLogo ?? "";
+    const companyName = (admin as any).company?.name || "";
+    const companyLogo = (admin as any).company?.logo || "";
     const profileDoc: Record<string, unknown> = {
       createdByAdminId: adminObjId,
       userEmail: workEmail,
@@ -127,16 +128,16 @@ export async function POST(req: NextRequest) {
       middleName: middleName || undefined,
       name,
       title: typeof body.title === "string" ? body.title.trim() : undefined,
-      company: typeof body.company === "string" ? body.company.trim() : undefined,
+      company: companyName, // Inherit from admin company setting
       workEmail,
-      companyLogo,
+      companyLogo, // Inherit from admin company setting
       photo: typeof body.photo === "string" ? body.photo.trim() : "",
       personalEmail: "",
       mobile: typeof body.mobile === "string" ? body.mobile.trim() : undefined,
       workPhone: typeof body.workPhone === "string" ? body.workPhone.trim() : undefined,
       fax: "",
       homePhone: "",
-      workStreet: typeof body.workStreet === "string" ? body.workStreet.trim() : undefined,
+      workStreet: (admin as any).company?.address || (typeof body.workStreet === "string" ? body.workStreet.trim() : undefined),
       workDistrict: "",
       workCity: typeof body.workCity === "string" ? body.workCity.trim() : undefined,
       workState: typeof body.workState === "string" ? body.workState.trim() : undefined,

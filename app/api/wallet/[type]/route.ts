@@ -6,6 +6,9 @@ import { authOptions } from "@/lib/auth";
 import { getProfile, getProfileByShortUrl, generateAndUpdateShortUrl } from "@/app/_actions/profile";
 import { generateApplePass } from "@/lib/wallet/apple";
 import { generateGoogleWalletUrl, updateGoogleWalletObject } from "@/lib/wallet/google";
+import { getPassById } from "@/lib/wallet/pass-helper";
+
+// ... existing imports ...
 
 export async function GET(
     req: NextRequest,
@@ -14,6 +17,7 @@ export async function GET(
     try {
         const { searchParams } = new URL(req.url);
         const shorturl = searchParams.get("shorturl");
+        const passId = searchParams.get("passId");
 
         let profile = null;
 
@@ -21,17 +25,31 @@ export async function GET(
             profile = await getProfileByShortUrl(shorturl);
         } else {
             const session = await getServerSession(authOptions);
-            if (!session?.user?.email) {
+            const email = session?.user?.email;
+
+            // If no session and no shorturl, we can't identify the user.
+            // But if passId is provided, maybe we require login? 
+            // The user said "users will have option... click add to wallet".
+            // So they are likely logged in.
+            if (!email) {
                 return new NextResponse("Unauthorized", { status: 401 });
             }
-            profile = await getProfile(session.user.email);
+            profile = await getProfile(email);
         }
 
         if (!profile) {
             return new NextResponse("Profile not found", { status: 404 });
         }
 
-        // Ensure user has a short URL before generating wallet pass
+        let passData: any = undefined;
+        if (passId) {
+            passData = await getPassById(passId);
+            if (!passData) {
+                return new NextResponse("Pass/Event not found", { status: 404 });
+            }
+        }
+
+        // Ensure user has a short URL before generating wallet pass (legacy check, keep it)
         if (!profile.shorturl) {
             const session = await getServerSession(authOptions);
             const userEmail = profile.userEmail || session?.user?.email;
@@ -47,14 +65,13 @@ export async function GET(
 
         if (type === "apple") {
             try {
-                console.log(`[Wallet API] Generating Apple Pass for ${profile.userEmail}...`);
+                console.log(`[Wallet API] Generating Apple Pass for ${profile.userEmail} (PassId: ${passId || 'profile'})...`);
                 const userId = profile._id?.toString() || "manual_id";
                 const host = req.headers.get("host") || "www.smartwave.name";
                 const protocol = host.includes("localhost") ? "http" : "https";
                 const webUrl = `${protocol}://${host}/api/wallet`;
-                console.log(`[Wallet API] DEBUG - webServiceURL: ${webUrl}, serialNumber: ${userId}`);
 
-                const buffer = await generateApplePass(profile, host);
+                const buffer = await generateApplePass(profile, host, passData);
 
                 console.log(`[Wallet API] Sending Apple Pass response (${buffer.length} bytes)`);
 
@@ -62,7 +79,7 @@ export async function GET(
                     status: 200,
                     headers: {
                         "Content-Type": "application/vnd.apple.pkpass",
-                        "Content-Disposition": 'attachment; filename="smartwave.pkpass"',
+                        "Content-Disposition": `attachment; filename="${passData ? 'event' : 'smartwave'}.pkpass"`,
                         "Cache-Control": "no-cache, no-store, must-revalidate",
                     },
                 });

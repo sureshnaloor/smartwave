@@ -75,6 +75,27 @@ export async function PATCH(
     if (body.type === "event" || body.type === "access") update.type = body.type as AdminPassType;
     if (body.status === "draft" || body.status === "active") update.status = body.status;
 
+    // Handle Location update
+    if (body.location !== undefined) {
+      if (body.location === null) {
+        update.location = null;
+      } else if (typeof body.location === 'object') {
+        update.location = {
+          name: body.location.name || "Unknown Location",
+          lat: typeof body.location.lat === 'number' ? body.location.lat : undefined,
+          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined
+        };
+      }
+    }
+
+    // Handle Date updates
+    if (body.dateStart !== undefined) {
+      update.dateStart = body.dateStart ? new Date(body.dateStart) : null;
+    }
+    if (body.dateEnd !== undefined) {
+      update.dateEnd = body.dateEnd ? new Date(body.dateEnd) : null;
+    }
+
     await coll.updateOne(
       { _id: new ObjectId(id), createdByAdminId: new ObjectId(adminId) },
       { $set: update }

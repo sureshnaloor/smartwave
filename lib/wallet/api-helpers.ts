@@ -23,22 +23,26 @@ export async function getProfileBySerialNumber(serialNumber: string) {
     const client = await clientPromise;
     const db = client.db("smartwave");
 
+
+    // Check if serialNumber is composite (userId_passId)
+    const potentialUserId = serialNumber.split('_')[0];
+
     try {
-        // Attempt to convert serialNumber to ObjectId
-        const _id = new ObjectId(serialNumber);
+        // Attempt to convert potentialUserId to ObjectId
+        const _id = new ObjectId(potentialUserId);
         const profile = await db.collection("profiles").findOne({ _id });
         if (profile) {
-            console.log(`[Lookup] Found profile for ${serialNumber} via ObjectId`);
+            console.log(`[Lookup] Found profile for ${serialNumber} via ObjectId (base user part)`);
             return JSON.parse(JSON.stringify(profile));
         }
     } catch (e) {
         // If not a valid ObjectId, try as plain string
-        const profile = await db.collection("profiles").findOne({ _id: serialNumber as any });
+        const profile = await db.collection("profiles").findOne({ _id: potentialUserId as any });
         if (profile) {
             console.log(`[Lookup] Found profile for ${serialNumber} via string ID`);
             return JSON.parse(JSON.stringify(profile));
         }
     }
-    console.warn(`[Lookup] NO profile found for serial: ${serialNumber}`);
+    console.warn(`[Lookup] NO profile found for serial: ${serialNumber} (ID used: ${potentialUserId})`);
     return null;
 }

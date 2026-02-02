@@ -9,8 +9,13 @@ export interface AdminPass {
   name: string;
   description?: string;
   type: AdminPassType;
-  /** Optional: for future opt-in by location/interest */
-  location?: string;
+  location?: {
+    lat?: number;
+    lng?: number;
+    name: string;
+  };
+  dateStart?: Date;
+  dateEnd?: Date;
   tags?: string[];
   status: "draft" | "active";
   createdAt: Date;

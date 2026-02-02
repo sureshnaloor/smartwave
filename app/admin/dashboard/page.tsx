@@ -15,6 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import LocationPicker from "@/components/admin/LocationPicker";
+import PhotoUpload from "@/components/admin/PhotoUpload";
+import { DigitalProfile } from "@/components/digitalprofile/digitalprofile";
+import { ProfileData } from "@/components/digitalprofile/types";
+import { Eye, FileSpreadsheet, Download } from "lucide-react";
+import { toast } from "sonner";
 
 type Session = {
   type: "admin";
@@ -42,7 +48,12 @@ type Pass = {
   description?: string;
   type: string;
   status: string;
+  location?: { name: string; lat?: number; lng?: number };
+  dateStart?: string;
+  dateEnd?: string;
 };
+
+// ... existing code ...
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -72,7 +83,17 @@ export default function AdminDashboardPage() {
     notes: "",
   });
   const [createdTempPassword, setCreatedTempPassword] = useState<string | null>(null);
-  const [passForm, setPassForm] = useState({ name: "", description: "", type: "event" as "event" | "access" });
+
+  const [passForm, setPassForm] = useState({
+    name: "",
+    description: "",
+    type: "event" as "event" | "access",
+    locationName: "",
+    lat: "",
+    lng: "",
+    dateStart: "",
+    dateEnd: ""
+  });
   const [profileSubmitting, setProfileSubmitting] = useState(false);
   const [passSubmitting, setPassSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -85,12 +106,38 @@ export default function AdminDashboardPage() {
   const [deleteProfileEmail, setDeleteProfileEmail] = useState<string | null>(null);
   const [deleteProfileSubmitting, setDeleteProfileSubmitting] = useState(false);
 
+  // ... existing states ...
+
   const [editPassId, setEditPassId] = useState<string | null>(null);
-  const [editPassForm, setEditPassForm] = useState({ name: "", description: "", type: "event" as "event" | "access", status: "draft" as "draft" | "active" });
+  const [editPassForm, setEditPassForm] = useState({
+    name: "",
+    description: "",
+    type: "event" as "event" | "access",
+    status: "draft" as "draft" | "active",
+    locationName: "",
+    lat: "",
+    lng: "",
+    dateStart: "",
+    dateEnd: ""
+  });
   const [editPassSubmitting, setEditPassSubmitting] = useState(false);
   const [editPassError, setEditPassError] = useState("");
   const [deletePassId, setDeletePassId] = useState<string | null>(null);
+  const [companySubmitting, setCompanySubmitting] = useState(false);
+  const [companyMessage, setCompanyMessage] = useState("");
   const [deletePassSubmitting, setDeletePassSubmitting] = useState(false);
+  const [viewProfile, setViewProfile] = useState<EmployeeProfile | null>(null);
+
+  // Company Profile State
+  const [companyForm, setCompanyForm] = useState({
+    name: "",
+    email: "",
+    logo: "",
+    address: "",
+    lat: "",
+    lng: ""
+  });
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/me", { credentials: "include" })
@@ -116,7 +163,7 @@ export default function AdminDashboardPage() {
         if (typeof data.limit === "number") setProfilesLimit(data.limit);
         if (typeof data.used === "number") setProfilesUsed(data.used);
       })
-      .catch(() => {});
+      .catch(() => { });
     fetch("/api/admin/passes", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
@@ -125,7 +172,24 @@ export default function AdminDashboardPage() {
         if (typeof data.limit === "number") setPassesLimit(data.limit);
         if (typeof data.used === "number") setPassesUsed(data.used);
       })
-      .catch(() => {});
+      .catch(() => { });
+
+    // Fetch Company Details
+    fetch("/api/admin/company", { credentials: "include" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.company) {
+          setCompanyForm({
+            name: data.company.name || "",
+            email: data.company.email || "",
+            logo: data.company.logo || "",
+            address: data.company.address || "",
+            lat: data.company.location?.lat?.toString() || "",
+            lng: data.company.location?.lng?.toString() || ""
+          });
+        }
+      })
+      .catch(() => { });
   }, [session]);
 
   useEffect(() => {
@@ -227,15 +291,27 @@ export default function AdminDashboardPage() {
     setEditPassError("");
     setEditPassSubmitting(true);
     try {
+      const payload: any = {
+        name: editPassForm.name,
+        description: editPassForm.description || undefined,
+        type: editPassForm.type,
+        status: editPassForm.status,
+        dateStart: editPassForm.dateStart || null,
+        dateEnd: editPassForm.dateEnd || null,
+      };
+
+      if (editPassForm.locationName) {
+        payload.location = {
+          name: editPassForm.locationName,
+          lat: editPassForm.lat ? parseFloat(editPassForm.lat) : undefined,
+          lng: editPassForm.lng ? parseFloat(editPassForm.lng) : undefined,
+        };
+      }
+
       const res = await fetch(`/api/admin/passes/${editPassId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editPassForm.name,
-          description: editPassForm.description || undefined,
-          type: editPassForm.type,
-          status: editPassForm.status,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -346,10 +422,26 @@ export default function AdminDashboardPage() {
     setError("");
     setPassSubmitting(true);
     try {
+      const payload: any = {
+        name: passForm.name,
+        description: passForm.description || undefined,
+        type: passForm.type,
+        dateStart: passForm.dateStart || undefined,
+        dateEnd: passForm.dateEnd || undefined,
+      };
+
+      if (passForm.locationName) {
+        payload.location = {
+          name: passForm.locationName,
+          lat: passForm.lat ? parseFloat(passForm.lat) : undefined,
+          lng: passForm.lng ? parseFloat(passForm.lng) : undefined,
+        };
+      }
+
       const res = await fetch("/api/admin/passes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: passForm.name, description: passForm.description || undefined, type: passForm.type }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -358,11 +450,184 @@ export default function AdminDashboardPage() {
       }
       setPasses((prev) => [data.pass, ...prev]);
       setPassesUsed((u) => u + 1);
-      setPassForm({ name: "", description: "", type: "event" });
+      setPassForm({
+        name: "",
+        description: "",
+        type: "event",
+        locationName: "",
+        lat: "",
+        lng: "",
+        dateStart: "",
+        dateEnd: ""
+      });
     } catch {
       setError("Network error");
     } finally {
       setPassSubmitting(false);
+    }
+  };
+
+  const handleTemplateDownload = () => {
+    const headers = [
+      "workEmail (required)",
+      "firstName",
+      "lastName",
+      "middleName",
+      "title",
+      "mobile",
+      "workPhone",
+      "notes"
+    ];
+    const sample = [
+      "john.doe@example.com",
+      "John",
+      "Doe",
+      "",
+      "Software Engineer",
+      "+1-555-0100",
+      "+1-555-0101",
+      "Employee of the month"
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + sample.join(",");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "employee_upload_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast.error("Please upload a valid CSV file.");
+      return;
+    }
+
+    setIsBulkUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      // Simple CSV parser
+      const rows = text.split(/\r?\n/).slice(1); // skip header
+      const data = rows.map(row => {
+        // Handle quotes if simple split fails? For template simplicity, assume simple CSV for now.
+        // Ideally use a library but avoiding deps for now.
+        // Matches: values separated by commas, respecting quotes
+        const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || row.split(',');
+
+        // Fallback to simple split if regex fails or for simple cases
+        const values = row.split(',').map(v => v.trim());
+        // Map indices to fields based on template
+        // 0: email, 1: first, 2: last, 3: middle, 4: title, 5: mobile, 6: work, 7: notes
+        return {
+          workEmail: values[0],
+          firstName: values[1],
+          lastName: values[2],
+          middleName: values[3],
+          title: values[4],
+          mobile: values[5],
+          workPhone: values[6],
+          notes: values[7]
+        };
+      }).filter(r => r.workEmail && r.workEmail.includes('@')); // Basic validation
+
+      if (data.length === 0) {
+        toast.error("No valid rows found in CSV.");
+        setIsBulkUploading(false);
+        return;
+      }
+
+      if (profilesUsed + data.length > profilesLimit) {
+        toast.error(`Cannot upload ${data.length} profiles. Limit exceeded (Remaining: ${profilesLimit - profilesUsed}).`);
+        setIsBulkUploading(false);
+        return;
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const emp of data) {
+        try {
+          // Generate a random temp password
+          const tempPass = Math.random().toString(36).slice(-8);
+
+          const res = await fetch("/api/admin/employee-profiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              workEmail: emp.workEmail,
+              temporaryPassword: tempPass,
+              firstName: emp.firstName,
+              lastName: emp.lastName,
+              middleName: emp.middleName,
+              title: emp.title,
+              mobile: emp.mobile,
+              workPhone: emp.workPhone,
+              notes: emp.notes
+            })
+          });
+
+          if (res.ok) {
+            successCount++;
+            // Update list locally
+            const d = await res.json();
+            setProfiles(prev => [d.profile, ...prev]);
+            setProfilesUsed(u => u + 1);
+          } else {
+            failCount++;
+          }
+        } catch (err) {
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Successfully added ${successCount} profiles.`);
+      }
+      if (failCount > 0) {
+        toast.warning(`Failed to add ${failCount} profiles. Check duplicates or email format.`);
+      }
+      setIsBulkUploading(false);
+      // Reset file input
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  };
+
+  const updateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCompanyMessage("");
+    setCompanySubmitting(true);
+    try {
+      const res = await fetch("/api/admin/company", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: companyForm.name,
+          email: companyForm.email,
+          logo: companyForm.logo,
+          address: companyForm.address,
+          location: {
+            lat: companyForm.lat ? parseFloat(companyForm.lat) : undefined,
+            lng: companyForm.lng ? parseFloat(companyForm.lng) : undefined
+          }
+        })
+      });
+      if (res.ok) {
+        setCompanyMessage("Company profile updated successfully.");
+      } else {
+        setCompanyMessage("Failed to update profile.");
+      }
+    } catch {
+      setCompanyMessage("Network error.");
+    } finally {
+      setCompanySubmitting(false);
     }
   };
 
@@ -396,15 +661,37 @@ export default function AdminDashboardPage() {
         <TabsList className="mb-4 bg-slate-200 dark:bg-slate-800">
           <TabsTrigger value="profiles">Employee Profiles</TabsTrigger>
           <TabsTrigger value="passes">Event / Access Passes</TabsTrigger>
+          <TabsTrigger value="company">Company Profile</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profiles" className="space-y-6">
           <Card className={cardClass}>
             <CardHeader>
-              <CardTitle className={titleClass}>Create Employee Profile</CardTitle>
-              <CardDescription className={descClass}>
-                Add a profile manually. Excel upload coming soon.
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className={titleClass}>Create Employee Profile</CardTitle>
+                  <CardDescription className={descClass}>
+                    Add a profile manually or upload via CSV.
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleTemplateDownload} className="gap-2">
+                    <Download className="w-4 h-4" /> Template
+                  </Button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleBulkUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isBulkUploading || profilesUsed >= profilesLimit}
+                    />
+                    <Button size="sm" className="gap-2" disabled={isBulkUploading || profilesUsed >= profilesLimit}>
+                      {isBulkUploading ? "Uploading..." : <><FileSpreadsheet className="w-4 h-4" /> Upload CSV</>}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {createdTempPassword && (
@@ -440,13 +727,29 @@ export default function AdminDashboardPage() {
                   <Label className={labelClass}>Job title</Label>
                   <Input value={profileForm.title} onChange={(e) => setProfileForm((f) => ({ ...f, title: e.target.value }))} className={inputClass} />
                 </div>
-                <div>
-                  <Label className={labelClass}>Company</Label>
-                  <Input value={profileForm.company} onChange={(e) => setProfileForm((f) => ({ ...f, company: e.target.value }))} className={inputClass} />
+                <div className="sm:col-span-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <p className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100 italic">Company Information (Inherited from Admin Profile)</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label className={labelClass}>Company Name</Label>
+                      <Input value={companyForm.name || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                    <div>
+                      <Label className={labelClass}>Company Email</Label>
+                      <Input value={companyForm.email || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label className={labelClass}>Company Address</Label>
+                      <Input value={companyForm.address || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2">To update these fields, go to the "Company Profile" tab.</p>
                 </div>
-                <div>
-                  <Label className={labelClass}>Photo URL</Label>
-                  <Input value={profileForm.photo} onChange={(e) => setProfileForm((f) => ({ ...f, photo: e.target.value }))} className={inputClass} placeholder="https://..." />
+                <div className="sm:col-span-2">
+                  <PhotoUpload
+                    currentPhotoUrl={profileForm.photo}
+                    onPhotoUploaded={(url) => setProfileForm((f) => ({ ...f, photo: url }))}
+                  />
                 </div>
                 <div>
                   <Label className={labelClass}>Mobile</Label>
@@ -509,6 +812,9 @@ export default function AdminDashboardPage() {
                         {p.workEmail && <p className={listMutedClass}>{p.workEmail}</p>}
                       </div>
                       <div className="flex gap-2">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setViewProfile(p)} title="View Digital Profile">
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => setEditProfileEmail(p.workEmail ?? null)}>Edit</Button>
                         <Button type="button" variant="outline" size="sm" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" onClick={() => setDeleteProfileEmail(p.workEmail ?? null)}>Delete</Button>
                       </div>
@@ -551,13 +857,29 @@ export default function AdminDashboardPage() {
                   <Label className={labelClass}>Job title</Label>
                   <Input value={editProfileForm.title} onChange={(e) => setEditProfileForm((f) => ({ ...f, title: e.target.value }))} className={inputClass} />
                 </div>
-                <div>
-                  <Label className={labelClass}>Company</Label>
-                  <Input value={editProfileForm.company} onChange={(e) => setEditProfileForm((f) => ({ ...f, company: e.target.value }))} className={inputClass} />
+                <div className="sm:col-span-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <p className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100 italic">Company Information (Inherited from Admin Profile)</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label className={labelClass}>Company Name</Label>
+                      <Input value={companyForm.name || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                    <div>
+                      <Label className={labelClass}>Company Email</Label>
+                      <Input value={companyForm.email || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label className={labelClass}>Company Address</Label>
+                      <Input value={companyForm.address || "N/A"} disabled className={inputClass + " bg-slate-100 dark:bg-slate-800 opacity-70"} />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-2">To update these fields, go to the "Company Profile" tab.</p>
                 </div>
-                <div>
-                  <Label className={labelClass}>Photo URL</Label>
-                  <Input value={editProfileForm.photo} onChange={(e) => setEditProfileForm((f) => ({ ...f, photo: e.target.value }))} className={inputClass} placeholder="https://..." />
+                <div className="sm:col-span-2">
+                  <PhotoUpload
+                    currentPhotoUrl={editProfileForm.photo}
+                    onPhotoUploaded={(url) => setEditProfileForm((f) => ({ ...f, photo: url }))}
+                  />
                 </div>
                 <div>
                   <Label className={labelClass}>Mobile</Label>
@@ -644,6 +966,40 @@ export default function AdminDashboardPage() {
                     <option value="access">Access</option>
                   </select>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <Label className={labelClass + " mb-2 block"}>Pin Location on Map</Label>
+                    <LocationPicker
+                      lat={passForm.lat ? parseFloat(passForm.lat) : undefined}
+                      lng={passForm.lng ? parseFloat(passForm.lng) : undefined}
+                      onLocationChange={(lat, lng) => setPassForm(f => ({ ...f, lat: lat.toString(), lng: lng.toString() }))}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className={labelClass}>Location Name</Label>
+                    <Input value={passForm.locationName} onChange={(e) => setPassForm((f) => ({ ...f, locationName: e.target.value }))} className={inputClass} placeholder="e.g. Madison Garden" />
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Latitude</Label>
+                    <Input type="number" step="any" value={passForm.lat} onChange={(e) => setPassForm((f) => ({ ...f, lat: e.target.value }))} className={inputClass} placeholder="e.g. 40.7128" />
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Longitude</Label>
+                    <Input type="number" step="any" value={passForm.lng} onChange={(e) => setPassForm((f) => ({ ...f, lng: e.target.value }))} className={inputClass} placeholder="e.g. -74.0060" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className={labelClass}>Start Date</Label>
+                    <Input type="datetime-local" value={passForm.dateStart} onChange={(e) => setPassForm((f) => ({ ...f, dateStart: e.target.value }))} className={inputClass} />
+                  </div>
+                  <div>
+                    <Label className={labelClass}>End Date</Label>
+                    <Input type="datetime-local" value={passForm.dateEnd} onChange={(e) => setPassForm((f) => ({ ...f, dateEnd: e.target.value }))} className={inputClass} />
+                  </div>
+                </div>
                 {error && <p className={errorClass}>{error}</p>}
                 <Button type="submit" disabled={passSubmitting || passesUsed >= passesLimit}>
                   {passSubmitting ? "Creating..." : "Create Pass"}
@@ -670,7 +1026,21 @@ export default function AdminDashboardPage() {
                         <p className={listMutedClass}>{p.type} · {p.status}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => { setEditPassId(p._id); setEditPassForm({ name: p.name, description: p.description ?? "", type: p.type as "event" | "access", status: p.status as "draft" | "active" }); setEditPassError(""); }}>Edit</Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          setEditPassId(p._id);
+                          setEditPassForm({
+                            name: p.name,
+                            description: p.description ?? "",
+                            type: p.type as "event" | "access",
+                            status: p.status as "draft" | "active",
+                            locationName: p.location?.name ?? "",
+                            lat: p.location?.lat?.toString() ?? "",
+                            lng: p.location?.lng?.toString() ?? "",
+                            dateStart: p.dateStart ? new Date(p.dateStart).toISOString().slice(0, 16) : "",
+                            dateEnd: p.dateEnd ? new Date(p.dateEnd).toISOString().slice(0, 16) : ""
+                          });
+                          setEditPassError("");
+                        }}>Edit</Button>
                         <Button type="button" variant="outline" size="sm" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" onClick={() => setDeletePassId(p._id)}>Delete</Button>
                       </div>
                     </li>
@@ -680,6 +1050,152 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="company">
+          <Card className={cardClass}>
+            <CardHeader>
+              <CardTitle className={titleClass}>Company Profile</CardTitle>
+              <CardDescription className={descClass}>
+                These details will be shared with all employees created by you.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={updateCompany} className="space-y-6 max-w-2xl">
+                {/* Logo Upload */}
+                <div>
+                  <Label className={labelClass + " mb-2 block"}>Company Logo</Label>
+                  <PhotoUpload
+                    currentPhotoUrl={companyForm.logo}
+                    onPhotoUploaded={(url) => setCompanyForm(f => ({ ...f, logo: url }))}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label className={labelClass}>Company Name</Label>
+                    <Input
+                      value={companyForm.name}
+                      onChange={(e) => setCompanyForm(f => ({ ...f, name: e.target.value }))}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Main Email</Label>
+                    <Input
+                      type="email"
+                      value={companyForm.email}
+                      onChange={(e) => setCompanyForm(f => ({ ...f, email: e.target.value }))}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className={labelClass}>Address</Label>
+                  <Input
+                    value={companyForm.address}
+                    onChange={(e) => setCompanyForm(f => ({ ...f, address: e.target.value }))}
+                    className={inputClass}
+                    placeholder="Headquarters Address"
+                  />
+                </div>
+
+                {/* Location Picker */}
+                <div>
+                  <Label className={labelClass + " mb-2 block"}>Headquarters Location (Google Maps)</Label>
+                  <LocationPicker
+                    lat={companyForm.lat ? parseFloat(companyForm.lat) : undefined}
+                    lng={companyForm.lng ? parseFloat(companyForm.lng) : undefined}
+                    onLocationChange={(lat, lng) => setCompanyForm(f => ({ ...f, lat: lat.toString(), lng: lng.toString() }))}
+                  />
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <Input placeholder="Latitude" value={companyForm.lat} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
+                    <Input placeholder="Longitude" value={companyForm.lng} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
+                  </div>
+                </div>
+
+                {companyMessage && (
+                  <p className={`text-sm ${companyMessage.includes("success") ? "text-green-600 dark:text-green-400" : "text-red-600"}`}>
+                    {companyMessage}
+                  </p>
+                )}
+
+                <Button type="submit" disabled={companySubmitting}>
+                  {companySubmitting ? "Saving..." : "Save Company Profile"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {/* View Profile Dialog */}
+        <Dialog open={!!viewProfile} onOpenChange={(open) => !open && setViewProfile(null)}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-50 dark:bg-slate-950 p-0 border-0">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-4 top-4 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full"
+                onClick={() => setViewProfile(null)}
+              >
+                <span className="sr-only">Close</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 18 18" /></svg>
+              </Button>
+              {viewProfile && (
+                <DigitalProfile
+                  profileData={{
+                    firstName: viewProfile.firstName || "",
+                    lastName: viewProfile.lastName || "",
+                    middleName: (viewProfile.middleName as string) || "",
+                    name: `${viewProfile.firstName || ""} ${viewProfile.lastName || ""}`.trim(),
+                    title: viewProfile.title || "",
+                    company: viewProfile.company || companyForm.name || "Company Name",
+                    companyLogo: companyForm.logo || "",
+                    workEmail: viewProfile.workEmail || "",
+                    workPhone: viewProfile.workPhone as string || "",
+                    mobile: viewProfile.mobile || "",
+                    photo: (viewProfile.photo as string) || "",
+                    website: (viewProfile.website as string) || "",
+                    linkedin: (viewProfile.linkedin as string) || undefined,
+                    twitter: (viewProfile.twitter as string) || undefined,
+                    facebook: (viewProfile.facebook as string) || undefined,
+                    instagram: (viewProfile.instagram as string) || undefined,
+                    notes: (viewProfile.notes as string) || "",
+                    shorturl: (viewProfile.shorturl as string) || "preview",
+
+                    // Address - Map company address if available
+                    workStreet: companyForm.address || "",
+                    workCity: "",
+                    workState: "",
+                    workZipcode: "",
+                    workCountry: "",
+                    homeStreet: "",
+                    homeDistrict: "",
+                    homeCity: "",
+                    homeState: "",
+                    homeZipcode: "",
+                    homeCountry: "",
+                    homePhone: "",
+                    personalEmail: "",
+                    fax: "",
+
+
+                    dates: {},
+                    locations: {
+                      work: {
+                        lat: parseFloat(companyForm.lat || "0"),
+                        lng: parseFloat(companyForm.lng || "0"),
+                        label: companyForm.address || companyForm.name || "Office"
+                      }
+                    },
+                  } as ProfileData}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
       </Tabs>
 
       {/* Edit pass dialog */}
@@ -704,6 +1220,41 @@ export default function AdminDashboardPage() {
                 <option value="access">Access</option>
               </select>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <Label className={labelClass + " mb-2 block"}>Pin Location on Map</Label>
+                <LocationPicker
+                  lat={editPassForm.lat ? parseFloat(editPassForm.lat) : undefined}
+                  lng={editPassForm.lng ? parseFloat(editPassForm.lng) : undefined}
+                  onLocationChange={(lat, lng) => setEditPassForm(f => ({ ...f, lat: lat.toString(), lng: lng.toString() }))}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Label className={labelClass}>Location Name</Label>
+                <Input value={editPassForm.locationName} onChange={(e) => setEditPassForm((f) => ({ ...f, locationName: e.target.value }))} className={inputClass} placeholder="e.g. Madison Garden" />
+              </div>
+              <div>
+                <Label className={labelClass}>Latitude</Label>
+                <Input type="number" step="any" value={editPassForm.lat} onChange={(e) => setEditPassForm((f) => ({ ...f, lat: e.target.value }))} className={inputClass} placeholder="e.g. 40.7128" />
+              </div>
+              <div>
+                <Label className={labelClass}>Longitude</Label>
+                <Input type="number" step="any" value={editPassForm.lng} onChange={(e) => setEditPassForm((f) => ({ ...f, lng: e.target.value }))} className={inputClass} placeholder="e.g. -74.0060" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label className={labelClass}>Start Date</Label>
+                <Input type="datetime-local" value={editPassForm.dateStart} onChange={(e) => setEditPassForm((f) => ({ ...f, dateStart: e.target.value }))} className={inputClass} />
+              </div>
+              <div>
+                <Label className={labelClass}>End Date</Label>
+                <Input type="datetime-local" value={editPassForm.dateEnd} onChange={(e) => setEditPassForm((f) => ({ ...f, dateEnd: e.target.value }))} className={inputClass} />
+              </div>
+            </div>
+
             <div>
               <Label className={labelClass}>Status</Label>
               <select value={editPassForm.status} onChange={(e) => setEditPassForm((f) => ({ ...f, status: e.target.value as "draft" | "active" }))} className={selectClass}>
@@ -737,6 +1288,6 @@ export default function AdminDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
