@@ -2,6 +2,7 @@
 import jwt from "jsonwebtoken";
 import { google } from "googleapis";
 import { ProfileData } from "@/app/_actions/profile";
+import { AdminPass } from "@/lib/admin/pass";
 
 function getCredentials() {
     const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
@@ -28,14 +29,24 @@ function getCredentials() {
     return { issuerId, serviceAccountEmail, privateKey };
 }
 
-function createWalletObject(user: ProfileData, issuerId: string) {
+function createWalletObject(user: ProfileData, issuerId: string, passData?: AdminPass, baseUrl?: string) {
     const classId = process.env.GOOGLE_WALLET_CLASS_ID || "SmartWaveGenericClass";
+    const appBaseUrl = baseUrl || "https://www.smartwave.name";
 
-    // Ensure we have a stable ID. Use MongoDB ID if available, otherwise a stable hash of the email.
+    // Ensure we have a stable ID. Use MongoDB ID if available.
     const userIdentifier = user._id?.toString() || Buffer.from(user.userEmail).toString('hex').substring(0, 12);
-    const objectId = `${issuerId}.${userIdentifier}`;
 
-    // Cache-busting for images - append a timestamp if available
+    // GOOGLE WALLET ID LIMIT: 64 characters total
+    let objectId = "";
+    if (passData) {
+        const passIdStr = passData._id?.toString() || "event";
+        const shortUserId = userIdentifier.substring(userIdentifier.length - 10);
+        objectId = `${issuerId}.${shortUserId}_${passIdStr}`;
+    } else {
+        objectId = `${issuerId}.${userIdentifier}`;
+    }
+
+    // Cache-busting for images
     const timeTag = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now();
     const addCacheBuster = (url: string) => {
         if (!url) return url;
@@ -47,13 +58,68 @@ function createWalletObject(user: ProfileData, issuerId: string) {
         }
     };
 
+    // If it's for an event/access pass, map those fields
+    if (passData) {
+        const passUrl = `${appBaseUrl}/passes/${passData._id}`;
+        return {
+            id: objectId,
+            classId: `${issuerId}.${classId}`,
+            genericType: "GENERIC_TYPE_UNSPECIFIED",
+            barcode: {
+                type: "QR_CODE",
+                value: "https://www.smartwave.name",
+                alternateText: "Scan to visit SmartWave"
+            },
+            cardTitle: {
+                defaultValue: {
+                    language: "en-US",
+                    value: "SmartWave Pass"
+                }
+            },
+            header: {
+                defaultValue: {
+                    language: "en-US",
+                    value: passData.name
+                }
+            },
+            subheader: {
+                defaultValue: {
+                    language: "en-US",
+                    value: passData.location?.name || "SmartWave Event"
+                }
+            },
+            logo: user.companyLogo ? {
+                sourceUri: { uri: addCacheBuster(user.companyLogo) }
+            } : undefined,
+            // User requested to STOP showing user photo on passes to avoid confusion
+            heroImage: undefined,
+            textModulesData: [
+                { header: "Pass Holder", body: user.name, id: "holder" },
+                { header: "Event Date", body: passData.dateStart ? new Date(passData.dateStart).toLocaleString() : "TBA", id: "date" },
+                { header: "Type", body: passData.type.toUpperCase(), id: "type" },
+                { header: "Email", body: user.userEmail, id: "email" }
+            ],
+            linksModuleData: {
+                uris: [
+                    {
+                        uri: passUrl,
+                        description: "View Pass Details Online",
+                        id: "details_link"
+                    }
+                ]
+            }
+        };
+    }
+
+    // Default: Business Card
+    const profileUrl = user.shorturl ? `${appBaseUrl}/publicprofile/${user.shorturl}` : `${appBaseUrl}/profile/${user.userEmail}`;
     return {
         id: objectId,
         classId: `${issuerId}.${classId}`,
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         barcode: {
             type: "QR_CODE",
-            value: user.shorturl ? `https://www.smartwave.name/publicprofile/${user.shorturl}` : `https://www.smartwave.name/profile/${user.userEmail}`,
+            value: profileUrl,
             alternateText: "Scan to view profile"
         },
         cardTitle: {
@@ -93,18 +159,17 @@ function createWalletObject(user: ProfileData, issuerId: string) {
         linksModuleData: {
             uris: [
                 {
-                    uri: "https://www.smartwave.name",
+                    uri: appBaseUrl,
                     description: "SmartWave Web App (Sign up/Profile)",
                     id: "web_app_link"
                 },
                 {
-                    uri: "https://www.smartwave.name/app",
+                    uri: `${appBaseUrl}/app`,
                     description: "Get the SmartWave App (Coming Soon)",
                     id: "phone_app_link"
                 }
             ]
         },
-        // Adding a message can help trigger a sync/notification on the device
         messages: [
             {
                 header: "Card Updated",
@@ -115,9 +180,14 @@ function createWalletObject(user: ProfileData, issuerId: string) {
     };
 }
 
-export function generateGoogleWalletUrl(user: ProfileData) {
+export function generateGoogleWalletUrl(user: ProfileData, passData?: AdminPass, host?: string) {
     const { issuerId, serviceAccountEmail, privateKey } = getCredentials();
-    const walletObject = createWalletObject(user, issuerId);
+
+    // Determine the base URL for links and barcodes
+    const baseUrl = process.env.MOBILE_GOOGLE_CALLBACK_BASE
+        || (host ? `${host.includes('localhost') ? 'http' : 'https'}://${host}` : "https://www.smartwave.name");
+
+    const walletObject = createWalletObject(user, issuerId, passData, baseUrl);
 
     const payload = {
         iss: serviceAccountEmail,
@@ -133,10 +203,13 @@ export function generateGoogleWalletUrl(user: ProfileData) {
     return `https://pay.google.com/gp/v/save/${token}`;
 }
 
-export async function updateGoogleWalletObject(user: ProfileData) {
+export async function updateGoogleWalletObject(user: ProfileData, passData?: AdminPass, host?: string) {
     try {
         const { issuerId, serviceAccountEmail, privateKey } = getCredentials();
-        const walletObject = createWalletObject(user, issuerId);
+        const baseUrl = process.env.MOBILE_GOOGLE_CALLBACK_BASE
+            || (host ? `${host.includes('localhost') ? 'http' : 'https'}://${host}` : "https://www.smartwave.name");
+
+        const walletObject = createWalletObject(user, issuerId, passData, baseUrl);
 
         const auth = new google.auth.JWT({
             email: serviceAccountEmail,
@@ -159,9 +232,6 @@ export async function updateGoogleWalletObject(user: ProfileData) {
             return { success: true, warning: "Object not found" };
         }
         console.error("[Google Wallet] Update failed:", error.response?.status ?? error.message);
-        if (error.response?.data) {
-            console.error("[Google Wallet] Response:", JSON.stringify(error.response.data, null, 2));
-        }
         return { success: false, error };
     }
 }

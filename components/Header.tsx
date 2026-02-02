@@ -12,7 +12,7 @@ import Navigation from './Navigation';
 import {
   Menu, X, DollarSign, ShoppingBag,
   BookOpen, IdCard, Globe, LayoutDashboard,
-  ExternalLink, ChevronDown
+  ExternalLink, ChevronDown, Bell, Ticket
 } from 'lucide-react';
 import AboutDropdown from './AboutDropdown';
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export default function Header() {
   const navLinks = [
     { name: 'Pricing', href: '/pricing', icon: DollarSign, show: true },
     { name: 'Store', href: '/store', icon: ShoppingBag, show: isAuthenticated },
+    { name: 'Passes', href: '/passes', icon: Ticket, show: isAuthenticated },
     { name: 'Edit Profile', href: '/myprofile', icon: IdCard, show: isAuthenticated },
     { name: 'Guide Me', href: '/guide-me', icon: BookOpen, show: isAuthenticated },
   ];
@@ -120,6 +121,14 @@ export default function Header() {
               )}
 
               <div className="hidden md:flex items-center gap-2 border-l border-gray-200 dark:border-white/10 pl-3 ml-1">
+                <button
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-700 dark:text-gray-200 relative group"
+                  title="Notifications"
+                >
+                  <Bell className="h-5 w-5 group-hover:text-smart-teal transition-colors" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
+                </button>
+                <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
                 <ThemeToggle />
                 <Avatar />
                 <AuthButton />

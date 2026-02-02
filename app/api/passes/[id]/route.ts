@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import clientPromise from "@/lib/mongodb";
 import { getPassById } from "@/lib/wallet/pass-helper";
 
 export async function GET(
@@ -7,19 +10,29 @@ export async function GET(
 ) {
     try {
         const pass = await getPassById(params.id);
+        const session = await getServerSession(authOptions);
 
         if (!pass) {
             return new NextResponse("Pass not found", { status: 404 });
         }
 
-        // Basic check to ensure it's "active" or at least not secret draft if that's a requirement.
-        // For now, getPassById fetches whatever is in the DB. 
-        // We might want to filter by status if it's strictly public.
-        if (pass.status !== "active") {
-            return new NextResponse("Pass is not active", { status: 403 });
+        // If active, anyone authenticated (or public) can view
+        if (pass.status === "active") {
+            return NextResponse.json({ pass });
         }
 
-        return NextResponse.json({ pass });
+        // If draft, only authorized users can view
+        if (session?.user?.role === "employee" && session?.user?.email) {
+            const client = await clientPromise;
+            const db = client.db(process.env.MONGODB_DB || "smartwave");
+            const user = await db.collection("users").findOne({ email: session.user.email });
+
+            if (user?.createdByAdminId && user.createdByAdminId.toString() === pass.createdByAdminId.toString()) {
+                return NextResponse.json({ pass });
+            }
+        }
+
+        return new NextResponse("Pass is not active", { status: 403 });
     } catch (error) {
         console.error("Error fetching pass:", error);
         return new NextResponse("Internal Server Error", { status: 500 });

@@ -92,12 +92,14 @@ export async function GET(
             }
         } else if (type === "google") {
             try {
+                const host = req.headers.get("host") || "www.smartwave.name";
+
                 // Force an update to Google's servers before redirecting.
                 // This ensures that if the object ID already exists on Google's side,
-                // it is updated with the latest profile data before the user 'adds' it.
-                await updateGoogleWalletObject(profile);
+                // it is updated with the latest profile/pass data.
+                await updateGoogleWalletObject(profile, passData, host);
 
-                const url = generateGoogleWalletUrl(profile);
+                const url = generateGoogleWalletUrl(profile, passData, host);
                 return NextResponse.redirect(url);
             } catch (err) {
                 console.error("[Wallet API] Google Wallet error:", err);
