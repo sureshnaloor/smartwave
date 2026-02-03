@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     Calendar, MapPin, Clock, ArrowLeft, Ticket,
     Share2, ShieldCheck, Zap, Globe, Building2,
-    CalendarCheck, Bell, ChevronRight, Info
+    CalendarCheck, Bell, ChevronRight, Info, CheckCircle2, XCircle, Clock3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,17 +35,28 @@ interface Pass {
         name: string;
         lat?: number;
         lng?: number;
+        address?: string;
     };
     dateStart?: string;
     dateEnd?: string;
     status: "draft" | "active";
 }
 
+interface Membership {
+    _id: string;
+    status: "pending" | "approved" | "rejected";
+    requestedAt: string;
+    approvedAt?: string;
+    rejectedAt?: string;
+}
+
 export default function PassDetailPage() {
     const params = useParams();
     const router = useRouter();
     const [pass, setPass] = useState<Pass | null>(null);
+    const [membership, setMembership] = useState<Membership | null>(null);
     const [loading, setLoading] = useState(true);
+    const [joiningPass, setJoiningPass] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [os, setOs] = useState<"ios" | "android" | "other">("other");
@@ -61,6 +72,7 @@ export default function PassDetailPage() {
             setOs("android");
         }
 
+        // Fetch pass details
         fetch(`/api/passes/${params.id}`)
             .then(async (res) => {
                 if (!res.ok) {
@@ -77,7 +89,39 @@ export default function PassDetailPage() {
                 setError(err.message);
             })
             .finally(() => setLoading(false));
+
+        // Fetch membership status
+        fetch(`/api/passes/${params.id}/join`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.membership) {
+                    setMembership(data.membership);
+                }
+            })
+            .catch((err) => {
+                console.log("Not logged in or no membership", err);
+            });
     }, [params.id]);
+
+    const handleJoinPass = async () => {
+        setJoiningPass(true);
+        try {
+            const res = await fetch(`/api/passes/${params.id}/join`, {
+                method: "POST",
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to join pass");
+            }
+
+            setMembership(data.membership);
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setJoiningPass(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -172,9 +216,14 @@ export default function PassDetailPage() {
                                 </div>
                                 <div>
                                     <p className="text-xl font-bold text-gray-900 dark:text-white">{pass.location?.name || "Location TBA"}</p>
+                                    {pass.location?.address && (
+                                        <p className="text-sm text-gray-600 dark:text-smart-silver/80 mt-2">
+                                            📍 {pass.location.address}
+                                        </p>
+                                    )}
                                     <Button
                                         variant="link"
-                                        className="text-sm font-bold text-smart-teal hover:underline p-0 h-auto"
+                                        className="text-sm font-bold text-smart-teal hover:underline p-0 h-auto mt-2"
                                         onClick={() => setIsLocationModalOpen(true)}
                                     >
                                         Open in Maps
@@ -291,35 +340,103 @@ export default function PassDetailPage() {
                     <div className="sticky top-32 space-y-8">
                         {/* Action Card */}
                         <div className="p-8 rounded-[2.5rem] bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-xl space-y-8">
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Add to Wallet</h3>
-                                <p className="text-sm text-gray-500 font-medium">Keep your pass handy on your mobile device for quick access.</p>
-                            </div>
-
-                            <div className="space-y-4">
-                                {(os === "ios" || os === "other") && (
+                            {!membership ? (
+                                // Not a member - show join button
+                                <>
+                                    <div className="space-y-2">
+                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Join This Pass</h3>
+                                        <p className="text-sm text-gray-500 font-medium">Request access to this pass. Admin approval required.</p>
+                                    </div>
                                     <Button
-                                        onClick={() => window.open(`/api/wallet/apple?passId=${pass._id}`, '_blank')}
-                                        className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
+                                        onClick={handleJoinPass}
+                                        disabled={joiningPass}
+                                        className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal h-16 rounded-2xl font-black text-lg shadow-lg"
                                     >
-                                        <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
-                                        <span className="relative z-10 flex items-center justify-center gap-3">
-                                             Add to Apple Wallet
-                                        </span>
+                                        {joiningPass ? "Joining..." : "Request to Join"}
                                     </Button>
-                                )}
+                                </>
+                            ) : membership.status === "pending" ? (
+                                // Pending approval
+                                <>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                                <Clock3 className="w-6 h-6 text-amber-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-gray-900 dark:text-white">Pending Approval</h3>
+                                                <p className="text-sm text-gray-500">Waiting for admin approval</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                            <p className="text-sm text-gray-600 dark:text-smart-silver/80 font-medium">
+                                                Your request is being reviewed. You'll be notified once approved.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : membership.status === "rejected" ? (
+                                // Rejected
+                                <>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                                                <XCircle className="w-6 h-6 text-red-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-gray-900 dark:text-white">Request Rejected</h3>
+                                                <p className="text-sm text-gray-500">Your request was not approved</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                                            <p className="text-sm text-gray-600 dark:text-smart-silver/80 font-medium">
+                                                Please contact the administrator for more information.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                // Approved - show wallet buttons
+                                <>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                                                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-gray-900 dark:text-white">Approved!</h3>
+                                                <p className="text-sm text-gray-500">Add to your wallet</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-gray-500 font-medium">Keep your pass handy on your mobile device for quick access.</p>
+                                    </div>
 
-                                {(os === "android" || os === "other") && (
-                                    <Button
-                                        onClick={() => window.open(`/api/wallet/google?passId=${pass._id}`, '_blank')}
-                                        className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
-                                    >
-                                        <span className="flex items-center justify-center gap-3">
-                                            <Globe className="w-5 h-5 text-smart-teal" /> Add to Google Pay
-                                        </span>
-                                    </Button>
-                                )}
-                            </div>
+                                    <div className="space-y-4">
+                                        {(os === "ios" || os === "other") && (
+                                            <Button
+                                                onClick={() => window.open(`/api/wallet/apple?passId=${pass._id}`, '_blank')}
+                                                className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
+                                            >
+                                                <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
+                                                <span className="relative z-10 flex items-center justify-center gap-3">
+                                                    Add to Apple Wallet
+                                                </span>
+                                            </Button>
+                                        )}
+
+                                        {(os === "android" || os === "other") && (
+                                            <Button
+                                                onClick={() => window.open(`/api/wallet/google?passId=${pass._id}`, '_blank')}
+                                                className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
+                                            >
+                                                <span className="flex items-center justify-center gap-3">
+                                                    <Globe className="w-5 h-5 text-smart-teal" /> Add to Google Pay
+                                                </span>
+                                            </Button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
 
                             <div className="pt-6 border-t border-gray-200 dark:border-white/10 space-y-4">
                                 <div className="flex items-center gap-4 group cursor-pointer">

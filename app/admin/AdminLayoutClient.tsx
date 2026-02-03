@@ -8,13 +8,13 @@ import ThemeToggle from "@/components/ThemeToggle";
 type Session =
   | { type: "super" }
   | {
-      type: "admin";
-      adminId: string;
-      email: string;
-      username: string;
-      limits: { profiles: number; passes: number };
-      firstLoginDone?: boolean;
-    };
+    type: "admin";
+    adminId: string;
+    email: string;
+    username: string;
+    limits: { profiles: number; passes: number };
+    firstLoginDone?: boolean;
+  };
 
 export function AdminLayoutClient() {
   const pathname = usePathname();
@@ -81,9 +81,17 @@ export function AdminLayoutClient() {
             SmartWave Admin
           </Link>
           {session.type === "admin" && (
-            <span className={`text-sm ${mutedClass}`}>
-              {session.username} ({session.email})
-            </span>
+            <>
+              <Link href="/admin/passes" className={subLinkClass}>
+                My Passes
+              </Link>
+              <Link href="/admin/passes/memberships" className={subLinkClass}>
+                Membership Requests
+              </Link>
+              <span className={`text-sm ${mutedClass}`}>
+                {session.username} ({session.email})
+              </span>
+            </>
           )}
         </div>
         <div className="flex items-center gap-3">

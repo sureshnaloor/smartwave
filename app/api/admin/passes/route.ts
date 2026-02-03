@@ -65,6 +65,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const type = (body.type === "event" || body.type === "access" ? body.type : "event") as AdminPassType;
+    const category = body.category || "all"; // Default to "all" if not specified
+
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
@@ -80,7 +82,8 @@ export async function POST(req: NextRequest) {
         location = {
           name: body.location.name || "Unknown Location",
           lat: typeof body.location.lat === 'number' ? body.location.lat : undefined,
-          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined
+          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined,
+          address: typeof body.location.address === 'string' ? body.location.address : undefined
         };
       }
     }
@@ -94,6 +97,7 @@ export async function POST(req: NextRequest) {
       name,
       description: typeof body.description === "string" ? body.description.trim() : undefined,
       type,
+      category,
       location,
       dateStart,
       dateEnd,

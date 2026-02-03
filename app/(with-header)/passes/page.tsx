@@ -6,7 +6,7 @@ import { AdminPass } from "@/lib/admin/pass"; // Interface only
 import {
     Search, MapPin, Calendar, Clock, Bell, User, QrCode, Users,
     Ticket, Building2, ShoppingBag, Music, PartyPopper, Briefcase,
-    ChevronRight, CreditCard, Wallet
+    ChevronRight, CreditCard, Wallet, Church, Heart, UsersRound
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,11 @@ type Pass = Omit<AdminPass, "_id" | "createdByAdminId" | "createdAt" | "updatedA
     updatedAt: string;
     dateStart?: string;
     dateEnd?: string;
+    membershipStatus?: "pending" | "approved" | "rejected" | null;
+    membershipId?: string | null;
 };
+
+type CategoryType = "all" | "concerts" | "workplace" | "events" | "retail" | "access" | "community" | "temples" | "spiritual";
 
 
 export default function PassesPage() {
@@ -29,10 +33,45 @@ export default function PassesPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<'public' | 'corporate'>('public');
+    const [activeCategory, setActiveCategory] = useState<CategoryType>("all");
     const [isEmployee, setIsEmployee] = useState(false);
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [locationEnabled, setLocationEnabled] = useState(false);
 
+    // Get user's location
     useEffect(() => {
-        fetch("/api/passes")
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                    setLocationEnabled(true);
+                },
+                (error) => {
+                    console.log("Location access denied or unavailable", error);
+                    setLocationEnabled(false);
+                }
+            );
+        }
+    }, []);
+
+    // Fetch passes with filters
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (activeCategory !== "all") {
+            params.append("category", activeCategory);
+        }
+        if (locationEnabled && userLocation) {
+            params.append("lat", userLocation.lat.toString());
+            params.append("lng", userLocation.lng.toString());
+            params.append("radius", "20"); // 20km radius
+        }
+
+        const url = `/api/passes${params.toString() ? `?${params.toString()}` : ""}`;
+
+        fetch(url)
             .then((res) => res.json())
             .then((data) => {
                 setPublicPasses(data.passes || []);
@@ -50,7 +89,7 @@ export default function PassesPage() {
                 console.error(err);
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [activeCategory, locationEnabled, userLocation]);
 
     const currentPasses = activeTab === 'public' ? publicPasses : corporatePasses;
 
@@ -66,6 +105,18 @@ export default function PassesPage() {
     });
 
     const accessPasses = filteredPasses.filter(p => p.type === 'access');
+
+    const categories = [
+        { icon: Ticket, label: "All Passes", value: "all" as CategoryType },
+        { icon: Music, label: "Concerts", value: "concerts" as CategoryType },
+        { icon: Briefcase, label: "Workplace", value: "workplace" as CategoryType },
+        { icon: PartyPopper, label: "Events", value: "events" as CategoryType },
+        { icon: ShoppingBag, label: "Retail", value: "retail" as CategoryType },
+        { icon: Building2, label: "Access", value: "access" as CategoryType },
+        { icon: UsersRound, label: "Community", value: "community" as CategoryType },
+        { icon: Church, label: "Temples", value: "temples" as CategoryType },
+        { icon: Heart, label: "Spiritual", value: "spiritual" as CategoryType },
+    ];
 
     return (
         <div className="min-h-screen bg-white dark:bg-black">
@@ -84,6 +135,12 @@ export default function PassesPage() {
                             <p className="text-lg md:text-xl text-gray-600 dark:text-smart-silver/80 mb-8 leading-relaxed">
                                 Access events, office buildings, and organization memberships in one place. Add them to your Apple Wallet or Google Pay with a single tap.
                             </p>
+                            {locationEnabled && (
+                                <div className="mb-4 flex items-center gap-2 text-sm text-smart-teal">
+                                    <MapPin className="w-4 h-4" />
+                                    <span className="font-semibold">Showing passes within 20km of your location</span>
+                                </div>
+                            )}
                             <div className="flex flex-wrap gap-4">
                                 <Button className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal rounded-full px-8 py-6 text-base font-bold transition-all hover:scale-105">
                                     <Ticket className="w-5 h-5 mr-2" /> Explore Events
@@ -142,23 +199,18 @@ export default function PassesPage() {
                     </section>
                 )}
 
+
                 {/* Categories - Only show for Public tab or if user is not corporate employee */}
                 {(activeTab === 'public' || !isEmployee) && (
                     <section>
                         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                            {[
-                                { icon: Ticket, label: "All Passes" },
-                                { icon: Music, label: "Concerts" },
-                                { icon: Briefcase, label: "Workplace" },
-                                { icon: PartyPopper, label: "Events" },
-                                { icon: ShoppingBag, label: "Retail" },
-                                { icon: Building2, label: "Access" },
-                            ].map((cat, i) => (
+                            {categories.map((cat, i) => (
                                 <button
                                     key={i}
+                                    onClick={() => setActiveCategory(cat.value)}
                                     className={`
                                         flex items-center gap-2 px-6 py-2.5 rounded-full border transition-all whitespace-nowrap text-sm font-semibold
-                                        ${i === 0
+                                        ${activeCategory === cat.value
                                             ? 'bg-smart-teal text-smart-charcoal border-smart-teal shadow-lg'
                                             : 'bg-transparent text-gray-500 border-gray-200 dark:border-white/10 hover:border-smart-teal hover:text-smart-teal dark:text-smart-silver/60'
                                         }
@@ -241,6 +293,23 @@ function PassCard({ pass }: { pass: Pass }) {
         weekday: 'short', month: 'short', day: 'numeric'
     }) : "Date TBA";
 
+    const getMembershipBadge = () => {
+        if (!pass.membershipStatus) return null;
+
+        const badges = {
+            pending: { text: "Pending Approval", color: "bg-amber-500/90" },
+            approved: { text: "Approved", color: "bg-green-500/90" },
+            rejected: { text: "Rejected", color: "bg-red-500/90" },
+        };
+
+        const badge = badges[pass.membershipStatus];
+        return (
+            <div className={`${badge.color} backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white border border-white/20`}>
+                {badge.text}
+            </div>
+        );
+    };
+
     return (
         <Link href={`/passes/${pass._id}`} className="group block h-full">
             <div className="h-full bg-white dark:bg-smart-charcoal/20 border border-gray-100 dark:border-white/10 group-hover:border-smart-teal group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] dark:group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] rounded-[2rem] overflow-hidden transition-all duration-500 flex flex-col relative">
@@ -254,6 +323,7 @@ function PassCard({ pass }: { pass: Pass }) {
                                 DRAFT
                             </div>
                         )}
+                        {getMembershipBadge()}
                         <div className="bg-smart-charcoal/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white border border-white/10 uppercase tracking-widest">
                             {pass.type}
                         </div>
@@ -284,7 +354,9 @@ function PassCard({ pass }: { pass: Pass }) {
                     </div>
 
                     <div className="pt-6 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-smart-teal transition-colors">Get Pass</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-smart-teal transition-colors">
+                            {pass.membershipStatus === 'approved' ? 'View Pass' : 'Get Pass'}
+                        </span>
                         <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center group-hover:bg-smart-teal transition-all duration-300 transform group-hover:translate-x-1">
                             <ChevronRight className="w-5 h-5 text-gray-600 dark:text-white group-hover:text-smart-charcoal" />
                         </div>
