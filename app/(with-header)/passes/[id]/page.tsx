@@ -48,9 +48,18 @@ export default function PassDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [os, setOs] = useState<"ios" | "android" | "other">("other");
 
     useEffect(() => {
         if (!params.id) return;
+
+        // Simple OS detection
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        if (/iphone|ipad|ipod/.test(userAgent)) {
+            setOs("ios");
+        } else if (/android/.test(userAgent)) {
+            setOs("android");
+        }
 
         fetch(`/api/passes/${params.id}`)
             .then(async (res) => {
@@ -288,24 +297,28 @@ export default function PassDetailPage() {
                             </div>
 
                             <div className="space-y-4">
-                                <Button
-                                    onClick={() => window.open(`/api/wallet/apple?passId=${pass._id}`, '_blank')}
-                                    className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
-                                >
-                                    <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
-                                    <span className="relative z-10 flex items-center justify-center gap-3">
-                                         Add to Apple Wallet
-                                    </span>
-                                </Button>
+                                {(os === "ios" || os === "other") && (
+                                    <Button
+                                        onClick={() => window.open(`/api/wallet/apple?passId=${pass._id}`, '_blank')}
+                                        className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
+                                    >
+                                        <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
+                                        <span className="relative z-10 flex items-center justify-center gap-3">
+                                             Add to Apple Wallet
+                                        </span>
+                                    </Button>
+                                )}
 
-                                <Button
-                                    onClick={() => window.open(`/api/wallet/google?passId=${pass._id}`, '_blank')}
-                                    className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
-                                >
-                                    <span className="flex items-center justify-center gap-3">
-                                        <Globe className="w-5 h-5 text-smart-teal" /> Add to Google Pay
-                                    </span>
-                                </Button>
+                                {(os === "android" || os === "other") && (
+                                    <Button
+                                        onClick={() => window.open(`/api/wallet/google?passId=${pass._id}`, '_blank')}
+                                        className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
+                                    >
+                                        <span className="flex items-center justify-center gap-3">
+                                            <Globe className="w-5 h-5 text-smart-teal" /> Add to Google Pay
+                                        </span>
+                                    </Button>
+                                )}
                             </div>
 
                             <div className="pt-6 border-t border-gray-200 dark:border-white/10 space-y-4">

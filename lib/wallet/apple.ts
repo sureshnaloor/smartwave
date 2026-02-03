@@ -172,7 +172,7 @@ export async function generateApplePass(user: ProfileData, host?: string, passDa
 
                 // Add lat/long if available
                 if (passData.location.lat && passData.location.lng) {
-                    (pass as any).addLocation({
+                    pass.setLocations({
                         latitude: passData.location.lat,
                         longitude: passData.location.lng,
                         relevantText: `Welcome to ${passData.name}`
@@ -185,18 +185,14 @@ export async function generateApplePass(user: ProfileData, host?: string, passDa
                 pass.secondaryFields.push({
                     key: "date",
                     label: "DATE",
-                    value: d, // PKPass handles Date objects usually? Or wants string?
-                    // The library usually takes formatted value or just string.
-                    // But lets pass string to be safe and use dateStyle
-                    // Actually the library typings say value: string | number | Date
+                    value: d,
                 });
-                // Adding date style requires the field to have date/time format options
-                // The library helpers might need specific options.
-                // Let's manually format for string value to be safe, or use library features if valid.
+
                 pass.secondaryFields[pass.secondaryFields.length - 1].dateStyle = "PKDateStyleMedium";
                 pass.secondaryFields[pass.secondaryFields.length - 1].timeStyle = "PKDateStyleShort";
 
-                (pass as any).relevantDate = d;
+                // Set relevantDate for the pass
+                pass.setRelevantDate(d);
             }
 
             // Auxiliary: User Name (Ticket Holder)
@@ -206,13 +202,12 @@ export async function generateApplePass(user: ProfileData, host?: string, passDa
                 value: user.name,
             });
 
-            // Barcode for event pass - maybe a unique ticket ID?
-            // For now use the serial number as the payload
+            // Barcode for event pass - point to official website as placeholder
             pass.setBarcodes({
                 format: "PKBarcodeFormatQR",
-                message: serialNumber,
+                message: "https://www.smartwave.name",
                 messageEncoding: "iso-8859-1",
-                altText: "Scan for Entry"
+                altText: "Scan to visit SmartWave"
             });
 
         } else {
