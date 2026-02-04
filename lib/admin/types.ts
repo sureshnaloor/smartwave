@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 /** Admin user created by super admin; stored in MongoDB collection `adminusers` */
 export interface AdminUser {
-  _id: ObjectId;
+  _id?: ObjectId;
   email: string;
   username: string;
   password: string; // bcrypt hash
@@ -24,6 +24,7 @@ export interface AdminUser {
     profiles: number;
     passes: number;
   };
+  role: "corporate" | "public";
   createdAt: Date;
   updatedAt: Date;
 }

@@ -45,11 +45,23 @@ export async function PATCH(
       update.password = await hashPassword(body.password);
       update.firstLoginDone = false;
     }
+    if (body.role === "corporate" || body.role === "public") {
+      update.role = body.role;
+    }
 
     const result = await coll.updateOne(
       { _id: new ObjectId(id) },
       { $set: update }
     );
+
+    // After updating, if the user is now public, ensure profiles limit is 0
+    const finalUser = await coll.findOne({ _id: new ObjectId(id) });
+    if (finalUser?.role === "public" && finalUser.limits?.profiles !== 0) {
+      await coll.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { "limits.profiles": 0 } }
+      );
+    }
 
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: "Admin user not found" }, { status: 404 });

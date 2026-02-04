@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type AdminUser = {
   _id: string;
   email: string;
   username: string;
   firstLoginDone: boolean;
+  role: "corporate" | "public";
   limits: { profiles: number; passes: number };
   createdAt: string;
   updatedAt: string;
@@ -25,8 +28,8 @@ export default function SuperAdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({ email: "", username: "", password: "", profiles: 10, passes: 5 });
-  const [editForm, setEditForm] = useState({ username: "", profiles: 10, passes: 5 });
+  const [form, setForm] = useState({ email: "", username: "", password: "", role: "corporate" as "corporate" | "public", profiles: 10, passes: 5 });
+  const [editForm, setEditForm] = useState({ username: "", role: "corporate" as "corporate" | "public", profiles: 10, passes: 5 });
   const [resetPasswordId, setResetPasswordId] = useState<string | null>(null);
   const [resetPasswordForm, setResetPasswordForm] = useState({ password: "" });
   const [resetPasswordResult, setResetPasswordResult] = useState<{ email: string; temporaryPassword: string } | null>(null);
@@ -70,6 +73,7 @@ export default function SuperAdminDashboardPage() {
           email: form.email,
           username: form.username,
           password: form.password,
+          role: form.role,
           limits: { profiles: form.profiles, passes: form.passes },
         }),
       });
@@ -80,7 +84,8 @@ export default function SuperAdminDashboardPage() {
       }
       setUsers((prev) => [data.user, ...prev]);
       setCreateOpen(false);
-      setForm({ email: "", username: "", password: "", profiles: 10, passes: 5 });
+      setForm({ email: "", username: "", password: "", role: "corporate", profiles: 10, passes: 5 });
+      toast?.success?.(`Admin ${data.user.email} created successfully. They can now log in at /admin/login.`);
     } catch {
       setError("Network error");
     } finally {
@@ -99,6 +104,7 @@ export default function SuperAdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: editForm.username,
+          role: editForm.role,
           limits: { profiles: editForm.profiles, passes: editForm.passes },
         }),
       });
@@ -206,8 +212,39 @@ export default function SuperAdminDashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <Label className={labelClass}>Role</Label>
+                  <select
+                    value={form.role}
+                    onChange={(e) => {
+                      const newRole = e.target.value as "corporate" | "public";
+                      setForm((f) => ({
+                        ...f,
+                        role: newRole,
+                        profiles: newRole === "public" ? 0 : f.profiles
+                      }));
+                    }}
+                    className={`mt-1 block w-full rounded-md border-slate-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${inputClass}`}
+                  >
+                    <option value="corporate">Corporate</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
+                <div>
+                  {/* Empty space or another field */}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label className={labelClass}>Profile limit</Label>
-                  <Input type="number" min={0} value={form.profiles} onChange={(e) => setForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.role === "public" ? 0 : form.profiles}
+                    onChange={(e) => setForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))}
+                    className={inputClass}
+                    disabled={form.role === "public"}
+                  />
+                  {form.role === "public" && <p className="text-[10px] text-slate-500 mt-1">Profiles disabled for public admins</p>}
                 </div>
                 <div>
                   <Label className={labelClass}>Pass limit</Label>
@@ -264,8 +301,36 @@ export default function SuperAdminDashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <Label className={labelClass}>Role</Label>
+                  <select
+                    value={editForm.role}
+                    onChange={(e) => {
+                      const newRole = e.target.value as "corporate" | "public";
+                      setEditForm((f) => ({
+                        ...f,
+                        role: newRole,
+                        profiles: newRole === "public" ? 0 : f.profiles
+                      }));
+                    }}
+                    className={`mt-1 block w-full rounded-md border-slate-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm ${inputClass}`}
+                  >
+                    <option value="corporate">Corporate</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label className={labelClass}>Profile limit</Label>
-                  <Input type="number" min={0} value={editForm.profiles} onChange={(e) => setEditForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))} className={inputClass} />
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editForm.role === "public" ? 0 : editForm.profiles}
+                    onChange={(e) => setEditForm((f) => ({ ...f, profiles: parseInt(e.target.value, 10) || 0 }))}
+                    className={inputClass}
+                    disabled={editForm.role === "public"}
+                  />
+                  {editForm.role === "public" && <p className="text-[10px] text-slate-500 mt-1">Profiles disabled for public admins</p>}
                 </div>
                 <div>
                   <Label className={labelClass}>Pass limit</Label>
@@ -297,12 +362,12 @@ export default function SuperAdminDashboardPage() {
                     <p className={rowTitleClass}>{u.username}</p>
                     <p className={rowSubClass}>{u.email}</p>
                     <p className={rowMutedClass}>
-                      Limits: {u.limits.profiles} profiles, {u.limits.passes} passes
+                      Role: <span className="capitalize font-semibold">{u.role || "corporate"}</span> · Limits: {u.limits.profiles} profiles, {u.limits.passes} passes
                       {!u.firstLoginDone && " · Must change password on first login"}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600" onClick={() => { setEditId(u._id); setEditForm({ username: u.username, profiles: u.limits.profiles, passes: u.limits.passes }); setError(""); setResetPasswordId(null); }}>Edit</Button>
+                    <Button variant="outline" size="sm" className="border-slate-300 dark:border-slate-600" onClick={() => { setEditId(u._id); setEditForm({ username: u.username, role: u.role || "corporate", profiles: u.limits.profiles, passes: u.limits.passes }); setError(""); setResetPasswordId(null); }}>Edit</Button>
                     <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20" onClick={() => { setResetPasswordId(u._id); setResetPasswordForm({ password: "" }); setResetPasswordResult(null); setError(""); setEditId(null); }}>Reset password</Button>
                     <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => deleteUser(u._id)}>Delete</Button>
                   </div>

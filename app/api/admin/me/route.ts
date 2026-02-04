@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
         email: user.email,
         username: user.username,
         limits: user.limits,
+        role: user.role || "corporate",
         firstLoginDone: user.firstLoginDone,
       },
     });

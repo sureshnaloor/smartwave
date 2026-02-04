@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { getAdminPassesCollection, getUserPassMembershipsCollection } from "@/lib/admin/db";
+import { getAdminPassesCollection, getUserPassMembershipsCollection, getAdminUsersCollection } from "@/lib/admin/db";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 
@@ -45,6 +45,24 @@ export async function POST(
 
         if (pass.status !== "active") {
             return NextResponse.json({ error: "Pass is not active" }, { status: 400 });
+        }
+
+        // Check authorization: Corporate passes only for respective employees
+        const adminUsersColl = await getAdminUsersCollection();
+        const admin = await adminUsersColl.findOne({ _id: pass.createdByAdminId });
+
+        // Treat as corporate if role is missing or explicitly corporate
+        const isAdminCorporate = !admin?.role || admin.role === "corporate";
+
+        if (isAdminCorporate) {
+            const userCreatedByAdminId = (user as any).createdByAdminId?.toString();
+            const passCreatedByAdminId = pass.createdByAdminId.toString();
+
+            if ((user as any).role !== "employee" || userCreatedByAdminId !== passCreatedByAdminId) {
+                return NextResponse.json({
+                    error: "This corporate pass is only available to employees of the respective organization."
+                }, { status: 403 });
+            }
         }
 
         // Check if user already has a membership request

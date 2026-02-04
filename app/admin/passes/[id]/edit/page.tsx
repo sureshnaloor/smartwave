@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
     Calendar, MapPin, ArrowLeft, Save, Loader2,
     Building2, Ticket, Users, Church, Heart, Music,
@@ -25,9 +25,11 @@ interface LocationData {
     address?: string;
 }
 
-export default function CreatePassPage() {
+export default function EditPassPage() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const params = useParams();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -35,6 +37,7 @@ export default function CreatePassPage() {
         category: "all" as PassCategory,
         dateStart: "",
         dateEnd: "",
+        status: "draft" as "draft" | "active"
     });
     const [location, setLocation] = useState<LocationData>({
         name: "",
@@ -56,6 +59,48 @@ export default function CreatePassPage() {
         { value: "spiritual", label: "Spiritual", icon: Heart },
     ];
 
+    // Fetch existing pass data
+    useEffect(() => {
+        const fetchPass = async () => {
+            try {
+                const res = await fetch(`/api/admin/passes/${params.id}`);
+                const data = await res.json();
+                if (res.ok && data.pass) {
+                    const pass = data.pass;
+                    setFormData({
+                        name: pass.name || "",
+                        description: pass.description || "",
+                        type: pass.type || "event",
+                        category: pass.category || "all",
+                        dateStart: pass.dateStart ? new Date(pass.dateStart).toISOString().slice(0, 16) : "",
+                        dateEnd: pass.dateEnd ? new Date(pass.dateEnd).toISOString().slice(0, 16) : "",
+                        status: pass.status || "draft"
+                    });
+                    if (pass.location) {
+                        setLocation({
+                            name: pass.location.name || "",
+                            lat: pass.location.lat,
+                            lng: pass.location.lng,
+                            address: pass.location.address || ""
+                        });
+                    }
+                } else {
+                    alert(data.error || "Failed to fetch pass");
+                    router.push("/admin/passes");
+                }
+            } catch (err) {
+                console.error("Error fetching pass:", err);
+                router.push("/admin/passes");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (params.id) {
+            fetchPass();
+        }
+    }, [params.id, router]);
+
     const { isLoaded: mapLoaded } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -63,23 +108,37 @@ export default function CreatePassPage() {
     });
 
 
-    // Initialize map
+    // Initialize/Update map
     useEffect(() => {
-        if (mapLoaded && mapRef.current && !mapInstanceRef.current) {
-            const map = new google.maps.Map(mapRef.current, {
-                center: { lat: 25.2048, lng: 55.2708 }, // Dubai default
-                zoom: 12,
-            });
-            mapInstanceRef.current = map;
+        if (mapLoaded && mapRef.current && !loading) {
+            const center = location.lat && location.lng
+                ? { lat: location.lat, lng: location.lng }
+                : { lat: 25.2048, lng: 55.2708 }; // Dubai default
 
-            // Add click listener to place marker
-            map.addListener("click", (e: google.maps.MapMouseEvent) => {
-                if (e.latLng) {
-                    placeMarker(e.latLng, map);
-                }
-            });
+            if (!mapInstanceRef.current) {
+                const map = new google.maps.Map(mapRef.current, {
+                    center,
+                    zoom: 12,
+                });
+                mapInstanceRef.current = map;
+
+                // Add click listener to place marker
+                map.addListener("click", (e: google.maps.MapMouseEvent) => {
+                    if (e.latLng) {
+                        placeMarker(e.latLng, map);
+                    }
+                });
+            }
+
+            // Place initial marker if it exists
+            if (location.lat && location.lng && !markerRef.current) {
+                const latLng = new google.maps.LatLng(location.lat, location.lng);
+                placeMarker(latLng, mapInstanceRef.current!);
+                mapInstanceRef.current!.setCenter(latLng);
+                mapInstanceRef.current!.setZoom(15);
+            }
         }
-    }, [mapLoaded]);
+    }, [mapLoaded, loading]);
 
     const placeMarker = (latLng: google.maps.LatLng, map: google.maps.Map) => {
         // Remove existing marker
@@ -130,18 +189,18 @@ export default function CreatePassPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        setSaving(true);
 
         try {
             const payload = {
                 ...formData,
-                location: location.lat && location.lng ? location : undefined,
-                dateStart: formData.dateStart ? new Date(formData.dateStart).toISOString() : undefined,
-                dateEnd: formData.dateEnd ? new Date(formData.dateEnd).toISOString() : undefined,
+                location: location.lat && location.lng ? location : null,
+                dateStart: formData.dateStart ? new Date(formData.dateStart).toISOString() : null,
+                dateEnd: formData.dateEnd ? new Date(formData.dateEnd).toISOString() : null,
             };
 
-            const res = await fetch("/api/admin/passes", {
-                method: "POST",
+            const res = await fetch(`/api/admin/passes/${params.id}`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
@@ -149,17 +208,25 @@ export default function CreatePassPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.error || "Failed to create pass");
+                throw new Error(data.error || "Failed to update pass");
             }
 
-            alert("Pass created successfully!");
+            alert("Pass updated successfully!");
             router.push("/admin/passes");
         } catch (error: any) {
             alert(error.message);
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-smart-teal" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white dark:bg-black py-12">
@@ -174,10 +241,10 @@ export default function CreatePassPage() {
                         Back to Passes
                     </Link>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-                        Create New Pass
+                        Edit Pass
                     </h1>
                     <p className="text-lg text-gray-600 dark:text-smart-silver/80">
-                        Create a new pass for events, access, or memberships
+                        Update pass details, location, and status
                     </p>
                 </div>
 
@@ -251,6 +318,21 @@ export default function CreatePassPage() {
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="status" className="text-sm font-bold uppercase tracking-wider mb-2 block">
+                                    Status *
+                                </Label>
+                                <select
+                                    id="status"
+                                    value={formData.status}
+                                    onChange={(e) => setFormData({ ...formData, status: e.target.value as "draft" | "active" })}
+                                    className="w-full h-12 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black px-4 text-sm focus:outline-none focus:ring-2 focus:ring-smart-teal"
+                                >
+                                    <option value="draft">Draft (Hidden from users)</option>
+                                    <option value="active">Active (Visible to users)</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -355,9 +437,6 @@ export default function CreatePassPage() {
                                     placeholder="Complete address will be auto-filled when you pin location on map"
                                     className="min-h-[80px] rounded-xl"
                                 />
-                                <p className="text-xs text-gray-500 mt-2">
-                                    This will be auto-filled from Google Maps when you pin a location
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -366,18 +445,18 @@ export default function CreatePassPage() {
                     <div className="flex gap-4">
                         <Button
                             type="submit"
-                            disabled={loading || !formData.name}
+                            disabled={saving || !formData.name}
                             className="flex-1 bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal h-14 rounded-xl font-black text-lg"
                         >
-                            {loading ? (
+                            {saving ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Creating Pass...
+                                    Updating Pass...
                                 </>
                             ) : (
                                 <>
                                     <Save className="w-5 h-5 mr-2" />
-                                    Create Pass
+                                    Save Changes
                                 </>
                             )}
                         </Button>

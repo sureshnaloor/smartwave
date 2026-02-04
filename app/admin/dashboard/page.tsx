@@ -28,6 +28,7 @@ type Session = {
   email: string;
   username: string;
   limits: { profiles: number; passes: number };
+  role: "corporate" | "public";
 };
 
 type EmployeeProfile = {
@@ -653,15 +654,16 @@ export default function AdminDashboardPage() {
       <div>
         <h1 className={`text-2xl font-bold ${titleClass}`}>Admin Dashboard</h1>
         <p className={descClass}>
-          Limits: {profilesUsed}/{profilesLimit} profiles · {passesUsed}/{passesLimit} passes
+          {session.role === "corporate" ? `Limits: ${profilesUsed}/${profilesLimit} profiles · ` : ""}
+          {passesUsed}/{passesLimit} passes
         </p>
       </div>
 
-      <Tabs defaultValue="profiles" className="w-full">
+      <Tabs defaultValue={session.role === "public" ? "passes" : "profiles"} className="w-full">
         <TabsList className="mb-4 bg-slate-200 dark:bg-slate-800">
-          <TabsTrigger value="profiles">Employee Profiles</TabsTrigger>
+          {session.role === "corporate" && <TabsTrigger value="profiles">Employee Profiles</TabsTrigger>}
           <TabsTrigger value="passes">Event / Access Passes</TabsTrigger>
-          <TabsTrigger value="company">Company Profile</TabsTrigger>
+          {session.role === "corporate" && <TabsTrigger value="company">Company Profile</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="profiles" className="space-y-6">
@@ -1051,84 +1053,86 @@ export default function AdminDashboardPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="company">
-          <Card className={cardClass}>
-            <CardHeader>
-              <CardTitle className={titleClass}>Company Profile</CardTitle>
-              <CardDescription className={descClass}>
-                These details will be shared with all employees created by you.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={updateCompany} className="space-y-6 max-w-2xl">
-                {/* Logo Upload */}
-                <div>
-                  <Label className={labelClass + " mb-2 block"}>Company Logo</Label>
-                  <PhotoUpload
-                    currentPhotoUrl={companyForm.logo}
-                    onPhotoUploaded={(url) => setCompanyForm(f => ({ ...f, logo: url }))}
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
+        {session.role === "corporate" && (
+          <TabsContent value="company">
+            <Card className={cardClass}>
+              <CardHeader>
+                <CardTitle className={titleClass}>Company Profile</CardTitle>
+                <CardDescription className={descClass}>
+                  These details will be shared with all employees created by you.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={updateCompany} className="space-y-6 max-w-2xl">
+                  {/* Logo Upload */}
                   <div>
-                    <Label className={labelClass}>Company Name</Label>
-                    <Input
-                      value={companyForm.name}
-                      onChange={(e) => setCompanyForm(f => ({ ...f, name: e.target.value }))}
-                      className={inputClass}
-                      required
+                    <Label className={labelClass + " mb-2 block"}>Company Logo</Label>
+                    <PhotoUpload
+                      currentPhotoUrl={companyForm.logo}
+                      onPhotoUploaded={(url) => setCompanyForm(f => ({ ...f, logo: url }))}
                     />
                   </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label className={labelClass}>Company Name</Label>
+                      <Input
+                        value={companyForm.name}
+                        onChange={(e) => setCompanyForm(f => ({ ...f, name: e.target.value }))}
+                        className={inputClass}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label className={labelClass}>Main Email</Label>
+                      <Input
+                        type="email"
+                        value={companyForm.email}
+                        onChange={(e) => setCompanyForm(f => ({ ...f, email: e.target.value }))}
+                        className={inputClass}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label className={labelClass}>Main Email</Label>
+                    <Label className={labelClass}>Address</Label>
                     <Input
-                      type="email"
-                      value={companyForm.email}
-                      onChange={(e) => setCompanyForm(f => ({ ...f, email: e.target.value }))}
+                      value={companyForm.address}
+                      onChange={(e) => setCompanyForm(f => ({ ...f, address: e.target.value }))}
                       className={inputClass}
-                      required
+                      placeholder="Headquarters Address"
                     />
                   </div>
-                </div>
 
-                <div>
-                  <Label className={labelClass}>Address</Label>
-                  <Input
-                    value={companyForm.address}
-                    onChange={(e) => setCompanyForm(f => ({ ...f, address: e.target.value }))}
-                    className={inputClass}
-                    placeholder="Headquarters Address"
-                  />
-                </div>
-
-                {/* Location Picker */}
-                <div>
-                  <Label className={labelClass + " mb-2 block"}>Headquarters Location (Google Maps)</Label>
-                  <LocationPicker
-                    lat={companyForm.lat ? parseFloat(companyForm.lat) : undefined}
-                    lng={companyForm.lng ? parseFloat(companyForm.lng) : undefined}
-                    onLocationChange={(lat, lng) => setCompanyForm(f => ({ ...f, lat: lat.toString(), lng: lng.toString() }))}
-                  />
-                  <div className="grid grid-cols-2 gap-4 mt-2">
-                    <Input placeholder="Latitude" value={companyForm.lat} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
-                    <Input placeholder="Longitude" value={companyForm.lng} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
+                  {/* Location Picker */}
+                  <div>
+                    <Label className={labelClass + " mb-2 block"}>Headquarters Location (Google Maps)</Label>
+                    <LocationPicker
+                      lat={companyForm.lat ? parseFloat(companyForm.lat) : undefined}
+                      lng={companyForm.lng ? parseFloat(companyForm.lng) : undefined}
+                      onLocationChange={(lat, lng) => setCompanyForm(f => ({ ...f, lat: lat.toString(), lng: lng.toString() }))}
+                    />
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <Input placeholder="Latitude" value={companyForm.lat} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
+                      <Input placeholder="Longitude" value={companyForm.lng} readOnly className={inputClass + " bg-slate-100 dark:bg-slate-900"} />
+                    </div>
                   </div>
-                </div>
 
-                {companyMessage && (
-                  <p className={`text-sm ${companyMessage.includes("success") ? "text-green-600 dark:text-green-400" : "text-red-600"}`}>
-                    {companyMessage}
-                  </p>
-                )}
+                  {companyMessage && (
+                    <p className={`text-sm ${companyMessage.includes("success") ? "text-green-600 dark:text-green-400" : "text-red-600"}`}>
+                      {companyMessage}
+                    </p>
+                  )}
 
-                <Button type="submit" disabled={companySubmitting}>
-                  {companySubmitting ? "Saving..." : "Save Company Profile"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  <Button type="submit" disabled={companySubmitting}>
+                    {companySubmitting ? "Saving..." : "Save Company Profile"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
         {/* View Profile Dialog */}
         <Dialog open={!!viewProfile} onOpenChange={(open) => !open && setViewProfile(null)}>
           <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-slate-50 dark:bg-slate-950 p-0 border-0">

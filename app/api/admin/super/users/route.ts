@@ -73,14 +73,17 @@ export async function POST(req: NextRequest) {
 
     const hashed = await hashPassword(password);
     const now = new Date();
+    const role = (body.role === "public" || body.role === "corporate") ? body.role : "corporate";
     const limits = {
-      profiles: typeof body.limits?.profiles === "number" ? body.limits.profiles : DEFAULT_ADMIN_LIMITS.profiles,
+      profiles: role === "public" ? 0 : (typeof body.limits?.profiles === "number" ? body.limits.profiles : DEFAULT_ADMIN_LIMITS.profiles),
       passes: typeof body.limits?.passes === "number" ? body.limits.passes : DEFAULT_ADMIN_LIMITS.passes,
     };
+
     const insert = await coll.insertOne({
       email,
       username,
       password: hashed,
+      role,
       firstLoginDone: false,
       limits,
       createdAt: now,

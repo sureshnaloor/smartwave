@@ -145,7 +145,13 @@ export default function EmployeeSignInPage() {
               </Link>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-center">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-center space-y-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you an Admin or Public Admin?{" "}
+                <Link href="/admin/login" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium">
+                  Admin Login
+                </Link>
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Not a company profile?{" "}
                 <Link href="/auth/signin" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium">

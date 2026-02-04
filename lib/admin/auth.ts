@@ -1,7 +1,7 @@
 import { hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { getAdminUsersCollection } from "./db";
-import type { AdminSessionPayload } from "./types";
+import type { AdminSessionPayload, AdminUser } from "./types";
 import { DEFAULT_ADMIN_LIMITS } from "./types";
 
 const COOKIE_NAME = "admin_session";

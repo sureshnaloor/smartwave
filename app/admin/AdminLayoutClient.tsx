@@ -80,13 +80,13 @@ export function AdminLayoutClient() {
           <Link href={session.type === "super" ? "/admin/super/dashboard" : "/admin/dashboard"} className={linkClass}>
             SmartWave Admin
           </Link>
+          <Link href="/admin/passes/memberships" className={subLinkClass}>
+            Membership Requests
+          </Link>
           {session.type === "admin" && (
             <>
               <Link href="/admin/passes" className={subLinkClass}>
                 My Passes
-              </Link>
-              <Link href="/admin/passes/memberships" className={subLinkClass}>
-                Membership Requests
               </Link>
               <span className={`text-sm ${mutedClass}`}>
                 {session.username} ({session.email})

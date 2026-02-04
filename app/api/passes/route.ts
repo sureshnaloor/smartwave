@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getAdminPassesCollection, getUserPassMembershipsCollection } from "@/lib/admin/db";
+import { getAdminPassesCollection, getUserPassMembershipsCollection, getAdminUsersCollection } from "@/lib/admin/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
@@ -24,8 +24,14 @@ export async function GET(req: Request) {
         const lng = searchParams.get("lng");
         const radius = searchParams.get("radius") || "20"; // Default 20km
 
+        // Identify public admins
+        const adminUsersColl = await getAdminUsersCollection();
+        const publicAdmins = await adminUsersColl.find({ role: "public" }).toArray();
+        const publicAdminIds = publicAdmins.map(a => a._id);
+
         const query: any = {
             status: "active",
+            createdByAdminId: { $in: publicAdminIds },
             $or: [
                 { dateEnd: { $gt: now } },
                 { dateEnd: { $exists: false } },

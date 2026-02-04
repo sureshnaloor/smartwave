@@ -13,7 +13,7 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const errorParam = searchParams.get('error');
 
@@ -68,7 +68,7 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result = await signIn('google', {
         callbackUrl,
@@ -113,7 +113,7 @@ export default function SignInPage() {
                 )}
               </div>
             )}
-            
+
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
@@ -168,11 +168,26 @@ export default function SignInPage() {
               </p>
             </div>
 
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-center space-y-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you an Admin or Public Admin?{" "}
+                <Link href="/admin/login" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium">
+                  Admin Login
+                </Link>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Not a company profile?{" "}
+                <Link href="/auth/signin" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium">
+                  Sign in with Google
+                </Link>
+              </p>
+            </div>
+
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
-                <Link 
-                  href="/auth/signup" 
+                <Link
+                  href="/auth/signup"
                   className="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium"
                 >
                   Sign up

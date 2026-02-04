@@ -74,6 +74,7 @@ export async function PATCH(
     if (typeof body.description === "string") update.description = body.description.trim() || undefined;
     if (body.type === "event" || body.type === "access") update.type = body.type as AdminPassType;
     if (body.status === "draft" || body.status === "active") update.status = body.status;
+    if (typeof body.category === "string") update.category = body.category;
 
     // Handle Location update
     if (body.location !== undefined) {
@@ -83,7 +84,8 @@ export async function PATCH(
         update.location = {
           name: body.location.name || "Unknown Location",
           lat: typeof body.location.lat === 'number' ? body.location.lat : undefined,
-          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined
+          lng: typeof body.location.lng === 'number' ? body.location.lng : undefined,
+          address: typeof body.location.address === 'string' ? body.location.address : undefined
         };
       }
     }

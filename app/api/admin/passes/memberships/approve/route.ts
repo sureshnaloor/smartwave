@@ -2,24 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/admin/auth";
 import { getUserPassMembershipsCollection } from "@/lib/admin/db";
 import { ObjectId } from "mongodb";
+import type { AdminSessionPayload } from "@/lib/admin/types";
 
 export const dynamic = "force-dynamic";
 
-function getAdminId(req: NextRequest): string | null {
+function getSession(req: NextRequest): AdminSessionPayload | null {
     const token = req.cookies.get(COOKIE_NAME)?.value;
-    const payload = token ? verifyAdminSession(token) : null;
-    if (!payload || payload.type !== "admin") return null;
-    return payload.adminId;
+    return token ? verifyAdminSession(token) : null;
 }
 
 /**
  * POST /api/admin/passes/memberships/approve
  * Approve or reject a user's pass membership request
- * Body: { membershipId: string, action: 'approve' | 'reject' }
  */
 export async function POST(req: NextRequest) {
-    const adminId = getAdminId(req);
-    if (!adminId) {
+    const session = getSession(req);
+    if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -42,6 +40,19 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Membership not found" }, { status: 404 });
         }
 
+        // If not super, must own the pass
+        if (session.type !== "super") {
+            const { getAdminPassesCollection } = await import("@/lib/admin/db");
+            const adminPassesColl = await getAdminPassesCollection();
+            const pass = await adminPassesColl.findOne({
+                _id: membership.passId,
+                createdByAdminId: new ObjectId(session.adminId)
+            });
+            if (!pass) {
+                return NextResponse.json({ error: "Access denied" }, { status: 403 });
+            }
+        }
+
         if (membership.status !== "pending") {
             return NextResponse.json(
                 { error: `Membership already ${membership.status}` },
@@ -56,10 +67,10 @@ export async function POST(req: NextRequest) {
 
         if (action === "approve") {
             update.approvedAt = now;
-            update.approvedBy = new ObjectId(adminId);
+            update.approvedBy = session.type === "admin" ? new ObjectId(session.adminId) : "super";
         } else {
             update.rejectedAt = now;
-            update.rejectedBy = new ObjectId(adminId);
+            update.rejectedBy = session.type === "admin" ? new ObjectId(session.adminId) : "super";
         }
 
         await membershipsColl.updateOne(
@@ -88,52 +99,59 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/admin/passes/memberships/approve
- * Get all pending membership requests for admin's passes
+ * Get pending membership requests
  */
 export async function GET(req: NextRequest) {
-    const adminId = getAdminId(req);
-    if (!adminId) {
+    const session = getSession(req);
+    if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
         const membershipsColl = await getUserPassMembershipsCollection();
 
-        // Get all memberships with pass details
-        const memberships = await membershipsColl
-            .aggregate([
-                {
-                    $lookup: {
-                        from: "admin_passes",
-                        localField: "passId",
-                        foreignField: "_id",
-                        as: "pass",
-                    },
+        // Build aggregation pipeline
+        const pipeline: any[] = [
+            {
+                $lookup: {
+                    from: "admin_passes",
+                    localField: "passId",
+                    foreignField: "_id",
+                    as: "pass",
                 },
-                {
-                    $unwind: "$pass",
+            },
+            {
+                $unwind: "$pass",
+            }
+        ];
+
+        // If not super, filter by passes created by this admin
+        if (session.type === "admin") {
+            pipeline.push({
+                $match: {
+                    "pass.createdByAdminId": new ObjectId(session.adminId),
                 },
-                {
-                    $match: {
-                        "pass.createdByAdminId": new ObjectId(adminId),
-                    },
+            });
+        }
+
+        pipeline.push(
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user",
                 },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "userId",
-                        foreignField: "_id",
-                        as: "user",
-                    },
-                },
-                {
-                    $unwind: "$user",
-                },
-                {
-                    $sort: { requestedAt: -1 },
-                },
-            ])
-            .toArray();
+            },
+            {
+                $unwind: "$user",
+            },
+            {
+                $sort: { requestedAt: -1 },
+            }
+        );
+
+        const memberships = await membershipsColl.aggregate(pipeline).toArray();
 
         const plain = memberships.map((m) => ({
             _id: m._id.toString(),
@@ -158,3 +176,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
+
