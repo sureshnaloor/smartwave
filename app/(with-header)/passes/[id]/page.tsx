@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
     Calendar, MapPin, Clock, ArrowLeft, Ticket,
-    Share2, ShieldCheck, Zap, Globe, Building2,
+    Share2, ShieldCheck, Zap, Globe, Building2, Users,
     CalendarCheck, Bell, ChevronRight, Info, CheckCircle2, XCircle, Clock3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { getProfile, ProfileData } from "@/app/_actions/profile";
 import {
     Dialog,
     DialogContent,
@@ -53,16 +56,26 @@ interface Membership {
 export default function PassDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { data: session, status } = useSession();
     const [pass, setPass] = useState<Pass | null>(null);
     const [membership, setMembership] = useState<Membership | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isOwner, setIsOwner] = useState(false);
     const [joiningPass, setJoiningPass] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [userProfile, setUserProfile] = useState<ProfileData | null>(null);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [os, setOs] = useState<"ios" | "android" | "other">("other");
 
+    // Protection check
     useEffect(() => {
-        if (!params.id) return;
+        if (status === "unauthenticated") {
+            router.push(`/auth/signin?callbackUrl=/passes/${params.id}`);
+        }
+    }, [status, router, params.id]);
+
+    useEffect(() => {
+        if (status !== "authenticated" || !params.id) return;
 
         // Simple OS detection
         const userAgent = window.navigator.userAgent.toLowerCase();
@@ -83,6 +96,7 @@ export default function PassDetailPage() {
             })
             .then((data) => {
                 setPass(data.pass);
+                setIsOwner(!!data.isOwner);
             })
             .catch((err) => {
                 console.error(err);
@@ -101,9 +115,35 @@ export default function PassDetailPage() {
             .catch((err) => {
                 console.log("Not logged in or no membership", err);
             });
-    }, [params.id]);
+
+        // Fetch user profile
+        if (session?.user?.email) {
+            getProfile(session.user.email).then(setUserProfile);
+        }
+    }, [params.id, session, status]);
+
+    const checkProfileCompleteness = () => {
+        if (!userProfile) return false;
+        const requiredFields: (keyof ProfileData)[] = ['firstName', 'lastName', 'mobile'];
+        const missingFields = requiredFields.filter(f => !userProfile[f] || String(userProfile[f]).trim() === '');
+
+        if (missingFields.length > 0) {
+            toast.error("Profile Incomplete", {
+                description: "Please fill in your basic profile details (First Name, Last Name, and Mobile) before accessing pass features.",
+                action: {
+                    label: "Complete Profile",
+                    onClick: () => router.push("/myprofile")
+                },
+                duration: 6000
+            });
+            return false;
+        }
+        return true;
+    };
 
     const handleJoinPass = async () => {
+        if (!checkProfileCompleteness()) return;
+
         setJoiningPass(true);
         try {
             const res = await fetch(`/api/passes/${params.id}/join`, {
@@ -116,11 +156,19 @@ export default function PassDetailPage() {
             }
 
             setMembership(data.membership);
+            toast.success("Request Sent", {
+                description: "Your membership request has been submitted to the admin for approval."
+            });
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setJoiningPass(false);
         }
+    };
+
+    const handleWalletClick = (url: string) => {
+        if (!checkProfileCompleteness()) return;
+        window.open(url, '_blank');
     };
 
     if (loading) {
@@ -340,6 +388,27 @@ export default function PassDetailPage() {
                     <div className="sticky top-32 space-y-8">
                         {/* Action Card */}
                         <div className="p-8 rounded-[2.5rem] bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 shadow-xl space-y-8">
+                            {isOwner && (
+                                <div className="p-4 rounded-[1.5rem] bg-smart-teal/10 border border-smart-teal/20 space-y-4">
+                                    <div>
+                                        <p className="text-xs font-black text-smart-teal uppercase tracking-widest mb-1">Admin Controls</p>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">You created this pass</p>
+                                    </div>
+                                    <div className="space-y-4 mb-6">
+                                        <Link href={`/admin/passes/${pass._id}/edit`} className="block w-full">
+                                            <Button className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal h-14 rounded-2xl font-black text-lg shadow-xl shadow-smart-teal/10">
+                                                <Zap className="w-5 h-5 mr-3" /> Edit Pass Settings
+                                            </Button>
+                                        </Link>
+                                        <Link href="/admin/passes/memberships" className="block w-full">
+                                            <Button variant="outline" className="w-full border-2 border-smart-amber text-smart-amber hover:bg-smart-amber/5 h-14 rounded-2xl font-black text-lg shadow-xl">
+                                                <Users className="w-5 h-5 mr-3" /> Manage Membership Requests
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+
                             {!membership ? (
                                 // Not a member - show join button
                                 <>
@@ -414,7 +483,7 @@ export default function PassDetailPage() {
                                     <div className="space-y-4">
                                         {(os === "ios" || os === "other") && (
                                             <Button
-                                                onClick={() => window.open(`/api/wallet/apple?passId=${pass._id}`, '_blank')}
+                                                onClick={() => handleWalletClick(`/api/wallet/apple?passId=${pass._id}`)}
                                                 className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
                                             >
                                                 <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
@@ -426,7 +495,7 @@ export default function PassDetailPage() {
 
                                         {(os === "android" || os === "other") && (
                                             <Button
-                                                onClick={() => window.open(`/api/wallet/google?passId=${pass._id}`, '_blank')}
+                                                onClick={() => handleWalletClick(`/api/wallet/google?passId=${pass._id}`)}
                                                 className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
                                             >
                                                 <span className="flex items-center justify-center gap-3">

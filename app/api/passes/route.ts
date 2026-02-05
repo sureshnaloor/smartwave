@@ -24,9 +24,10 @@ export async function GET(req: Request) {
         const lng = searchParams.get("lng");
         const radius = searchParams.get("radius") || "20"; // Default 20km
 
-        // Identify public admins
+        // Identify public admins (either via 'public' role in adminusers or 'public_admin' in main users)
         const adminUsersColl = await getAdminUsersCollection();
-        const publicAdmins = await adminUsersColl.find({ role: "public" }).toArray();
+        // Include both current system 'public' and fallback 'public_admin' roles if any exist
+        const publicAdmins = await adminUsersColl.find({ role: { $in: ["public", "public_admin"] } as any }).toArray();
         const publicAdminIds = publicAdmins.map(a => a._id);
 
         const query: any = {
@@ -41,7 +42,18 @@ export async function GET(req: Request) {
 
         // Add category filter if specified
         if (category && category !== "all") {
-            query.category = category;
+            if (category === "access") {
+                // For the 'Access' category, show anything of type 'access' OR category 'access'
+                // We merge this with the existing $or that handles dates
+                const dateOr = [...query.$or];
+                delete query.$or;
+                query.$and = [
+                    { $or: dateOr },
+                    { $or: [{ category: "access" }, { type: "access" }] }
+                ];
+            } else {
+                query.category = category;
+            }
         }
 
         const allPasses = await coll.find(query).sort({ dateStart: 1 }).toArray();
@@ -49,6 +61,7 @@ export async function GET(req: Request) {
         let corporate: any[] = [];
         let corporateAdminId: string | null = null;
         let isEmployee = false;
+        let isPublicAdmin = false;
         let userId: ObjectId | null = null;
 
         if (session?.user?.email) {
@@ -58,6 +71,10 @@ export async function GET(req: Request) {
 
             if (user) {
                 userId = user._id;
+
+                if (user.role === "public_admin") {
+                    isPublicAdmin = true;
+                }
 
                 if (session?.user?.role === "employee" && user?.createdByAdminId) {
                     isEmployee = true;
@@ -92,7 +109,7 @@ export async function GET(req: Request) {
                 .toArray();
         }
 
-        let passes = allPasses.map((p) => ({
+        let passes: any[] = allPasses.map((p) => ({
             ...p,
             _id: (p as any)._id.toString(),
             createdByAdminId: (p as any).createdByAdminId.toString(),
@@ -100,6 +117,7 @@ export async function GET(req: Request) {
             updatedAt: (p as any).updatedAt?.toISOString?.(),
             dateStart: (p as any).dateStart?.toISOString?.(),
             dateEnd: (p as any).dateEnd?.toISOString?.(),
+            type: (p as any).type,
             location: p.location,
         }));
 
@@ -107,10 +125,17 @@ export async function GET(req: Request) {
         if (lat && lng) {
             const userLat = parseFloat(lat);
             const userLng = parseFloat(lng);
-            const radiusKm = parseFloat(radius);
+            const radiusKm = parseFloat(radius) || 500; // Much larger default radius
 
-            if (!isNaN(userLat) && !isNaN(userLng) && !isNaN(radiusKm)) {
-                passes = filterPassesByLocation(passes as any, userLat, userLng, radiusKm);
+            if (!isNaN(userLat) && !isNaN(userLng)) {
+                // For 'passes' (public/upcoming), filter events by location but keep ALL access passes
+                const eventPasses = passes.filter(p => p.type === 'event');
+                const accessPasses = passes.filter(p => p.type === 'access');
+
+                const filteredEvents = filterPassesByLocation(eventPasses as any, userLat, userLng, radiusKm);
+                passes = [...filteredEvents, ...accessPasses];
+
+                // For corporate passes, keep them all if they are within the same org
                 corporate = filterPassesByLocation(corporate as any, userLat, userLng, radiusKm);
             }
         }
@@ -143,6 +168,7 @@ export async function GET(req: Request) {
             passes: publicPasses,
             corporate: corporateWithMembership,
             isEmployee,
+            isPublicAdmin,
             filters: {
                 category: category || "all",
                 location: lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng), radius: parseFloat(radius) } : null,

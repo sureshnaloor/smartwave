@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { AdminPass } from "@/lib/admin/pass"; // Interface only
 import {
     Search, MapPin, Calendar, Clock, Bell, User, QrCode, Users,
     Ticket, Building2, ShoppingBag, Music, PartyPopper, Briefcase,
-    ChevronRight, CreditCard, Wallet, Church, Heart, UsersRound
+    ChevronRight, CreditCard, Wallet, Church, Heart, UsersRound, Plus
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,24 +24,40 @@ type Pass = Omit<AdminPass, "_id" | "createdByAdminId" | "createdAt" | "updatedA
     dateEnd?: string;
     membershipStatus?: "pending" | "approved" | "rejected" | null;
     membershipId?: string | null;
+    pendingMembershipsCount?: number;
 };
 
 type CategoryType = "all" | "concerts" | "workplace" | "events" | "retail" | "access" | "community" | "temples" | "spiritual";
 
 
 export default function PassesPage() {
+    const router = useRouter();
+    const { status } = useSession();
     const [publicPasses, setPublicPasses] = useState<Pass[]>([]);
     const [corporatePasses, setCorporatePasses] = useState<Pass[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState<'public' | 'corporate'>('public');
+    const [activeTab, setActiveTab] = useState<'public' | 'corporate' | 'my-passes'>('public');
     const [activeCategory, setActiveCategory] = useState<CategoryType>("all");
     const [isEmployee, setIsEmployee] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [locationEnabled, setLocationEnabled] = useState(false);
+    const [requestStatus, setRequestStatus] = useState<"none" | "pending" | "approved" | "rejected">("none");
+    const [requestLoading, setRequestLoading] = useState(false);
+    const [isPublicAdmin, setIsPublicAdmin] = useState(false);
+    const [myPasses, setMyPasses] = useState<Pass[]>([]);
+    const [userRole, setUserRole] = useState<string>("user");
+
+    // Protection check
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/auth/signin?callbackUrl=/passes");
+        }
+    }, [status, router]);
 
     // Get user's location
     useEffect(() => {
+        if (status !== "authenticated") return;
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -55,11 +73,13 @@ export default function PassesPage() {
                 }
             );
         }
-    }, []);
+    }, [status]);
 
     // Fetch passes with filters
     useEffect(() => {
+        if (status !== "authenticated") return;
         const params = new URLSearchParams();
+        // ... fetch logic ...
         if (activeCategory !== "all") {
             params.append("category", activeCategory);
         }
@@ -77,34 +97,73 @@ export default function PassesPage() {
                 setPublicPasses(data.passes || []);
                 setCorporatePasses(data.corporate || []);
                 setIsEmployee(!!data.isEmployee);
-
-                // If they are an employee, default to corporate tab
-                if (data.isEmployee) {
-                    setActiveTab('corporate');
-                } else if (data.corporate && data.corporate.length > 0) {
-                    setActiveTab('corporate');
-                }
+                setIsPublicAdmin(!!data.isPublicAdmin);
             })
             .catch((err) => {
                 console.error(err);
             })
             .finally(() => setLoading(false));
-    }, [activeCategory, locationEnabled, userLocation]);
 
-    const currentPasses = activeTab === 'public' ? publicPasses : corporatePasses;
+        // Fetch request status
+        fetch("/api/user/public-admin-request")
+            .then(res => res.json())
+            .then(data => {
+                setRequestStatus(data.status || "none");
+            })
+            .catch(() => { });
+    }, [activeCategory, locationEnabled, userLocation, status]);
 
-    const filteredPasses = currentPasses.filter(p =>
+    // Fetch my passes when isPublicAdmin changes
+    useEffect(() => {
+        if (isPublicAdmin) {
+            fetch("/api/admin/passes")
+                .then(res => res.json())
+                .then(data => {
+                    setMyPasses(data.passes || []);
+                })
+                .catch(() => { });
+        }
+    }, [isPublicAdmin]);
+
+    const handleRequestAdmin = async () => {
+        setRequestLoading(true);
+        try {
+            const res = await fetch("/api/user/public-admin-request", { method: "POST" });
+            const data = await res.json();
+            if (res.ok) {
+                setRequestStatus("pending");
+            } else {
+                alert(data.error || "Failed to submit request");
+            }
+        } catch {
+            alert("Network error");
+        } finally {
+            setRequestLoading(false);
+        }
+    };
+
+    // Combine all discovered passes to ensure stability even when tabs switch
+    const allDiscoveredPasses = [...publicPasses, ...corporatePasses, ...myPasses];
+    const uniqueDiscovered = Array.from(new Map(allDiscoveredPasses.map(p => [p._id, p])).values());
+
+    const currentPassesView = activeTab === 'public' ? publicPasses : (activeTab === 'corporate' ? corporatePasses : myPasses);
+
+    const filteredView = currentPassesView.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const upcomingPasses = filteredPasses.filter(p => p.type === 'event').sort((a, b) => {
+    const upcomingPasses = filteredView.filter(p => p.type === 'event').sort((a, b) => {
         const da = a.dateStart ? new Date(a.dateStart).getTime() : 0;
         const db = b.dateStart ? new Date(b.dateStart).getTime() : 0;
         return da - db;
     });
 
-    const accessPasses = filteredPasses.filter(p => p.type === 'access');
+    const accessPasses = uniqueDiscovered.filter(p =>
+        p.type === 'access' &&
+        (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
     const categories = [
         { icon: Ticket, label: "All Passes", value: "all" as CategoryType },
@@ -148,6 +207,25 @@ export default function PassesPage() {
                                 <Button variant="outline" className="border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 rounded-full px-8 py-6 text-base font-bold transition-all text-gray-900 dark:text-white">
                                     <Wallet className="w-5 h-5 mr-2" /> My Wallet
                                 </Button>
+                                {requestStatus === "none" && !isEmployee && (
+                                    <Button
+                                        onClick={handleRequestAdmin}
+                                        disabled={requestLoading}
+                                        className="bg-smart-teal/20 hover:bg-smart-teal/30 text-smart-teal border border-smart-teal/50 rounded-full px-8 py-6 text-base font-bold transition-all"
+                                    >
+                                        {requestLoading ? "Submitting..." : "Request Admin Access"}
+                                    </Button>
+                                )}
+                                {requestStatus === "pending" && (
+                                    <Badge variant="outline" className="border-amber-500 text-amber-500 px-6 py-4 rounded-full text-sm font-bold">
+                                        Admin Request Pending
+                                    </Badge>
+                                )}
+                                {requestStatus === "rejected" && (
+                                    <Badge variant="outline" className="border-red-500 text-red-500 px-6 py-4 rounded-full text-sm font-bold">
+                                        Admin Request Rejected
+                                    </Badge>
+                                )}
                             </div>
                         </div>
 
@@ -168,7 +246,7 @@ export default function PassesPage() {
 
 
                 {/* Tabs Section */}
-                {(isEmployee || corporatePasses.length > 0) && (
+                {(isEmployee || isPublicAdmin || corporatePasses.length > 0) && (
                     <section className="border-b border-gray-100 dark:border-white/10">
                         <div className="flex gap-12 overflow-x-auto pb-0 scrollbar-hide">
                             <button
@@ -195,6 +273,20 @@ export default function PassesPage() {
                                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
                                 )}
                             </button>
+                            {isPublicAdmin && (
+                                <button
+                                    onClick={() => setActiveTab('my-passes')}
+                                    className={`pb-6 text-xl font-bold transition-all relative whitespace-nowrap ${activeTab === 'my-passes' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <Users className="w-6 h-6" />
+                                        My Created Passes
+                                    </span>
+                                    {activeTab === 'my-passes' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </section>
                 )}
@@ -230,11 +322,22 @@ export default function PassesPage() {
                     <div className="flex items-center justify-between border-gray-100 dark:border-white/10 pb-4">
                         <h2 className="text-3xl font-black flex items-center gap-4 text-gray-900 dark:text-white uppercase tracking-tight">
                             <span className="w-1.5 h-8 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></span>
-                            {activeTab === 'corporate' ? 'Corporate Events' : 'Upcoming Events'}
+                            {activeTab === 'corporate' ? 'Corporate Events' : activeTab === 'my-passes' ? 'My Events' : 'Upcoming Events'}
                         </h2>
-                        <Link href="#" className="hidden md:flex items-center text-sm font-bold text-smart-teal hover:underline transition-all">
-                            View all <ChevronRight className="w-4 h-4 ml-1" />
-                        </Link>
+                        {activeTab === 'my-passes' ? (
+                            <div className="flex items-center gap-4">
+                                <Link href="/admin/passes/memberships" className="flex items-center px-6 py-2 bg-smart-amber text-smart-charcoal rounded-full text-sm font-bold hover:scale-105 transition-all">
+                                    <Users className="w-4 h-4 mr-2" /> Manage Requests
+                                </Link>
+                                <Link href="/admin/passes/create" className="flex items-center px-6 py-2 bg-smart-teal text-smart-charcoal rounded-full text-sm font-bold hover:scale-105 transition-all">
+                                    <Plus className="w-4 h-4 mr-2" /> Create New Pass
+                                </Link>
+                            </div>
+                        ) : (
+                            <Link href="#" className="hidden md:flex items-center text-sm font-bold text-smart-teal hover:underline transition-all">
+                                View all <ChevronRight className="w-4 h-4 ml-1" />
+                            </Link>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -244,7 +347,7 @@ export default function PassesPage() {
                             ))
                         ) : upcomingPasses.length > 0 ? (
                             upcomingPasses.map(pass => (
-                                <PassCard key={pass._id} pass={pass} />
+                                <PassCard key={pass._id} pass={pass} showEdit={activeTab === 'my-passes'} />
                             ))
                         ) : (
                             <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/[0.02]">
@@ -273,7 +376,7 @@ export default function PassesPage() {
                             ))
                         ) : accessPasses.length > 0 ? (
                             accessPasses.map(pass => (
-                                <AccessCard key={pass._id} pass={pass} />
+                                <AccessCard key={pass._id} pass={pass} showEdit={activeTab === 'my-passes'} />
                             ))
                         ) : (
                             <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/[0.02]">
@@ -288,7 +391,7 @@ export default function PassesPage() {
     );
 }
 
-function PassCard({ pass }: { pass: Pass }) {
+function PassCard({ pass, showEdit }: { pass: Pass, showEdit?: boolean }) {
     const formattedDate = pass.dateStart ? new Date(pass.dateStart).toLocaleDateString(undefined, {
         weekday: 'short', month: 'short', day: 'numeric'
     }) : "Date TBA";
@@ -318,6 +421,15 @@ function PassCard({ pass }: { pass: Pass }) {
                     <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/5 transition-colors duration-500"></div>
 
                     <div className="absolute top-4 right-4 flex gap-2 z-10">
+                        {showEdit && (pass.pendingMembershipsCount || 0) > 0 && (
+                            <Link
+                                href="/admin/passes/memberships"
+                                onClick={(e) => e.stopPropagation()}
+                                className="bg-red-500 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white border border-white/20 animate-pulse z-10"
+                            >
+                                {pass.pendingMembershipsCount} REQUESTS
+                            </Link>
+                        )}
                         {pass.status === 'draft' && (
                             <div className="bg-smart-amber/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-smart-charcoal border border-white/20">
                                 DRAFT
@@ -354,9 +466,19 @@ function PassCard({ pass }: { pass: Pass }) {
                     </div>
 
                     <div className="pt-6 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-smart-teal transition-colors">
-                            {pass.membershipStatus === 'approved' ? 'View Pass' : 'Get Pass'}
-                        </span>
+                        {showEdit ? (
+                            <Link
+                                href={`/admin/passes/${pass._id}/edit`}
+                                className="text-xs font-black uppercase tracking-widest text-smart-teal hover:underline z-20"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                Edit Settings
+                            </Link>
+                        ) : (
+                            <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-smart-teal transition-colors">
+                                {pass.membershipStatus === 'approved' ? 'View Pass' : 'Get Pass'}
+                            </span>
+                        )}
                         <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center group-hover:bg-smart-teal transition-all duration-300 transform group-hover:translate-x-1">
                             <ChevronRight className="w-5 h-5 text-gray-600 dark:text-white group-hover:text-smart-charcoal" />
                         </div>
@@ -367,7 +489,7 @@ function PassCard({ pass }: { pass: Pass }) {
     );
 }
 
-function AccessCard({ pass }: { pass: Pass }) {
+function AccessCard({ pass, showEdit }: { pass: Pass, showEdit?: boolean }) {
     return (
         <Link href={`/passes/${pass._id}`} className="group block">
             <div className="bg-white dark:bg-smart-charcoal/20 border border-gray-100 dark:border-white/10 hover:border-smart-amber hover:bg-gray-50 dark:hover:bg-white/5 rounded-[2rem] p-8 transition-all duration-500 flex items-start gap-6 relative overflow-hidden group/card shadow-sm hover:shadow-xl hover:-translate-y-1">
@@ -386,6 +508,24 @@ function AccessCard({ pass }: { pass: Pass }) {
                             <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black bg-smart-amber/20 text-smart-amber uppercase tracking-widest border border-smart-amber/30">
                                 DRAFT
                             </span>
+                        )}
+                        {showEdit && (
+                            <Link
+                                href={`/admin/passes/${pass._id}/edit`}
+                                className="inline-block px-3 py-1 rounded-full text-[10px] font-black bg-smart-teal/20 text-smart-teal uppercase tracking-widest border border-smart-teal/30 hover:bg-smart-teal/30 z-20"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                Edit
+                            </Link>
+                        )}
+                        {showEdit && (pass.pendingMembershipsCount || 0) > 0 && (
+                            <Link
+                                href="/admin/passes/memberships"
+                                className="inline-block px-3 py-1 rounded-full text-[10px] font-black bg-red-500 text-white uppercase tracking-widest border border-red-600 animate-pulse z-20"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {pass.pendingMembershipsCount} Requests
+                            </Link>
                         )}
                     </div>
 

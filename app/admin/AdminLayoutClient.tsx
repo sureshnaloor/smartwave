@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import ThemeToggle from "@/components/ThemeToggle";
 
 type Session =
@@ -14,6 +15,7 @@ type Session =
     username: string;
     limits: { profiles: number; passes: number };
     firstLoginDone?: boolean;
+    role: "corporate" | "public";
   };
 
 export function AdminLayoutClient() {
@@ -30,8 +32,9 @@ export function AdminLayoutClient() {
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
+    await signOut({ redirect: false });
     setSession(null);
-    router.push("/admin");
+    router.push("/");
     router.refresh();
   };
 

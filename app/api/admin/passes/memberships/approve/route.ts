@@ -6,9 +6,34 @@ import type { AdminSessionPayload } from "@/lib/admin/types";
 
 export const dynamic = "force-dynamic";
 
-function getSession(req: NextRequest): AdminSessionPayload | null {
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { getAdminUsersCollection } from "@/lib/admin/db";
+
+async function getSession(req: NextRequest): Promise<AdminSessionPayload | null> {
+    // 1. Check Admin Cookie (Direct Admin UI login)
     const token = req.cookies.get(COOKIE_NAME)?.value;
-    return token ? verifyAdminSession(token) : null;
+    const payload = token ? verifyAdminSession(token) : null;
+    if (payload) return payload;
+
+    // 2. Check Regular User Session (Public Admin via Google/NextAuth)
+    const session = await getServerSession(authOptions);
+    if (session?.user?.email) {
+        const usersColl = await getAdminUsersCollection();
+        const admin = await usersColl.findOne({ email: session.user.email.toLowerCase() });
+
+        if (admin && (admin.role === "public" || admin.role === "corporate")) {
+            return {
+                type: "admin",
+                adminId: admin._id.toString(),
+                email: admin.email,
+                username: admin.username,
+                limits: admin.limits || { profiles: 0, passes: 5 },
+            };
+        }
+    }
+
+    return null;
 }
 
 /**
@@ -16,7 +41,7 @@ function getSession(req: NextRequest): AdminSessionPayload | null {
  * Approve or reject a user's pass membership request
  */
 export async function POST(req: NextRequest) {
-    const session = getSession(req);
+    const session = await getSession(req);
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -102,7 +127,7 @@ export async function POST(req: NextRequest) {
  * Get pending membership requests
  */
 export async function GET(req: NextRequest) {
-    const session = getSession(req);
+    const session = await getSession(req);
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -12,7 +12,7 @@ declare module "next-auth" {
       /** The authentication provider (e.g., "google", "credentials") */
       provider?: string;
       /** Employee accounts: set by company admin; read-only profile */
-      role?: "user" | "employee";
+      role?: "user" | "employee" | "public_admin";
       /** Employee first login: must change temp password */
       firstLoginDone?: boolean;
     } & DefaultSession["user"];
@@ -38,7 +38,7 @@ declare module "next-auth/jwt" {
     /** The authentication provider */
     provider?: string;
     /** Employee accounts */
-    role?: "user" | "employee";
+    role?: "user" | "employee" | "public_admin";
     firstLoginDone?: boolean;
   }
 } 

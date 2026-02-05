@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -36,6 +37,8 @@ export default function SuperAdminDashboardPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resetSubmitting, setResetSubmitting] = useState(false);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -60,6 +63,35 @@ export default function SuperAdminDashboardPage() {
         .finally(() => setLoading(false));
     }
   }, [session]);
+
+  useEffect(() => {
+    if (session !== "loading" && session?.type === "super") {
+      fetch("/api/admin/super/public-admin-requests")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.requests) setRequests(data.requests);
+        })
+        .finally(() => setRequestsLoading(false));
+    }
+  }, [session]);
+
+  const handleRequestAction = async (requestId: string, status: "approved" | "rejected") => {
+    try {
+      const res = await fetch(`/api/admin/super/public-admin-requests/${requestId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        setRequests(prev => prev.map(r => r._id === requestId ? { ...r, status } : r));
+        toast?.success?.(`Request ${status} successfully`);
+      } else {
+        toast?.error?.("Failed to process request");
+      }
+    } catch {
+      toast?.error?.("Network error");
+    }
+  };
 
   const createUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -371,6 +403,57 @@ export default function SuperAdminDashboardPage() {
                     <Button variant="outline" size="sm" className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20" onClick={() => { setResetPasswordId(u._id); setResetPasswordForm({ password: "" }); setResetPasswordResult(null); setError(""); setEditId(null); }}>Reset password</Button>
                     <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20" onClick={() => deleteUser(u._id)}>Delete</Button>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className={cardClass}>
+        <CardHeader>
+          <CardTitle className={titleClass}>Admin Access Requests</CardTitle>
+          <CardDescription className={descClass}>Manage requests from public users for Public Admin access.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {requestsLoading ? (
+            <p className={descClass}>Loading...</p>
+          ) : requests.length === 0 ? (
+            <p className={descClass}>No requests found.</p>
+          ) : (
+            <div className="space-y-4">
+              {requests.map((r) => (
+                <div key={r._id} className={rowClass}>
+                  <div>
+                    <p className={rowTitleClass}>{r.userName}</p>
+                    <p className={rowSubClass}>{r.userEmail}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className={rowMutedClass}>
+                        Requested: {new Date(r.createdAt).toLocaleDateString()}
+                      </p>
+                      <Badge variant="outline" className={`capitalize ${r.status === 'approved' ? 'border-green-500 text-green-500' : r.status === 'rejected' ? 'border-red-500 text-red-500' : 'border-amber-500 text-amber-500'}`}>
+                        {r.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  {r.status === 'pending' && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => handleRequestAction(r._id, "approved")}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleRequestAction(r._id, "rejected")}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

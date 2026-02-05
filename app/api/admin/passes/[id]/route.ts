@@ -6,11 +6,29 @@ import type { AdminPassType } from "@/lib/admin/pass";
 
 export const dynamic = "force-dynamic";
 
-function getAdminId(req: NextRequest): string | null {
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { getAdminUsersCollection } from "@/lib/admin/db";
+
+async function getAdminId(req: NextRequest): Promise<string | null> {
+  // 1. Check Admin Cookie (Direct Admin UI login)
   const token = req.cookies.get(COOKIE_NAME)?.value;
   const payload = token ? verifyAdminSession(token) : null;
-  if (!payload || payload.type !== "admin") return null;
-  return payload.adminId;
+  if (payload && payload.type === "admin") return payload.adminId;
+
+  // 2. Check Regular User Session (Public Admin via Google/NextAuth)
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) {
+    const usersColl = await getAdminUsersCollection();
+    const admin = await usersColl.findOne({ email: session.user.email.toLowerCase() });
+
+    // Only return adminId if they have an active admin record
+    if (admin && (admin.role === "public" || admin.role === "corporate")) {
+      return admin._id.toString();
+    }
+  }
+
+  return null;
 }
 
 /** GET /api/admin/passes/[id] - Get single pass (admin must own it) */
@@ -18,7 +36,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminId = getAdminId(req);
+  const adminId = await getAdminId(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const id = (await params).id;
@@ -52,7 +70,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminId = getAdminId(req);
+  const adminId = await getAdminId(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const id = (await params).id;
@@ -123,7 +141,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const adminId = getAdminId(req);
+  const adminId = await getAdminId(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const id = (await params).id;

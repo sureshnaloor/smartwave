@@ -42,12 +42,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const { db } = await import("@/lib/mongodb").then((mod) => 
+          const { db } = await import("@/lib/mongodb").then((mod) =>
             mod.connectToDatabase()
           );
-          
-          const user = await db.collection("users").findOne({ 
-            email: credentials.email 
+
+          const user = await db.collection("users").findOne({
+            email: credentials.email
           });
 
           if (!user || !user.password) {
@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const isPasswordValid = await compare(
-            credentials.password, 
+            credentials.password,
             user.password
           );
 
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         return true;
       }
-      
+
       // For credentials, ensure they have an email
       return !!user.email;
     },
@@ -99,7 +99,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
-        token.role = (user as { role?: "user" | "employee" }).role ?? "user";
+        token.role = (user as { role?: "user" | "employee" | "public_admin" }).role ?? "user";
         token.firstLoginDone = (user as { firstLoginDone?: boolean }).firstLoginDone ?? true;
       }
       if (account) token.provider = account.provider;
@@ -112,7 +112,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.image = token.image as string;
         session.user.provider = token.provider as string;
-        session.user.role = (token.role as "user" | "employee") ?? "user";
+        session.user.role = (token.role as "user" | "employee" | "public_admin") ?? "user";
         session.user.firstLoginDone = token.firstLoginDone ?? true;
       }
       return session;
