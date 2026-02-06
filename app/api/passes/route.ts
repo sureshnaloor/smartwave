@@ -76,25 +76,36 @@ export async function GET(req: Request) {
                     isPublicAdmin = true;
                 }
 
-                if (session?.user?.role === "employee" && user?.createdByAdminId) {
+                // Check if user is an employee (check both session and DB role)
+                const effectiveRole = user.role || session?.user?.role;
+                if (effectiveRole === "employee" && user.createdByAdminId) {
                     isEmployee = true;
                     corporateAdminId = user.createdByAdminId.toString();
 
                     // Fetch ALL company passes (even drafts) for the employee corporate tab
-                    const corpQuery: any = { createdByAdminId: user.createdByAdminId };
+                    const corpQuery: any = {
+                        createdByAdminId: new ObjectId(user.createdByAdminId),
+                    };
+
                     if (category && category !== "all") {
-                        corpQuery.category = category;
+                        if (category === "access") {
+                            corpQuery.$or = [{ category: "access" }, { type: "access" }];
+                        } else {
+                            corpQuery.category = category;
+                        }
                     }
 
                     const corpPasses = await coll.find(corpQuery).sort({ dateStart: 1 }).toArray();
                     corporate = corpPasses.map(p => ({
                         ...p,
-                        _id: p._id.toString(),
-                        createdByAdminId: p.createdByAdminId.toString(),
-                        createdAt: p.createdAt?.toISOString?.(),
-                        updatedAt: p.updatedAt?.toISOString?.(),
-                        dateStart: p.dateStart?.toISOString?.(),
-                        dateEnd: p.dateEnd?.toISOString?.(),
+                        _id: (p as any)._id.toString(),
+                        createdByAdminId: (p as any).createdByAdminId.toString(),
+                        createdAt: (p as any).createdAt?.toISOString?.(),
+                        updatedAt: (p as any).updatedAt?.toISOString?.(),
+                        dateStart: (p as any).dateStart?.toISOString?.(),
+                        dateEnd: (p as any).dateEnd?.toISOString?.(),
+                        type: (p as any).type,
+                        location: p.location,
                     }));
                 }
             }
@@ -135,8 +146,7 @@ export async function GET(req: Request) {
                 const filteredEvents = filterPassesByLocation(eventPasses as any, userLat, userLng, radiusKm);
                 passes = [...filteredEvents, ...accessPasses];
 
-                // For corporate passes, keep them all if they are within the same org
-                corporate = filterPassesByLocation(corporate as any, userLat, userLng, radiusKm);
+                // Corporate passes are NOT filtered by location for employees
             }
         }
 

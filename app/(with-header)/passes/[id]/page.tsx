@@ -123,17 +123,41 @@ export default function PassDetailPage() {
     }, [params.id, session, status]);
 
     const checkProfileCompleteness = () => {
-        if (!userProfile) return false;
-        const requiredFields: (keyof ProfileData)[] = ['firstName', 'lastName', 'mobile'];
-        const missingFields = requiredFields.filter(f => !userProfile[f] || String(userProfile[f]).trim() === '');
+        const isEmployee = (session?.user as any)?.role === 'employee';
+
+        if (!userProfile) {
+            toast.error("Profile Not Found", {
+                description: isEmployee
+                    ? "Your profile setup is missing. Please contact your organization's administrator."
+                    : "Please set up your profile before accessing pass features.",
+                action: !isEmployee ? {
+                    label: "Create Profile",
+                    onClick: () => router.push("/myprofile")
+                } : undefined,
+                duration: 6000
+            });
+            return false;
+        }
+
+        const missingFields: string[] = [];
+
+        if (!userProfile.firstName || !String(userProfile.firstName).trim()) missingFields.push('First Name');
+        if (!userProfile.lastName || !String(userProfile.lastName).trim()) missingFields.push('Last Name');
+
+        // Use mobile OR workPhone for employees/users
+        const hasPhone = (userProfile.mobile && String(userProfile.mobile).trim()) ||
+            (userProfile.workPhone && String(userProfile.workPhone).trim());
+        if (!hasPhone) missingFields.push('Mobile/Work Phone');
 
         if (missingFields.length > 0) {
             toast.error("Profile Incomplete", {
-                description: "Please fill in your basic profile details (First Name, Last Name, and Mobile) before accessing pass features.",
-                action: {
+                description: isEmployee
+                    ? `Your organization hasn't filled in your: ${missingFields.join(', ')}. Please contact your admin.`
+                    : `Please fill in your: ${missingFields.join(', ')} before accessing pass features.`,
+                action: !isEmployee ? {
                     label: "Complete Profile",
                     onClick: () => router.push("/myprofile")
-                },
+                } : undefined,
                 duration: 6000
             });
             return false;

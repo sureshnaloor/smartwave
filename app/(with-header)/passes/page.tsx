@@ -98,6 +98,11 @@ export default function PassesPage() {
                 setCorporatePasses(data.corporate || []);
                 setIsEmployee(!!data.isEmployee);
                 setIsPublicAdmin(!!data.isPublicAdmin);
+
+                // Auto-switch to corporate tab for employees
+                if (data.isEmployee && data.corporate && data.corporate.length > 0) {
+                    setActiveTab('corporate');
+                }
             })
             .catch((err) => {
                 console.error(err);
@@ -142,15 +147,12 @@ export default function PassesPage() {
         }
     };
 
-    // Combine all discovered passes to ensure stability even when tabs switch
-    const allDiscoveredPasses = [...publicPasses, ...corporatePasses, ...myPasses];
-    const uniqueDiscovered = Array.from(new Map(allDiscoveredPasses.map(p => [p._id, p])).values());
-
     const currentPassesView = activeTab === 'public' ? publicPasses : (activeTab === 'corporate' ? corporatePasses : myPasses);
 
     const filteredView = currentPassesView.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const upcomingPasses = filteredView.filter(p => p.type === 'event').sort((a, b) => {
@@ -159,11 +161,7 @@ export default function PassesPage() {
         return da - db;
     });
 
-    const accessPasses = uniqueDiscovered.filter(p =>
-        p.type === 'access' &&
-        (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const accessPasses = filteredView.filter(p => p.type === 'access');
 
     const categories = [
         { icon: Ticket, label: "All Passes", value: "all" as CategoryType },

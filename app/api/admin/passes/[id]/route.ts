@@ -87,7 +87,14 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const update: Record<string, unknown> = { updatedAt: new Date() };
+    const usersColl = await getAdminUsersCollection();
+    const admin = await usersColl.findOne({ _id: new ObjectId(adminId) });
+
+    const update: Record<string, unknown> = {
+      updatedAt: new Date(),
+      isCorporate: admin?.role === "corporate",
+      isPublic: admin?.role === "public"
+    };
     if (typeof body.name === "string" && body.name.trim()) update.name = body.name.trim();
     if (typeof body.description === "string") update.description = body.description.trim() || undefined;
     if (body.type === "event" || body.type === "access") update.type = body.type as AdminPassType;

@@ -126,6 +126,8 @@ export async function POST(req: NextRequest) {
       dateStart,
       dateEnd,
       status: "draft" as const,
+      isCorporate: admin?.role === "corporate",
+      isPublic: admin?.role === "public",
       createdAt: now,
       updatedAt: now,
     };
