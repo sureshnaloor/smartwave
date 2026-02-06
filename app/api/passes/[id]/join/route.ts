@@ -103,6 +103,18 @@ export async function POST(
         const result = await membershipsColl.insertOne(membership);
         const created = await membershipsColl.findOne({ _id: result.insertedId });
 
+        // Create notification for admin if corporate pass
+        if (isAdminCorporate && admin) {
+          const userName = (user as any).name || session.user.email;
+          const { notifyAccessRequest } = await import("@/lib/admin/notification-helper");
+          await notifyAccessRequest(
+            pass.createdByAdminId,
+            userName,
+            session.user.email,
+            pass.name
+          );
+        }
+
         return NextResponse.json({
             success: true,
             membership: {

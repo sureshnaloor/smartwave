@@ -54,8 +54,9 @@ const navItems: NavItem[] = [
 
 export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'country-selector' }) {
   const pathname = usePathname()
-  const { status } = useSession()
+  const { status, data: session } = useSession()
   const isAuthenticated = status === 'authenticated'
+  const isCorporateEmployee = (session?.user as { role?: string })?.role === 'employee'
 
   // Show only country selector if variant is 'country-selector'
   if (variant === 'country-selector') {
@@ -67,9 +68,13 @@ export default function Navigation({ variant = 'full' }: { variant?: 'full' | 'c
   }
 
   // Rest of the existing navigation code for full variant
-  const visibleNavItems = navItems.filter(item => 
-    !item.requiresAuth || (item.requiresAuth && isAuthenticated)
-  );
+  const visibleNavItems = navItems.filter(item => {
+    // Hide Store, Pricing, Guide Me for corporate employees
+    if (isCorporateEmployee && (item.href === '/store' || item.href === '/pricing' || item.href === '/guide-me')) {
+      return false;
+    }
+    return !item.requiresAuth || (item.requiresAuth && isAuthenticated);
+  });
 
   return (
     <nav className="flex flex-col gap-2">

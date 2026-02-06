@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import type { AdminUser } from "./types";
 import type { UserPassMembership } from "./pass";
+import type { Notification } from "./notification";
 
 const DB_NAME = process.env.MONGODB_DB || "smartwave";
 
@@ -17,4 +18,9 @@ export async function getAdminPassesCollection() {
 export async function getUserPassMembershipsCollection() {
   const client = await clientPromise;
   return client.db(DB_NAME).collection<UserPassMembership>("user_pass_memberships");
+}
+
+export async function getNotificationsCollection() {
+  const client = await clientPromise;
+  return client.db(DB_NAME).collection<Notification>("notifications");
 }

@@ -1024,4 +1024,74 @@
   html:not(.dark) .text-smart-charcoal {
     color: #1a1a1a !important;
   }
+
+  /* Notification rich-text editor (admin notifications page) */
+  .notification-editor {
+    background: transparent;
+  }
+
+  .notification-editor .ql-toolbar.ql-snow {
+    border: none !important;
+    background: transparent;
+    padding: 0 0 0.25rem 0;
+    opacity: 0;
+    max-height: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 30;
+    transition: opacity 0.15s ease, max-height 0.15s ease;
+  }
+
+  .notification-editor:focus-within .ql-toolbar.ql-snow {
+    opacity: 1;
+    max-height: 80px;
+  }
+
+  .notification-editor .ql-container.ql-snow {
+    border: none !important;
+    background: transparent;
+    font-size: 0.9rem;
+    overflow: visible;
+  }
+
+  .notification-editor .ql-editor {
+    min-height: 140px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Ensure Quill color picker dropdown isn't hidden behind content */
+  .notification-editor .ql-picker.ql-color .ql-picker-options,
+  .notification-editor .ql-picker.ql-background .ql-picker-options {
+    z-index: 50;
+    overflow: visible;
+  }
+
+  /* Light theme fixes for notification editor */
+  html.light .notification-editor .ql-toolbar.ql-snow,
+  html:not(.dark) .notification-editor .ql-toolbar.ql-snow {
+    background: #f9fafb !important; /* slate-50 */
+  }
+
+  html.light .notification-editor .ql-toolbar.ql-snow * ,
+  html:not(.dark) .notification-editor .ql-toolbar.ql-snow * {
+    color: #111827 !important; /* gray-900 */
+    fill: #111827 !important;
+  }
+
+  html.light .notification-editor .ql-container.ql-snow,
+  html:not(.dark) .notification-editor .ql-container.ql-snow {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  /* Dark theme tweaks so toolbar is still readable */
+  html.dark .notification-editor .ql-toolbar.ql-snow {
+    background: #020617 !important; /* slate-950 */
+  }
+
+  html.dark .notification-editor .ql-toolbar.ql-snow * {
+    color: #e5e7eb !important; /* gray-200 */
+    fill: #e5e7eb !important;
+  }
 }

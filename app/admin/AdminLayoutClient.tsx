@@ -86,6 +86,11 @@ export function AdminLayoutClient() {
           <Link href="/admin/passes/memberships" className={subLinkClass}>
             Membership Requests
           </Link>
+          {session.type === "admin" && session.role === "corporate" && (
+            <Link href="/admin/notifications" className={subLinkClass}>
+              Notifications
+            </Link>
+          )}
           {session.type === "admin" && (
             <>
               <Link href="/admin/passes" className={subLinkClass}>

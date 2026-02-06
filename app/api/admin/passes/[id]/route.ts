@@ -129,6 +129,13 @@ export async function PATCH(
     );
 
     const updated = await coll.findOne({ _id: new ObjectId(id) });
+    
+    // Create notification if status changed to active and admin is corporate
+    if (body.status === "active" && existing.status !== "active" && admin?.role === "corporate") {
+      const { notifyPassCreated } = await import("@/lib/admin/notification-helper");
+      await notifyPassCreated(new ObjectId(adminId), updated!.name, id);
+    }
+    
     const plain = {
       ...updated,
       _id: (updated as any)._id.toString(),

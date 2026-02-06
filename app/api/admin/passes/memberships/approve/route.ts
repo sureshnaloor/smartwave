@@ -105,6 +105,22 @@ export async function POST(req: NextRequest) {
 
         const updated = await membershipsColl.findOne({ _id: new ObjectId(membershipId) });
 
+        // Create notification for employee when approved
+        if (action === "approve" && updated) {
+          const { getAdminPassesCollection } = await import("@/lib/admin/db");
+          const adminPassesColl = await getAdminPassesCollection();
+          const pass = await adminPassesColl.findOne({ _id: updated.passId });
+          
+          if (pass) {
+            const { notifyPassApproved } = await import("@/lib/admin/notification-helper");
+            await notifyPassApproved(
+              pass.createdByAdminId,
+              updated.userEmail,
+              pass.name
+            );
+          }
+        }
+
         return NextResponse.json({
             success: true,
             membership: {

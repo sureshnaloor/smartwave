@@ -1,7 +1,8 @@
 'use server'
 import { revalidatePath } from 'next/cache';
 import { ObjectId } from 'mongodb';
-import clientPromise from '@/lib/mongodb'
+import clientPromise from '@/lib/mongodb';
+import { getAdminUsersCollection } from '@/lib/admin/db';
 
 export type ProfileData = {
   _id?: ObjectId;
@@ -139,6 +140,19 @@ export async function getProfile(userEmail: string): Promise<ProfileData | null>
       return null;
     }
 
+    // Enrich corporate employee profiles with admin's company info (name, logo, address)
+    const adminId = profile.createdByAdminId;
+    if (adminId) {
+      const adminColl = await getAdminUsersCollection();
+      const admin = await adminColl.findOne({ _id: new ObjectId(adminId.toString()) });
+      const company = admin?.company;
+      if (company) {
+        if (company.name) profile.company = company.name;
+        if (company.logo) profile.companyLogo = company.logo;
+        if (company.address && !profile.workStreet) profile.workStreet = company.address;
+      }
+    }
+
     // Return a plain JSON-serializable object (no ObjectId/Date instances)
     const plain = JSON.parse(JSON.stringify(profile));
     return plain as ProfileData;
@@ -171,6 +185,19 @@ export async function getProfileByShortUrl(shorturl: string): Promise<ProfileDat
     if (!profile) {
       // console.log(`No profile found for shortURL: ${shorturl}`);
       return null;
+    }
+
+    // Enrich corporate employee profiles with admin's company info
+    const adminId = profile.createdByAdminId;
+    if (adminId) {
+      const adminColl = await getAdminUsersCollection();
+      const admin = await adminColl.findOne({ _id: new ObjectId(adminId.toString()) });
+      const company = admin?.company;
+      if (company) {
+        if (company.name) profile.company = company.name;
+        if (company.logo) profile.companyLogo = company.logo;
+        if (company.address && !profile.workStreet) profile.workStreet = company.address;
+      }
     }
 
     const plain = JSON.parse(JSON.stringify(profile));

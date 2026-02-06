@@ -134,6 +134,13 @@ export async function POST(req: NextRequest) {
 
     const insert = await passesColl.insertOne(doc);
     const created = await passesColl.findOne({ _id: insert.insertedId });
+    
+    // Create notification if pass is active and admin is corporate
+    if (doc.status === "active" && admin?.role === "corporate") {
+      const { notifyPassCreated } = await import("@/lib/admin/notification-helper");
+      await notifyPassCreated(new ObjectId(adminId), name, insert.insertedId.toString());
+    }
+    
     const plain = {
       ...created,
       _id: (created as any)._id.toString(),

@@ -132,7 +132,7 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
                     form.photo ? (
                       <img src={form.photo} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">No photo</div>
+                      <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400/60 dark:text-gray-500/60 font-normal italic">No photo</div>
                     )
                   ) : (
                     <PhotoUpload
@@ -171,7 +171,7 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
                 form.companyLogo ? (
                   <img src={form.companyLogo} alt="Company" className="w-full h-full object-contain" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No logo</div>
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400/60 dark:text-gray-500/60 font-normal italic">No logo</div>
                 )
               ) : (
                 <CompanyLogoUpload

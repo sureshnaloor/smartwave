@@ -17,6 +17,7 @@ import CountrySelector from "@/components/shared/CountrySelector";
 export default function Avatar() {
   const { data: session } = useSession();
   const router = useRouter();
+  const isCorporateEmployee = (session?.user as { role?: string })?.role === 'employee';
   
   const handleProfileClick = () => {
     router.push('/profile');
@@ -103,30 +104,38 @@ export default function Avatar() {
         <DropdownMenuLabel>
           {session.user.name || session.user.email}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <div className="px-2 py-1.5">
-          <div className="flex items-center gap-2">
-            <Globe className="h-4 w-4 text-gray-500" />
-            <CountrySelector />
-          </div>
-        </div>
+        {!isCorporateEmployee && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1.5">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-gray-500" />
+                <CountrySelector />
+              </div>
+            </div>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleWishlistClick} className="cursor-pointer">
-          <Heart className="mr-2 h-4 w-4" />
-          <span>Wishlist</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCartClick} className="cursor-pointer">
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          <span>Cart</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleOrdersClick} className="cursor-pointer">
-          <Package className="mr-2 h-4 w-4" />
-          <span>Orders</span>
-        </DropdownMenuItem>
+        {!isCorporateEmployee && (
+          <>
+            <DropdownMenuItem onClick={handleWishlistClick} className="cursor-pointer">
+              <Heart className="mr-2 h-4 w-4" />
+              <span>Wishlist</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleCartClick} className="cursor-pointer">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              <span>Cart</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleOrdersClick} className="cursor-pointer">
+              <Package className="mr-2 h-4 w-4" />
+              <span>Orders</span>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />

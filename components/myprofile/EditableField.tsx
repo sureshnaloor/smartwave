@@ -18,10 +18,15 @@ export default function EditableField({ label, value, placeholder, onChange, cla
   const [editing, setEditing] = useState(false);
 
   if (readOnly) {
+    const isEmpty = !value || value.trim() === "";
+    const displayText = value?.trim() || placeholder || "—";
+    const contentClass = isEmpty
+      ? "text-[11px] text-slate-400/80 dark:text-gray-500/80 font-normal italic"
+      : "text-slate-700 dark:text-white font-medium";
     return (
       <div className={`rounded-xl bg-slate-50/50 dark:bg-gray-800/50 border border-slate-200/60 dark:border-gray-700 px-4 py-2.5 ${className || ""}`}>
         <div className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-gray-500 font-bold mb-0.5">{label}</div>
-        <div className="text-slate-700 dark:text-white font-medium">{value || placeholder || "—"}</div>
+        <div className={contentClass}>{displayText}</div>
       </div>
     );
   }

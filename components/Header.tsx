@@ -9,6 +9,7 @@ import ThemeToggle from './ThemeToggle';
 import AuthButton from './AuthButton';
 import Avatar from './Avatar';
 import Navigation from './Navigation';
+import NotificationBell from './NotificationBell';
 import {
   Menu, X, DollarSign, ShoppingBag,
   BookOpen, IdCard, Globe, LayoutDashboard,
@@ -21,10 +22,11 @@ import { useCart } from "@/context/CartContext";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   const { itemCount } = useCart();
   const pathname = usePathname();
   const isAuthenticated = status === 'authenticated';
+  const isCorporateEmployee = (session?.user as { role?: string })?.role === 'employee';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,11 +37,11 @@ export default function Header() {
   }, []);
 
   const navLinks = [
-    { name: 'Pricing', href: '/pricing', icon: DollarSign, show: true },
-    { name: 'Store', href: '/store', icon: ShoppingBag, show: isAuthenticated },
+    { name: 'Pricing', href: '/pricing', icon: DollarSign, show: !isCorporateEmployee },
+    { name: 'Store', href: '/store', icon: ShoppingBag, show: isAuthenticated && !isCorporateEmployee },
     { name: 'Passes', href: '/passes', icon: Ticket, show: isAuthenticated },
     { name: 'Edit Profile', href: '/myprofile', icon: IdCard, show: isAuthenticated },
-    { name: 'Guide Me', href: '/guide-me', icon: BookOpen, show: isAuthenticated },
+    { name: 'Guide Me', href: '/guide-me', icon: BookOpen, show: isAuthenticated && !isCorporateEmployee },
   ];
 
   return (
@@ -104,7 +106,7 @@ export default function Header() {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              {isAuthenticated && itemCount > 0 && (
+              {isAuthenticated && itemCount > 0 && !isCorporateEmployee && (
                 <Link href="/cart" className="relative group">
                   <Button
                     className="
@@ -121,13 +123,7 @@ export default function Header() {
               )}
 
               <div className="hidden md:flex items-center gap-2 border-l border-gray-200 dark:border-white/10 pl-3 ml-1">
-                <button
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-700 dark:text-gray-200 relative group"
-                  title="Notifications"
-                >
-                  <Bell className="h-5 w-5 group-hover:text-smart-teal transition-colors" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-zinc-900"></span>
-                </button>
+                <NotificationBell />
                 <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1"></div>
                 <ThemeToggle />
                 <Avatar />
@@ -192,11 +188,13 @@ export default function Header() {
                   </div>
                 </div>
 
-                <Link href="/cart" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full h-14 rounded-2xl bg-smart-teal text-white font-bold text-lg">
-                    Cart ({itemCount})
-                  </Button>
-                </Link>
+                {!isCorporateEmployee && (
+                  <Link href="/cart" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full h-14 rounded-2xl bg-smart-teal text-white font-bold text-lg">
+                      Cart ({itemCount})
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>
