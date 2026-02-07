@@ -1,8 +1,8 @@
-import { 
-  Phone, 
+import {
+  Phone,
   Mail,
-  MapPin, 
-  Clock 
+  MapPin,
+  Clock
 } from 'lucide-react'
 import Footer from '@/components/Footer'
 export default function ContactPage() {
@@ -25,7 +25,7 @@ export default function ContactPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
               Get in Touch
             </h2>
-            
+
             <div className="space-y-6">
               <div className="flex items-start gap-4">
                 <div className="text-cyan-600 mt-1">
@@ -33,7 +33,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Phone</h3>
-                  <p className="text-gray-600 dark:text-gray-300">+1 (555) 123-4567</p>
+                  <p className="text-gray-600 dark:text-gray-300">+91 84850 10260</p>
                 </div>
               </div>
 
@@ -43,7 +43,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Fax</h3>
-                  <p className="text-gray-600 dark:text-gray-300">+1 (555) 123-4568</p>
+                  <p className="text-gray-600 dark:text-gray-300">+91 84850 10260</p>
                 </div>
               </div>
 
@@ -53,7 +53,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
-                  <p className="text-gray-600 dark:text-gray-300">contact@exbeyond.com</p>
+                  <p className="text-gray-600 dark:text-gray-300">smart@smartwave.name</p>
                 </div>
               </div>
 
@@ -64,16 +64,17 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Address</h3>
                   <p className="text-gray-600 dark:text-gray-300">
-                    123 Business Avenue<br />
-                    Suite 456<br />
-                    New York, NY 10001
+                    Beyond Private Limited,<br />
+                    Covai Tech Park, S.F.NO:758/2,<br />
+                    Kovai Thirunagar, Kalapatty,<br />
+                    Coimbatore, Tamil Nadu 641 014, India
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <div className="text-cyan-600 mt-1">
-                    <Clock className="w-5 h-5" />
+                  <Clock className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Business Hours</h3>
@@ -103,7 +104,7 @@ export default function ContactPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email
@@ -115,7 +116,7 @@ export default function ContactPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Message
@@ -127,7 +128,7 @@ export default function ContactPage() {
                   required
                 ></textarea>
               </div>
-              
+
               <button
                 type="submit"
                 className="w-full px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
