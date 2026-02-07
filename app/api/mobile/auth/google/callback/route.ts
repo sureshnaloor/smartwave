@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import clientPromise from "@/lib/mongodb";
 import { signMobileToken } from "@/lib/mobile-auth";
 import { verifyState } from "@/lib/mobile-google-state";
+import { generateAndUpdateShortUrl } from "@/app/_actions/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,11 @@ export async function GET(req: NextRequest) {
     if (!user) {
       return new NextResponse("Failed to create user", { status: 500 });
     }
+
+    // Ensure a profile exists so GET /api/mobile/profile returns 200 (avoids 404 and app reverting to sign-in)
+    await generateAndUpdateShortUrl(user.email).catch((e) => {
+      console.warn("[mobile auth google callback] ensure profile:", e);
+    });
 
     const token = signMobileToken({
       email: user.email,

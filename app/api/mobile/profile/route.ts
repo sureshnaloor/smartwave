@@ -32,6 +32,11 @@ export async function GET(req: NextRequest) {
   try {
     let profile = await getProfile(user.email);
     if (!profile) {
+      // Create minimal profile so first-time Google/Apple sign-in users get 200 (callback may not have run yet)
+      const created = await generateAndUpdateShortUrl(user.email);
+      if (created.success) profile = await getProfile(user.email) ?? null;
+    }
+    if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
     if (!profile.shorturl) {
