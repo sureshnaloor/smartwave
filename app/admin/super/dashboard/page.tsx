@@ -39,6 +39,7 @@ export default function SuperAdminDashboardPage() {
   const [resetSubmitting, setResetSubmitting] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
+  const [activeAdminTab, setActiveAdminTab] = useState<'corporate' | 'public'>('corporate');
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -382,13 +383,47 @@ export default function SuperAdminDashboardPage() {
           <CardDescription className={descClass}>Create, edit, delete admin users and set their limits.</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Tabs for Corporate vs Public Admins */}
+          <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
+            <div className="flex gap-8">
+              <button
+                onClick={() => setActiveAdminTab('corporate')}
+                className={`pb-3 text-sm font-semibold transition-all relative ${activeAdminTab === 'corporate'
+                    ? 'text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+              >
+                Corporate Admins
+                {activeAdminTab === 'corporate' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"></div>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveAdminTab('public')}
+                className={`pb-3 text-sm font-semibold transition-all relative ${activeAdminTab === 'public'
+                    ? 'text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+              >
+                Public Admins
+                {activeAdminTab === 'public' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"></div>
+                )}
+              </button>
+            </div>
+          </div>
+
           {loading ? (
             <p className={descClass}>Loading...</p>
-          ) : users.length === 0 ? (
-            <p className={descClass}>No admin users yet. Create one above.</p>
+          ) : users.filter(u => u.role === activeAdminTab).length === 0 ? (
+            <p className={descClass}>
+              {activeAdminTab === 'corporate'
+                ? 'No corporate admin users yet. Create one above.'
+                : 'No public admin users yet. Create one above or approve a request below.'}
+            </p>
           ) : (
             <div className="space-y-2">
-              {users.map((u) => (
+              {users.filter(u => u.role === activeAdminTab).map((u) => (
                 <div key={u._id} className={rowClass}>
                   <div>
                     <p className={rowTitleClass}>{u.username}</p>

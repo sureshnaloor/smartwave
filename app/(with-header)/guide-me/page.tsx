@@ -10,7 +10,8 @@ import {
   User,
   Palette,
   Share2,
-  Smartphone,
+  Smartphone as MobileIcon,
+  IdCard,
   Globe,
   Settings,
   QrCode,
@@ -23,8 +24,14 @@ import {
   Calendar,
   Heart,
   Star,
-  Zap
+  Zap,
+  Wallet,
+  Copy,
+  Check,
+  PlusCircle,
+  ExternalLink
 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -182,6 +189,113 @@ export default function GuideMePage() {
     }
   ];
 
+  const tutorialSteps = [
+    {
+      title: "Create Your Digital Card",
+      description: "Start by clicking 'Edit Profile'. The page auto-refreshes as you add data.",
+      icon: <User className="h-8 w-8 text-blue-500" />,
+      color: "blue",
+      content: (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            For a professional card, please fill in all fields (even partial data provides an incomplete card).
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Contact Email</Badge>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Mobile Number</Badge>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Work Address</Badge>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Company Logo</Badge>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Photo</Badge>
+          </div>
+          <Link href="/myprofile">
+            <Button className="w-full mt-2 bg-blue-600 hover:bg-blue-700 group text-white">
+              Edit Profile
+              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
+      )
+    },
+    {
+      title: "Download Assets",
+      description: "Once updated, your QR code and digital cards are ready for your network.",
+      icon: <QrCode className="h-8 w-8 text-purple-500" />,
+      color: "purple",
+      content: (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Your unique QR code and digital card files are generated automatically. Use them on your email signature or marketing materials.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+             <div className="p-3 border rounded-xl bg-purple-50 dark:bg-purple-900/10 flex flex-col items-center gap-2">
+                <QrCode className="h-6 w-6 text-purple-500" />
+                <span className="text-xs font-semibold">QR Code</span>
+             </div>
+             <div className="p-3 border rounded-xl bg-purple-50 dark:bg-purple-900/10 flex flex-col items-center gap-2">
+                <IdCard className="h-6 w-6 text-purple-500" />
+                <span className="text-xs font-semibold">Digital Card</span>
+             </div>
+          </div>
+          <p className="text-xs text-center text-purple-600 dark:text-purple-400 font-medium italic">
+            Available in your profile downloads!
+          </p>
+        </div>
+      )
+    },
+    {
+      title: "Share Your Profile",
+      description: "Generate a short URL to share your profile across social platforms.",
+      icon: <Share2 className="h-8 w-8 text-emerald-500" />,
+      color: "emerald",
+      content: (
+        <div className="space-y-4">
+          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <li className="flex gap-2 items-start">
+               <div className="mt-1 p-0.5 bg-emerald-500 rounded-full flex-shrink-0"><PlusCircle className="h-3 w-3 text-white" /></div>
+               <span>Click <strong>'Generate ShortURL'</strong> in profile settings</span>
+            </li>
+            <li className="flex gap-2 items-start">
+               <div className="mt-1 p-0.5 bg-emerald-500 rounded-full flex-shrink-0"><PlusCircle className="h-3 w-3 text-white" /></div>
+               <span>Button changes to <strong>'Share Profile'</strong></span>
+            </li>
+            <li className="flex gap-2 items-start">
+               <div className="mt-1 p-0.5 bg-emerald-500 rounded-full flex-shrink-0"><PlusCircle className="h-3 w-3 text-white" /></div>
+               <span>Click to visit your public profile & copy the link!</span>
+            </li>
+          </ul>
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+            <span className="text-xs font-mono text-emerald-700 dark:text-emerald-300">smartwave.me/u/yourname</span>
+            <Copy className="h-4 w-4 text-emerald-600" />
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Viral Wallet Share",
+      description: "The most powerful feature! Add your card to mobile wallets (iOS & Android).",
+      icon: <Wallet className="h-8 w-8 text-orange-500" />,
+      color: "orange",
+      content: (
+        <div className="space-y-4">
+          <div className="flex gap-4 items-center">
+            <MobileIcon className="h-10 w-10 text-orange-500 flex-shrink-0" />
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+               Open the website on your mobile phone and click <strong>'Add to Wallet'</strong>.
+            </p>
+          </div>
+          <div className="bg-orange-50 dark:bg-orange-900/10 p-4 rounded-xl border-l-4 border-orange-500">
+             <h4 className="text-xs font-bold text-orange-800 dark:text-orange-200 uppercase mb-2">Viral Spread Tip</h4>
+             <p className="text-xs text-gray-700 dark:text-gray-300">
+                Use the QR code inside your Apple or Google Wallet to share your profile instantly. It's the fastest way to get your digital card out there!
+             </p>
+          </div>
+        </div>
+      )
+    }
+  ];
+
+  const [activeTutorialStep, setActiveTutorialStep] = useState(0);
+
   const tips = [
     {
       icon: <Zap className="h-5 w-5" />,
@@ -223,13 +337,123 @@ export default function GuideMePage() {
             Let's get you set up with your digital business card in just a few steps
           </p>
 
-          {/* Progress Bar */}
-          <div className="max-w-md mx-auto mb-6">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>Progress</span>
-              <span>{completedSteps} of {onboardingSteps.length} completed</span>
+          {/* Interactive Tutorial Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-12 max-w-4xl mx-auto"
+          >
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-12 min-h-[400px]">
+                {/* Left Side: Navigation */}
+                <div className="md:col-span-4 bg-gray-50/50 dark:bg-gray-900/20 p-6 border-r border-gray-100 dark:border-gray-700">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 px-2">How it works</h3>
+                  <div className="space-y-2">
+                    {tutorialSteps.map((step, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setActiveTutorialStep(index)}
+                        className={`w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center gap-3 ${
+                          activeTutorialStep === index
+                            ? 'bg-white dark:bg-gray-800 shadow-md scale-[1.02] border border-gray-100 dark:border-gray-700'
+                            : 'hover:bg-gray-100 dark:hover:bg-white/5 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <div className={`p-2 rounded-xl bg-${step.color}-500/10 text-${step.color}-500`}>
+                          {step.icon}
+                        </div>
+                        <div>
+                          <p className={`text-sm font-bold ${activeTutorialStep === index ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+                            Step {index + 1}
+                          </p>
+                          <p className="text-[10px] uppercase font-bold tracking-tight opacity-50">{step.title.split(' ')[0]}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right Side: Content */}
+                <div className="md:col-span-8 p-8 relative">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTutorialStep}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="h-full flex flex-col"
+                    >
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className={`p-3 rounded-2xl bg-${tutorialSteps[activeTutorialStep].color}-500 text-white shadow-lg shadow-${tutorialSteps[activeTutorialStep].color}-500/20`}>
+                          {tutorialSteps[activeTutorialStep].icon}
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                            {tutorialSteps[activeTutorialStep].title}
+                          </h2>
+                          <p className="text-gray-500 dark:text-gray-400 font-medium">
+                            Follow this step to maximize your impact
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex-grow">
+                        <p className="text-lg text-gray-700 dark:text-gray-200 mb-6 leading-relaxed">
+                          {tutorialSteps[activeTutorialStep].description}
+                        </p>
+                        
+                        <div className="bg-gray-50 dark:bg-gray-900/30 rounded-[1.5rem] p-6 border border-gray-100 dark:border-gray-800">
+                          {tutorialSteps[activeTutorialStep].content}
+                        </div>
+                      </div>
+
+                      <div className="mt-8 flex justify-between items-center bg-gray-50/50 dark:bg-black/20 p-4 rounded-2xl">
+                        <span className="text-xs font-bold text-gray-400">
+                          Tutorial Step {activeTutorialStep + 1} of {tutorialSteps.length}
+                        </span>
+                        <div className="flex gap-2">
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             disabled={activeTutorialStep === 0}
+                             onClick={() => setActiveTutorialStep(prev => prev - 1)}
+                             className="rounded-xl"
+                           >
+                             Previous
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             disabled={activeTutorialStep === tutorialSteps.length - 1}
+                             onClick={() => setActiveTutorialStep(prev => prev + 1)}
+                             className="bg-gray-900 dark:bg-white dark:text-black rounded-xl"
+                           >
+                             Next
+                             <ArrowRight className="ml-2 h-4 w-4" />
+                           </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+          </motion.div>
+
+          {/* Progress Bar */}
+          <div className="max-w-md mx-auto mb-16">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2 font-bold tracking-tight">
+              <span className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-smart-teal animate-pulse" />
+                Overall Journey Status
+              </span>
+              <span>{completedSteps} of {onboardingSteps.length} Steps</span>
+            </div>
+            <Progress value={progressPercentage} className="h-2.5 rounded-full bg-gray-100 dark:bg-gray-800" />
+            <p className="text-[10px] text-center mt-2 uppercase tracking-widest font-bold text-gray-400">
+               Complete all steps to unlock full potential
+            </p>
           </div>
         </motion.div>
 

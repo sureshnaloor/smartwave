@@ -434,20 +434,29 @@ export default function PassDetailPage() {
                             )}
 
                             {!membership ? (
-                                // Not a member - show join button
-                                <>
-                                    <div className="space-y-2">
-                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Join This Pass</h3>
-                                        <p className="text-sm text-gray-500 font-medium">Request access to this pass. Admin approval required.</p>
+                                isOwner ? (
+                                    // Owner but no membership - show automatic access message
+                                    <div className="p-4 rounded-xl bg-smart-teal/5 border border-smart-teal/20">
+                                        <p className="text-sm text-gray-600 dark:text-smart-silver/80 font-medium text-center">
+                                            As the creator of this pass, you have automatic access once it is active.
+                                        </p>
                                     </div>
-                                    <Button
-                                        onClick={handleJoinPass}
-                                        disabled={joiningPass}
-                                        className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal h-16 rounded-2xl font-black text-lg shadow-lg"
-                                    >
-                                        {joiningPass ? "Joining..." : "Request to Join"}
-                                    </Button>
-                                </>
+                                ) : (
+                                    // Not a member and not the owner - show join button
+                                    <>
+                                        <div className="space-y-2">
+                                            <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Join This Pass</h3>
+                                            <p className="text-sm text-gray-500 font-medium">Request access to this pass. Admin approval required.</p>
+                                        </div>
+                                        <Button
+                                            onClick={handleJoinPass}
+                                            disabled={joiningPass}
+                                            className="w-full bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal h-16 rounded-2xl font-black text-lg shadow-lg"
+                                        >
+                                            {joiningPass ? "Joining..." : "Request to Join"}
+                                        </Button>
+                                    </>
+                                )
                             ) : membership.status === "pending" ? (
                                 // Pending approval
                                 <>
@@ -501,13 +510,22 @@ export default function PassDetailPage() {
                                                 <p className="text-sm text-gray-500">Add to your wallet</p>
                                             </div>
                                         </div>
-                                        <p className="text-sm text-gray-500 font-medium">Keep your pass handy on your mobile device for quick access.</p>
+                                        {pass.status === 'draft' ? (
+                                            <div className="p-4 mb-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                                                <p className="text-sm text-red-600 dark:text-red-400 font-bold text-center">
+                                                    Pass is currently in DRAFT mode. Wallet features will be enabled once it is active.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-gray-500 font-medium">Keep your pass handy on your mobile device for quick access.</p>
+                                        )}
                                     </div>
 
                                     <div className="space-y-4">
                                         {(os === "ios" || os === "other") && (
                                             <Button
                                                 onClick={() => handleWalletClick(`/api/wallet/apple?passId=${pass._id}`)}
+                                                disabled={pass.status === 'draft'}
                                                 className="w-full bg-black text-white hover:bg-zinc-900 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-16 rounded-2xl font-black text-lg shadow-lg group overflow-hidden relative"
                                             >
                                                 <div className="absolute inset-0 bg-smart-teal/0 group-hover:bg-smart-teal/10 transition-colors"></div>
@@ -520,6 +538,7 @@ export default function PassDetailPage() {
                                         {(os === "android" || os === "other") && (
                                             <Button
                                                 onClick={() => handleWalletClick(`/api/wallet/google?passId=${pass._id}`)}
+                                                disabled={pass.status === 'draft'}
                                                 className="w-full bg-white text-black border-2 border-gray-200 hover:bg-gray-50 h-16 rounded-2xl font-black text-lg shadow-lg group dark:bg-black dark:text-white dark:border-white/10 dark:hover:bg-white/5"
                                             >
                                                 <span className="flex items-center justify-center gap-3">

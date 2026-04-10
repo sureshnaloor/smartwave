@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { verifyAdminSession, COOKIE_NAME } from "@/lib/admin/auth";
-import { getAdminUsersCollection, getAdminPassesCollection } from "@/lib/admin/db";
+import { getAdminUsersCollection, getAdminPassesCollection, getUserPassMembershipsCollection } from "@/lib/admin/db";
 import type { AdminPassType, AdminPass } from "@/lib/admin/pass";
 
 export const dynamic = "force-dynamic";
@@ -134,13 +134,33 @@ export async function POST(req: NextRequest) {
 
     const insert = await passesColl.insertOne(doc);
     const created = await passesColl.findOne({ _id: insert.insertedId });
-    
-    // Create notification if pass is active and admin is corporate
-    if (doc.status === "active" && admin?.role === "corporate") {
-      const { notifyPassCreated } = await import("@/lib/admin/notification-helper");
-      await notifyPassCreated(new ObjectId(adminId), name, insert.insertedId.toString());
+
+    // Auto-approve public admin for their own created pass
+    if (admin?.role === "public") {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.email) {
+        const client = await (await import("@/lib/mongodb")).default;
+        const db = client.db(process.env.MONGODB_DB || "smartwave");
+        const user = await db.collection("users").findOne({ email: session.user.email });
+
+        if (user) {
+          const membershipsColl = await getUserPassMembershipsCollection();
+          await membershipsColl.insertOne({
+            userId: user._id,
+            userEmail: session.user.email,
+            passId: insert.insertedId,
+            status: "approved" as const,
+            requestedAt: now,
+            approvedAt: now,
+            approvedBy: new ObjectId(adminId), // Self-approved
+            addedToWallet: false,
+          });
+        }
+      }
     }
-    
+
+    // Note: Notifications are not sent at creation time since passes start as 'draft'
+    // Notifications will be sent when the pass is activated via the update endpoint
     const plain = {
       ...created,
       _id: (created as any)._id.toString(),

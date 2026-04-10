@@ -29,7 +29,17 @@ export async function GET(
         }
 
         const admin = await db.collection("adminusers").findOne({ _id: pass.createdByAdminId });
-        const isAdminCorporate = !admin?.role || admin.role === "corporate";
+
+        // All admins must have explicit role
+        if (!admin) {
+            return new NextResponse("Pass creator not found", { status: 404 });
+        }
+
+        if (!admin.role) {
+            return new NextResponse("Invalid pass configuration. Please contact support.", { status: 500 });
+        }
+
+        const isAdminCorporate = admin.role === "corporate";
 
         if (isAdminCorporate) {
             // Corporate passes are only visible to their own employees OR the owner

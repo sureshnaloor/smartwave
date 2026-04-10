@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBearerUser } from "@/lib/mobile-auth";
 import { getPassById } from "@/lib/wallet/pass-helper";
 import clientPromise from "@/lib/mongodb";
+import { getAdminUsersCollection } from "@/lib/admin/db";
 
 export const dynamic = "force-dynamic";
 
@@ -28,16 +29,29 @@ export async function GET(
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB || "smartwave");
+    const adminUsersColl = await getAdminUsersCollection();
 
     // Check if current user is the owner
     let isOwner = false;
-    const adminUser = await db.collection("adminusers").findOne({ email: user.email.toLowerCase() });
+    const adminUser = await adminUsersColl.findOne({ email: user.email.toLowerCase() });
     if (adminUser && adminUser._id.toString() === pass.createdByAdminId.toString()) {
       isOwner = true;
     }
 
-    const admin = await db.collection("adminusers").findOne({ _id: pass.createdByAdminId });
-    const isAdminCorporate = !admin?.role || admin.role === "corporate";
+    const admin = await adminUsersColl.findOne({ _id: pass.createdByAdminId });
+
+    // All admins must have explicit role (either "corporate" or "public")
+    if (!admin) {
+      return NextResponse.json({ error: "Pass creator not found" }, { status: 404 });
+    }
+
+    if (!admin.role) {
+      return NextResponse.json({
+        error: "Invalid pass configuration. Please contact support."
+      }, { status: 500 });
+    }
+
+    const isAdminCorporate = admin.role === "corporate";
 
     if (isAdminCorporate) {
       // Corporate passes are only visible to their own employees OR the owner

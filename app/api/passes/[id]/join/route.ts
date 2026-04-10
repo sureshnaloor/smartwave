@@ -51,8 +51,18 @@ export async function POST(
         const adminUsersColl = await getAdminUsersCollection();
         const admin = await adminUsersColl.findOne({ _id: pass.createdByAdminId });
 
-        // Treat as corporate if role is missing or explicitly corporate
-        const isAdminCorporate = !admin?.role || admin.role === "corporate";
+        // All admins must have explicit role (either "corporate" or "public")
+        if (!admin) {
+            return NextResponse.json({ error: "Pass creator not found" }, { status: 404 });
+        }
+
+        if (!admin.role) {
+            return NextResponse.json({
+                error: "Invalid pass configuration. Please contact support."
+            }, { status: 500 });
+        }
+
+        const isAdminCorporate = admin.role === "corporate";
 
         if (isAdminCorporate) {
             const userCreatedByAdminId = (user as any).createdByAdminId?.toString();
@@ -105,14 +115,14 @@ export async function POST(
 
         // Create notification for admin if corporate pass
         if (isAdminCorporate && admin) {
-          const userName = (user as any).name || session.user.email;
-          const { notifyAccessRequest } = await import("@/lib/admin/notification-helper");
-          await notifyAccessRequest(
-            pass.createdByAdminId,
-            userName,
-            session.user.email,
-            pass.name
-          );
+            const userName = (user as any).name || session.user.email;
+            const { notifyAccessRequest } = await import("@/lib/admin/notification-helper");
+            await notifyAccessRequest(
+                pass.createdByAdminId,
+                userName,
+                session.user.email,
+                pass.name
+            );
         }
 
         return NextResponse.json({

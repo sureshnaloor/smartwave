@@ -8,7 +8,8 @@ import { AdminPass } from "@/lib/admin/pass"; // Interface only
 import {
     Search, MapPin, Calendar, Clock, Bell, User, QrCode, Users,
     Ticket, Building2, ShoppingBag, Music, PartyPopper, Briefcase,
-    ChevronRight, CreditCard, Wallet, Church, Heart, UsersRound, Plus
+    ChevronRight, CreditCard, Wallet, Church, Heart, UsersRound, Plus,
+    FileText, Clock3
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export default function PassesPage() {
     const [corporatePasses, setCorporatePasses] = useState<Pass[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState<'public' | 'corporate' | 'my-passes'>('public');
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'available' | 'requested' | 'expired' | 'draft' | 'corporate' | 'my-passes'>('upcoming');
     const [activeCategory, setActiveCategory] = useState<CategoryType>("all");
     const [isEmployee, setIsEmployee] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -86,7 +87,7 @@ export default function PassesPage() {
         if (locationEnabled && userLocation) {
             params.append("lat", userLocation.lat.toString());
             params.append("lng", userLocation.lng.toString());
-            params.append("radius", "20"); // 20km radius
+            params.append("radius", "500"); // Increased to 500km radius for better discovery
         }
 
         const url = `/api/passes${params.toString() ? `?${params.toString()}` : ""}`;
@@ -147,9 +148,42 @@ export default function PassesPage() {
         }
     };
 
-    const currentPassesView = activeTab === 'public' ? publicPasses : (activeTab === 'corporate' ? corporatePasses : myPasses);
 
-    const filteredView = currentPassesView.filter(p =>
+    // Filter passes based on active tab
+    const getFilteredPasses = () => {
+        const now = new Date();
+
+        switch (activeTab) {
+            case 'upcoming':
+                return publicPasses.filter(p =>
+                    p.membershipStatus === 'approved' &&
+                    (!p.dateEnd || new Date(p.dateEnd) > now)
+                );
+            case 'available':
+                return publicPasses.filter(p =>
+                    p.status === 'active' &&
+                    !p.membershipStatus &&
+                    (!p.dateEnd || new Date(p.dateEnd) > now)
+                );
+            case 'requested':
+                return publicPasses.filter(p => p.membershipStatus === 'pending');
+            case 'expired':
+                return publicPasses.filter(p =>
+                    p.membershipStatus === 'approved' &&
+                    p.dateEnd && new Date(p.dateEnd) <= now
+                );
+            case 'draft':
+                return publicPasses.filter(p => p.status === 'draft');
+            case 'corporate':
+                return corporatePasses;
+            case 'my-passes':
+                return myPasses;
+            default:
+                return publicPasses;
+        }
+    };
+
+    const filteredView = getFilteredPasses().filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.location?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -162,6 +196,7 @@ export default function PassesPage() {
     });
 
     const accessPasses = filteredView.filter(p => p.type === 'access');
+
 
     const categories = [
         { icon: Ticket, label: "All Passes", value: "all" as CategoryType },
@@ -243,76 +278,113 @@ export default function PassesPage() {
                 </section>
 
 
+
                 {/* Tabs Section */}
-                {(isEmployee || isPublicAdmin || corporatePasses.length > 0) && (
-                    <section className="border-b border-gray-100 dark:border-white/10">
-                        <div className="flex gap-12 overflow-x-auto pb-0 scrollbar-hide">
+                <section className="border-b border-gray-100 dark:border-white/10">
+                    <div className="flex gap-8 overflow-x-auto pb-0 scrollbar-hide">
+                        {/* Corporate tab - ONLY for employees */}
+                        {isEmployee && (
                             <button
                                 onClick={() => setActiveTab('corporate')}
-                                className={`pb-6 text-xl font-bold transition-all relative whitespace-nowrap ${activeTab === 'corporate' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                                className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'corporate' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                             >
-                                <span className="flex items-center gap-3">
-                                    <Building2 className="w-6 h-6" />
-                                    Corporate Passes
+                                <span className="flex items-center gap-2">
+                                    <Building2 className="w-5 h-5" />
+                                    Corporate
                                 </span>
                                 {activeTab === 'corporate' && (
                                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
                                 )}
                             </button>
+                        )}
+
+                        {/* Upcoming - Approved & future-dated passes */}
+                        <button
+                            onClick={() => setActiveTab('upcoming')}
+                            className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'upcoming' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5" />
+                                Upcoming
+                            </span>
+                            {activeTab === 'upcoming' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                            )}
+                        </button>
+
+                        {/* Available - Active passes not yet requested */}
+                        <button
+                            onClick={() => setActiveTab('available')}
+                            className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'available' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Ticket className="w-5 h-5" />
+                                Available
+                            </span>
+                            {activeTab === 'available' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                            )}
+                        </button>
+
+                        {/* Requested - Pending approval */}
+                        <button
+                            onClick={() => setActiveTab('requested')}
+                            className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'requested' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Clock className="w-5 h-5" />
+                                Requested
+                            </span>
+                            {activeTab === 'requested' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                            )}
+                        </button>
+
+                        {/* Expired - Past-dated approved passes */}
+                        <button
+                            onClick={() => setActiveTab('expired')}
+                            className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'expired' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <Clock3 className="w-5 h-5" />
+                                Expired
+                            </span>
+                            {activeTab === 'expired' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                            )}
+                        </button>
+
+                        {/* Draft - Draft status passes (for public admins or if user has access) */}
+                        <button
+                            onClick={() => setActiveTab('draft')}
+                            className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'draft' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                        >
+                            <span className="flex items-center gap-2">
+                                <FileText className="w-5 h-5" />
+                                Draft
+                            </span>
+                            {activeTab === 'draft' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
+                            )}
+                        </button>
+
+                        {/* My Passes tab - ONLY for public admins */}
+                        {isPublicAdmin && (
                             <button
-                                onClick={() => setActiveTab('public')}
-                                className={`pb-6 text-xl font-bold transition-all relative whitespace-nowrap ${activeTab === 'public' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
+                                onClick={() => setActiveTab('my-passes')}
+                                className={`pb-6 text-lg font-bold transition-all relative whitespace-nowrap ${activeTab === 'my-passes' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
                             >
-                                <span className="flex items-center gap-3">
-                                    <Ticket className="w-6 h-6" />
-                                    Public Events
+                                <span className="flex items-center gap-2">
+                                    <Users className="w-5 h-5" />
+                                    My Created
                                 </span>
-                                {activeTab === 'public' && (
+                                {activeTab === 'my-passes' && (
                                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
                                 )}
                             </button>
-                            {isPublicAdmin && (
-                                <button
-                                    onClick={() => setActiveTab('my-passes')}
-                                    className={`pb-6 text-xl font-bold transition-all relative whitespace-nowrap ${activeTab === 'my-passes' ? 'text-smart-teal' : 'text-gray-400 hover:text-gray-600 dark:hover:text-white'}`}
-                                >
-                                    <span className="flex items-center gap-3">
-                                        <Users className="w-6 h-6" />
-                                        My Created Passes
-                                    </span>
-                                    {activeTab === 'my-passes' && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></div>
-                                    )}
-                                </button>
-                            )}
-                        </div>
-                    </section>
-                )}
-
-
-                {/* Categories - Only show for Public tab or if user is not corporate employee */}
-                {(activeTab === 'public' || !isEmployee) && (
-                    <section>
-                        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                            {categories.map((cat, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => setActiveCategory(cat.value)}
-                                    className={`
-                                        flex items-center gap-2 px-6 py-2.5 rounded-full border transition-all whitespace-nowrap text-sm font-semibold
-                                        ${activeCategory === cat.value
-                                            ? 'bg-smart-teal text-smart-charcoal border-smart-teal shadow-lg'
-                                            : 'bg-transparent text-gray-500 border-gray-200 dark:border-white/10 hover:border-smart-teal hover:text-smart-teal dark:text-smart-silver/60'
-                                        }
-                                    `}
-                                >
-                                    <cat.icon className="w-4 h-4" />
-                                    <span>{cat.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                        )}
+                    </div>
+                </section>
 
 
                 {/* Upcoming Events Grid */}
@@ -320,7 +392,13 @@ export default function PassesPage() {
                     <div className="flex items-center justify-between border-gray-100 dark:border-white/10 pb-4">
                         <h2 className="text-3xl font-black flex items-center gap-4 text-gray-900 dark:text-white uppercase tracking-tight">
                             <span className="w-1.5 h-8 bg-smart-teal rounded-full shadow-[0_0_15px_rgba(0,212,170,0.5)]"></span>
-                            {activeTab === 'corporate' ? 'Corporate Events' : activeTab === 'my-passes' ? 'My Events' : 'Upcoming Events'}
+                            {activeTab === 'corporate' ? 'Corporate Events' :
+                                activeTab === 'my-passes' ? 'My Events' :
+                                    activeTab === 'upcoming' ? 'Upcoming Events' :
+                                        activeTab === 'available' ? 'Available Events' :
+                                            activeTab === 'requested' ? 'Requested Events' :
+                                                activeTab === 'expired' ? 'Expired Events' :
+                                                    activeTab === 'draft' ? 'Draft Events' : 'Events'}
                         </h2>
                         {activeTab === 'my-passes' ? (
                             <div className="flex items-center gap-4">
@@ -351,7 +429,13 @@ export default function PassesPage() {
                             <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/[0.02]">
                                 <Calendar className="w-12 h-12 mb-4 text-gray-300 dark:text-white/10" />
                                 <p className="text-xl font-medium">
-                                    {activeTab === 'corporate' ? 'No corporate events found.' : 'No upcoming events found.'}
+                                    {activeTab === 'upcoming' ? 'No upcoming events found.' :
+                                        activeTab === 'available' ? 'No available events found.' :
+                                            activeTab === 'requested' ? 'No requested events found.' :
+                                                activeTab === 'expired' ? 'No expired events found.' :
+                                                    activeTab === 'draft' ? 'No draft events found.' :
+                                                        activeTab === 'corporate' ? 'No corporate events found.' :
+                                                            activeTab === 'my-passes' ? 'No events created yet.' : 'No events found.'}
                                 </p>
                             </div>
                         )}
@@ -363,7 +447,13 @@ export default function PassesPage() {
                     <div className="flex items-center justify-between border-gray-100 dark:border-white/10 pb-4">
                         <h2 className="text-3xl font-black flex items-center gap-4 text-gray-900 dark:text-white uppercase tracking-tight">
                             <span className="w-1.5 h-8 bg-smart-amber rounded-full shadow-[0_0_15px_rgba(255,191,0,0.5)]"></span>
-                            {activeTab === 'corporate' ? 'Corporate Access' : 'Access & Memberships'}
+                            {activeTab === 'corporate' ? 'Corporate Access' :
+                                activeTab === 'my-passes' ? 'My Access' :
+                                    activeTab === 'upcoming' ? 'Upcoming Access' :
+                                        activeTab === 'available' ? 'Available Access' :
+                                            activeTab === 'requested' ? 'Requested Access' :
+                                                activeTab === 'expired' ? 'Expired Access' :
+                                                    activeTab === 'draft' ? 'Draft Access' : 'Access & Memberships'}
                         </h2>
                     </div>
 
@@ -379,7 +469,15 @@ export default function PassesPage() {
                         ) : (
                             <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-white/5 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/[0.02]">
                                 <CreditCard className="w-12 h-12 mb-4 text-gray-300 dark:text-white/10" />
-                                <p className="text-xl font-medium">No access passes found.</p>
+                                <p className="text-xl font-medium">
+                                    {activeTab === 'upcoming' ? 'No upcoming access passes found.' :
+                                        activeTab === 'available' ? 'No available access passes found.' :
+                                            activeTab === 'requested' ? 'No requested access passes found.' :
+                                                activeTab === 'expired' ? 'No expired access passes found.' :
+                                                    activeTab === 'draft' ? 'No draft access passes found.' :
+                                                        activeTab === 'corporate' ? 'No corporate access passes found.' :
+                                                            activeTab === 'my-passes' ? 'No access passes created yet.' : 'No access passes found.'}
+                                </p>
                             </div>
                         )}
                     </div>
@@ -429,7 +527,7 @@ function PassCard({ pass, showEdit }: { pass: Pass, showEdit?: boolean }) {
                             </Link>
                         )}
                         {pass.status === 'draft' && (
-                            <div className="bg-smart-amber/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-smart-charcoal border border-white/20">
+                            <div className="bg-red-500/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white border border-white/20">
                                 DRAFT
                             </div>
                         )}
@@ -503,7 +601,7 @@ function AccessCard({ pass, showEdit }: { pass: Pass, showEdit?: boolean }) {
                             {pass.type}
                         </span>
                         {pass.status === 'draft' && (
-                            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black bg-smart-amber/20 text-smart-amber uppercase tracking-widest border border-smart-amber/30">
+                            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black bg-red-500/20 text-red-600 dark:text-red-400 uppercase tracking-widest border border-red-500/30">
                                 DRAFT
                             </span>
                         )}

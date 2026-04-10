@@ -52,8 +52,18 @@ export async function POST(
     const adminUsersColl = await getAdminUsersCollection();
     const admin = await adminUsersColl.findOne({ _id: pass.createdByAdminId });
 
-    // Treat as corporate if role is missing or explicitly corporate
-    const isAdminCorporate = !admin?.role || admin.role === "corporate";
+    // All admins must have explicit role (either "corporate" or "public")
+    if (!admin) {
+      return NextResponse.json({ error: "Pass creator not found" }, { status: 404 });
+    }
+
+    if (!admin.role) {
+      return NextResponse.json({
+        error: "Invalid pass configuration. Please contact support."
+      }, { status: 500 });
+    }
+
+    const isAdminCorporate = admin.role === "corporate";
 
     if (isAdminCorporate) {
       const userCreatedByAdminId = (dbUser as any).createdByAdminId?.toString();

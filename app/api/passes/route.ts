@@ -113,11 +113,38 @@ export async function GET(req: Request) {
 
         // Get user memberships if logged in
         let userMemberships: any[] = [];
+        let approvedPassIds: ObjectId[] = [];
         if (userId) {
             const membershipsColl = await getUserPassMembershipsCollection();
             userMemberships = await membershipsColl
                 .find({ userId })
                 .toArray();
+
+            // Get IDs of passes user has approved membership for
+            approvedPassIds = userMemberships
+                .filter(m => m.status === "approved")
+                .map(m => m.passId);
+        }
+
+        // Fetch passes that user has approved membership for (even if expired or draft)
+        // Only include public passes (not corporate)
+        let approvedPasses: any[] = [];
+        if (approvedPassIds.length > 0) {
+            const approvedQuery: any = {
+                _id: { $in: approvedPassIds },
+                createdByAdminId: { $in: publicAdminIds }, // Only public passes
+            };
+
+            // Apply category filter if specified
+            if (category && category !== "all") {
+                if (category === "access") {
+                    approvedQuery.$or = [{ category: "access" }, { type: "access" }];
+                } else {
+                    approvedQuery.category = category;
+                }
+            }
+
+            approvedPasses = await coll.find(approvedQuery).sort({ dateStart: 1 }).toArray();
         }
 
         let passes: any[] = allPasses.map((p) => ({
@@ -132,6 +159,25 @@ export async function GET(req: Request) {
             location: p.location,
         }));
 
+        // Merge approved passes with allPasses (avoiding duplicates)
+        const existingPassIds = new Set(passes.map(p => p._id));
+        const additionalApprovedPasses = approvedPasses
+            .filter(p => !existingPassIds.has((p as any)._id.toString()))
+            .map((p) => ({
+                ...p,
+                _id: (p as any)._id.toString(),
+                createdByAdminId: (p as any).createdByAdminId.toString(),
+                createdAt: (p as any).createdAt?.toISOString?.(),
+                updatedAt: (p as any).updatedAt?.toISOString?.(),
+                dateStart: (p as any).dateStart?.toISOString?.(),
+                dateEnd: (p as any).dateEnd?.toISOString?.(),
+                type: (p as any).type,
+                location: p.location,
+            }));
+
+        passes = [...passes, ...additionalApprovedPasses];
+
+
         // Apply location filtering if coordinates provided
         if (lat && lng) {
             const userLat = parseFloat(lat);
@@ -139,14 +185,21 @@ export async function GET(req: Request) {
             const radiusKm = parseFloat(radius) || 500; // Much larger default radius
 
             if (!isNaN(userLat) && !isNaN(userLng)) {
-                // For 'passes' (public/upcoming), filter events by location but keep ALL access passes
-                const eventPasses = passes.filter(p => p.type === 'event');
-                const accessPasses = passes.filter(p => p.type === 'access');
+                // EXEMPT passes that the user already has an approved membership for
+                // They should always see these in Upcoming/Expired regardless of distance
+                const approvedPassIdsSet = new Set(approvedPassIds.map(id => id.toString()));
 
-                const filteredEvents = filterPassesByLocation(eventPasses as any, userLat, userLng, radiusKm);
-                passes = [...filteredEvents, ...accessPasses];
+                const passesToFilterByLocation = passes.filter(p => !approvedPassIdsSet.has(p._id));
+                const passesExemptFromLocation = passes.filter(p => approvedPassIdsSet.has(p._id));
 
-                // Corporate passes are NOT filtered by location for employees
+                // For public/available passes, filter by location but keep ALL access passes (as per current logic)
+                const eventPassesToFilter = passesToFilterByLocation.filter(p => p.type === 'event');
+                const accessPassesToFilter = passesToFilterByLocation.filter(p => p.type === 'access');
+
+                const filteredEvents = filterPassesByLocation(eventPassesToFilter as any, userLat, userLng, radiusKm);
+
+                // Final merge: Location-filtered events + all access passes + all approved passes (any type)
+                passes = [...filteredEvents, ...accessPassesToFilter, ...passesExemptFromLocation];
             }
         }
 
