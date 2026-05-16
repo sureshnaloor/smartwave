@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ProfileData, saveProfile } from "@/app/_actions/profile";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -8,6 +8,10 @@ import { Spinner, Check } from "@/components/ui/icons";
 import EditableField from "@/components/myprofile/EditableField";
 import PhotoUpload from "@/components/myprofile/PhotoUpload";
 import CompanyLogoUpload from "@/components/myprofile/CompanyLogoUpload";
+import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness";
+
+const AUTOSAVE_DELAY_MS = 2500;
+const PREVIEW_UPDATE_DELAY_MS = 500;
 
 type Props = {
   userEmail: string;
@@ -57,6 +61,9 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
   const [isDirty, setIsDirty] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const snapshotRef = useRef<Partial<ProfileData>>({ ...form });
+  const pendingSaveRef = useRef<Partial<ProfileData>>({});
+  const previewTimerRef = useRef<number | null>(null);
+  const isProfileComplete = hasRequiredProfileFields(form);
 
   useUnsavedChanges({ isDirty, profilePathStartsWith: "/myprofile" });
 
@@ -66,7 +73,7 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
     return parts.join(" ").trim();
   }, [form.firstName, form.middleName, form.lastName]);
 
-  const { schedule, isSaving } = useDebouncedSave<Partial<ProfileData>>(async (data) => {
+  const { schedule, cancel, isSaving } = useDebouncedSave<Partial<ProfileData>>(async (data) => {
     if (!userEmail) return;
     const changed = Object.keys(data).some((k) => {
       const key = k as keyof ProfileData;
@@ -76,34 +83,81 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
     const result = await saveProfile({ ...data, userEmail }, userEmail);
     if (result.success) {
       snapshotRef.current = { ...snapshotRef.current, ...data };
+      pendingSaveRef.current = {};
       setIsDirty(false);
       setLastSavedAt(Date.now());
     }
-  }, 800);
+  }, AUTOSAVE_DELAY_MS);
+
+  const queuePreviewChange = useCallback((next: Partial<ProfileData>) => {
+    if (!onPreviewChange) return;
+
+    if (previewTimerRef.current) {
+      window.clearTimeout(previewTimerRef.current);
+    }
+
+    previewTimerRef.current = window.setTimeout(() => {
+      onPreviewChange(next);
+      previewTimerRef.current = null;
+    }, PREVIEW_UPDATE_DELAY_MS) as unknown as number;
+  }, [onPreviewChange]);
+
+  useEffect(() => {
+    return () => {
+      if (previewTimerRef.current) {
+        window.clearTimeout(previewTimerRef.current);
+      }
+    };
+  }, []);
+
+  const schedulePendingSave = () => {
+    if (Object.keys(pendingSaveRef.current).length === 0) {
+      cancel();
+      return;
+    }
+
+    schedule({ ...pendingSaveRef.current });
+  };
 
   const updateField = (key: keyof ProfileData, value: string) => {
-    setForm((prev) => {
-      const next = { ...prev, [key]: value } as Partial<ProfileData>;
-      // recompute name
-      const parts = [next.firstName, next.middleName, next.lastName].filter(Boolean);
-      next.name = parts.join(" ").trim();
-      onPreviewChange?.(next);
-      return next;
-    });
+    const next = { ...form, [key]: value } as Partial<ProfileData>;
+    const parts = [next.firstName, next.middleName, next.lastName].filter(Boolean);
+    next.name = parts.join(" ").trim();
+
+    setForm(next);
+    if (["firstName", "middleName", "lastName", "title", "company"].includes(key) && onPreviewChange) {
+      if (previewTimerRef.current) {
+        window.clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = null;
+      }
+      onPreviewChange(next);
+    } else {
+      queuePreviewChange(next);
+    }
     setIsDirty(true);
     // Exclude image fields from autosave here; dedicated upload components will save explicitly
     if (key !== "photo" && key !== "companyLogo") {
-      const parts = [
-        key === "firstName" ? value : form.firstName,
-        key === "middleName" ? value : form.middleName,
-        key === "lastName" ? value : form.lastName,
-      ].filter(Boolean);
-      const newName = parts.join(" ").trim();
       const payload: Partial<ProfileData> = { [key]: value } as Partial<ProfileData>;
       if (["firstName", "middleName", "lastName"].includes(key)) {
-        payload.name = newName;
+        payload.name = next.name;
       }
-      schedule(payload);
+
+      const isRequiredTextField = ["firstName", "title", "company"].includes(key);
+      const isNamePairInvalid =
+        ["middleName", "lastName"].includes(key) &&
+        !next.middleName?.trim() &&
+        !next.lastName?.trim();
+
+      if ((isRequiredTextField && !value.trim()) || isNamePairInvalid) {
+        delete pendingSaveRef.current[key];
+        if (["firstName", "middleName", "lastName"].includes(key)) {
+          delete pendingSaveRef.current.name;
+        }
+      } else {
+        pendingSaveRef.current = { ...pendingSaveRef.current, ...payload };
+      }
+
+      schedulePendingSave();
     }
   };
 
@@ -155,14 +209,19 @@ export default function ProfileCard({ userEmail, initialData, onPreviewChange, r
             {/* Name & Title */}
             <div className="flex-1 min-w-0 pb-2">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <EditableField label="First Name" value={form.firstName || ""} placeholder="First Name" onChange={(v) => updateField("firstName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
-                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle Name" onChange={(v) => updateField("middleName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
-                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last Name" onChange={(v) => updateField("lastName", v)} className="!bg-white/80 backdrop-blur-sm !border-white/40 !shadow-sm" readOnly={readOnly} />
+                <EditableField label="First Name" value={form.firstName || ""} placeholder="First Name" onChange={(v) => updateField("firstName", v)} className={`!bg-white/80 backdrop-blur-sm !shadow-sm ${!form.firstName?.trim() ? "!border-red-300 dark:!border-red-500" : "!border-white/40"}`} readOnly={readOnly} />
+                <EditableField label="Middle Name" value={form.middleName || ""} placeholder="Middle Name" onChange={(v) => updateField("middleName", v)} className={`!bg-white/80 backdrop-blur-sm !shadow-sm ${!form.middleName?.trim() && !form.lastName?.trim() ? "!border-red-300 dark:!border-red-500" : "!border-white/40"}`} readOnly={readOnly} />
+                <EditableField label="Last Name" value={form.lastName || ""} placeholder="Last Name" onChange={(v) => updateField("lastName", v)} className={`!bg-white/80 backdrop-blur-sm !shadow-sm ${!form.middleName?.trim() && !form.lastName?.trim() ? "!border-red-300 dark:!border-red-500" : "!border-white/40"}`} readOnly={readOnly} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <EditableField label="Job Title" value={form.title || ""} placeholder="What do you do?" onChange={(v) => updateField("title", v)} className="!bg-white/50" readOnly={readOnly} />
-                <EditableField label="Company" value={form.company || ""} placeholder="Where do you work?" onChange={(v) => updateField("company", v)} className="!bg-white/50" readOnly={readOnly} />
+                <EditableField label="Job Title" value={form.title || ""} placeholder="What do you do?" onChange={(v) => updateField("title", v)} className={`!bg-white/50 ${!form.title?.trim() ? "!border-red-300 dark:!border-red-500" : ""}`} readOnly={readOnly} />
+                <EditableField label="Company" value={form.company || ""} placeholder="Where do you work?" onChange={(v) => updateField("company", v)} className={`!bg-white/50 ${!form.company?.trim() ? "!border-red-300 dark:!border-red-500" : ""}`} readOnly={readOnly} />
               </div>
+              {!readOnly && !isProfileComplete && (
+                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                  {REQUIRED_PROFILE_FIELDS_MESSAGE}
+                </p>
+              )}
             </div>
 
             {/* Company Logo */}

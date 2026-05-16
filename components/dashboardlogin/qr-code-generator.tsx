@@ -7,6 +7,7 @@ import { QrCode, Download } from "lucide-react"
 import QRCode from 'qrcode'
 import Image from 'next/image'
 import { ProfileData } from "@/app/_actions/profile"
+import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness"
 
 interface QRCodeGeneratorProps {
   user: ProfileData;
@@ -17,6 +18,8 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [logoLoaded, setLogoLoaded] = useState(false)
+  const actionDisabled = !hasRequiredProfileFields(user)
+  const actionTitle = actionDisabled ? REQUIRED_PROFILE_FIELDS_MESSAGE : undefined
 
   // Function to create vCard format string
   const generateVCardData = () => {
@@ -133,7 +136,7 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
   }, [size, user])
 
   const downloadQRCode = async (format: 'png' | 'print' | 'web') => {
-    if (!qrDataUrl) return
+    if (actionDisabled || !qrDataUrl) return
 
     const link = document.createElement('a')
     link.download = `${user.name.replace(/\s+/g, '-')}-qr-${format}.png`
@@ -197,18 +200,36 @@ export default function QRCodeGenerator({ user }: QRCodeGeneratorProps) {
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2" onClick={() => downloadQRCode('png')}>
-                <Download className="h-4 w-4" />
-                <span>Download PNG</span>
-              </Button>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2" onClick={() => downloadQRCode('print')}>
-                <Download className="h-4 w-4" />
-                <span>Download for Print</span>
-              </Button>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2" onClick={() => downloadQRCode('web')}>
-                <Download className="h-4 w-4" />
-                <span>Download for Web</span>
-              </Button>
+              <div title={actionTitle}>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
+                  onClick={() => downloadQRCode('png')}
+                  disabled={actionDisabled}
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download PNG</span>
+                </Button>
+              </div>
+              <div title={actionTitle}>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
+                  onClick={() => downloadQRCode('print')}
+                  disabled={actionDisabled}
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download for Print</span>
+                </Button>
+              </div>
+              <div title={actionTitle}>
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
+                  onClick={() => downloadQRCode('web')}
+                  disabled={actionDisabled}
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download for Web</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

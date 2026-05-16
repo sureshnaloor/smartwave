@@ -198,17 +198,10 @@ export default function GuideMePage() {
       content: (
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            For a professional card, please fill in all fields (even partial data provides an incomplete card).
+            For a professional card, please fill in all fields <span className='text-blue-500 font-bold'>(filling even partial data provides a partial filled digital card, but for best professional results, please fill in all fields)</span>.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Contact Email</Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Mobile Number</Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Work Address</Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Company Logo</Badge>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Photo</Badge>
-          </div>
           <Link href="/myprofile">
-            <Button className="w-full mt-2 bg-blue-600 hover:bg-blue-700 group text-white">
+            <Button className="w-full mt-2 bg-blue-200 hover:bg-blue-400 group text-gray-900 dark:text-white dark:bg-blue-600 dark:hover:bg-blue-700">
               Edit Profile
               <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -237,7 +230,7 @@ export default function GuideMePage() {
              </div>
           </div>
           <p className="text-xs text-center text-purple-600 dark:text-purple-400 font-medium italic">
-            Available in your profile downloads!
+            Available in your profile downloads - see the right sidebar for your downloads!
           </p>
         </div>
       )

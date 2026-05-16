@@ -5,6 +5,7 @@ import { generateAndUpdateShortUrl } from "@/app/_actions/profile";
 import DigitalCard from "@/components/dashboardlogin/digital-card";
 import QRCodeGenerator from "@/components/dashboardlogin/qr-code-generator";
 import { Button } from "@/components/ui/button";
+import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "lucide-react";
@@ -19,7 +20,14 @@ export default function MyProfileSidebar({ profile, userEmail: sessionUserEmail 
   const [isGeneratingUrl, setIsGeneratingUrl] = useState(false);
   const [initialShortUrl, setInitialShortUrl] = useState(profile?.shorturl);
 
+  const isProfileComplete = hasRequiredProfileFields(profile);
+
   const handleGenerateShortUrl = async () => {
+    if (!isProfileComplete) {
+      toast.error(REQUIRED_PROFILE_FIELDS_MESSAGE);
+      return;
+    }
+
     const emailToUse = profile?.userEmail || sessionUserEmail;
     if (!emailToUse?.trim()) {
       toast.error("Cannot generate URL: sign-in email is missing.");
@@ -31,8 +39,6 @@ export default function MyProfileSidebar({ profile, userEmail: sessionUserEmail 
       if (result.success && result.shorturl) {
         toast.success("Short URL generated successfully!");
         setInitialShortUrl(result.shorturl);
-        // We still reload to sync everything, but the state update above handles immediate UI
-        window.location.reload();
       } else {
         toast.error(result.error || "Failed to generate short URL");
       }
@@ -65,22 +71,37 @@ export default function MyProfileSidebar({ profile, userEmail: sessionUserEmail 
           }
         </p>
         {!activeShortUrl ? (
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
-            onClick={handleGenerateShortUrl}
-            disabled={isGeneratingUrl}
-          >
-            <Link className="h-4 w-4 mr-2" />
-            {isGeneratingUrl ? 'Generating...' : 'Generate Short URL'}
-          </Button>
+          <div className="group relative">
+            <Button
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
+              onClick={handleGenerateShortUrl}
+              disabled={isGeneratingUrl || !isProfileComplete}
+              aria-describedby={!isProfileComplete ? "short-url-required-fields" : undefined}
+            >
+              <Link className="h-4 w-4 mr-2" />
+              {isGeneratingUrl ? 'Generating...' : 'Generate Short URL'}
+            </Button>
+            {!isProfileComplete && (
+              <div
+                id="short-url-required-fields"
+                role="tooltip"
+                className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-md border border-gray-200 bg-white px-3 py-2 text-center text-xs text-gray-900 shadow-lg group-hover:block group-focus-within:block dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+              >
+                {REQUIRED_PROFILE_FIELDS_MESSAGE}
+              </div>
+            )}
+          </div>
         ) : (
-          <Button
-            className="w-full bg-gradient-to-r from-green-600 to-cyan-500 text-white"
-            onClick={() => window.open(`/publicprofile/${activeShortUrl}`, '_blank')}
-          >
-            <Link className="h-4 w-4 mr-2" />
-            Share Profile
-          </Button>
+          <div title={!isProfileComplete ? REQUIRED_PROFILE_FIELDS_MESSAGE : undefined}>
+            <Button
+              className="w-full bg-gradient-to-r from-green-600 to-cyan-500 text-white"
+              onClick={() => window.open(`/publicprofile/${activeShortUrl}`, '_blank')}
+              disabled={!isProfileComplete}
+            >
+              <Link className="h-4 w-4 mr-2" />
+              Share Profile
+            </Button>
+          </div>
         )}
       </div>
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">

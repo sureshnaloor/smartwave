@@ -8,6 +8,7 @@ import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import * as htmlToImage from 'html-to-image'
 import { useTheme } from '@/context/ThemeContext'
+import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness"
 
 // Standard business card dimensions (3.5 x 2 inches) at 300 DPI for print quality
 const CARD_WIDTH = 1050 // 3.5 inches * 300 DPI
@@ -139,6 +140,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
   const frontRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
+  const actionDisabled = !hasRequiredProfileFields(user)
+  const actionTitle = actionDisabled ? REQUIRED_PROFILE_FIELDS_MESSAGE : undefined
 
   const homeAddress = [
     user.homeStreet,
@@ -228,7 +231,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
   // Update the downloadBusinessCard function
   const downloadBusinessCard = async () => {
-    if (!frontRef.current || !backRef.current || isDownloading) return;
+    if (actionDisabled || !frontRef.current || !backRef.current || isDownloading) return;
 
     setIsDownloading(true);
     try {
@@ -742,84 +745,104 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       </CardContainer>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={downloadBusinessCard}
-          disabled={isDownloading}
-        >
-          <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Download</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={async () => {
-            if (!navigator.share) return;
-            try {
-              await navigator.share({
-                title: `${user.name}'s Digital Business Card`,
-                text: `Check out ${user.name}'s digital business card`,
-                url: window.location.href
-              });
-            } catch (err) {
-              if (err instanceof Error && err.name === "AbortError") return;
-              console.warn("Share failed:", err);
-            }
-          }}
-        >
-          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Share</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={cycleTheme}
-        >
-          <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Theme</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={flipCard}
-        >
-          <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Flip</span>
-        </Button>
+        <div title={actionTitle}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={downloadBusinessCard}
+            disabled={isDownloading || actionDisabled}
+          >
+            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Download</span>
+          </Button>
+        </div>
+        <div title={actionTitle}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            disabled={actionDisabled}
+            onClick={async () => {
+              if (actionDisabled || !navigator.share) return;
+              try {
+                await navigator.share({
+                  title: `${user.name}'s Digital Business Card`,
+                  text: `Check out ${user.name}'s digital business card`,
+                  url: window.location.href
+                });
+              } catch (err) {
+                if (err instanceof Error && err.name === "AbortError") return;
+                console.warn("Share failed:", err);
+              }
+            }}
+          >
+            <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+        </div>
+        <div title={actionTitle}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={cycleTheme}
+            disabled={actionDisabled}
+          >
+            <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Theme</span>
+          </Button>
+        </div>
+        <div title={actionTitle}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={flipCard}
+            disabled={actionDisabled}
+          >
+            <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Flip</span>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {(os === "ios" || os === "other") && (
-          <a
-            href={user.shorturl ? `/api/wallet/apple?shorturl=${user.shorturl}` : "/api/wallet/apple"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 h-12 bg-black hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 no-underline decoration-0"
-          >
-            <Wallet className="h-5 w-5 text-white" />
-            <div className="flex flex-col items-start leading-none text-white">
-              <span className="text-[10px] opacity-70 uppercase font-bold tracking-wider">Add to</span>
-              <span className="text-base font-semibold">Apple Wallet</span>
-            </div>
-          </a>
+          <div className="flex-1" title={actionTitle}>
+            <a
+              href={actionDisabled ? undefined : user.shorturl ? `/api/wallet/apple?shorturl=${user.shorturl}` : "/api/wallet/apple"}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-disabled={actionDisabled}
+              className={`h-12 bg-black hover:bg-zinc-900 text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 no-underline decoration-0 ${actionDisabled ? "pointer-events-none cursor-not-allowed opacity-50 grayscale" : ""}`}
+            >
+              <Wallet className="h-5 w-5 text-white" />
+              <div className="flex flex-col items-start leading-none text-white">
+                <span className="text-[10px] opacity-70 uppercase font-bold tracking-wider">Add to</span>
+                <span className="text-base font-semibold">Apple Wallet</span>
+              </div>
+            </a>
+          </div>
         )}
 
         {(os === "android" || os === "other") && (
-          <Button
-            className="flex-1 h-12 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
-            onClick={() => window.open(user.shorturl ? `/api/wallet/google?shorturl=${user.shorturl}` : "/api/wallet/google", "_blank")}
-          >
-            <Wallet className="h-5 w-5" />
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-[10px] opacity-70">Save to</span>
-              <span className="text-base font-semibold">Google Wallet</span>
-            </div>
-          </Button>
+          <div className="flex-1" title={actionTitle}>
+            <Button
+              className="w-full h-12 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95"
+              disabled={actionDisabled}
+              onClick={() => {
+                if (actionDisabled) return;
+                window.open(user.shorturl ? `/api/wallet/google?shorturl=${user.shorturl}` : "/api/wallet/google", "_blank");
+              }}
+            >
+              <Wallet className="h-5 w-5" />
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-[10px] opacity-70">Save to</span>
+                <span className="text-base font-semibold">Google Wallet</span>
+              </div>
+            </Button>
+          </div>
         )}
       </div>
     </div>

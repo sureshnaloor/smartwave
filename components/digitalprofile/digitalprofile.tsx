@@ -18,6 +18,7 @@ import {
 } from "./types"
 import QRCode from 'qrcode'
 import Image from 'next/image'
+import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness"
 
 interface DigitalProfileProps {
   profileData: ProfileData
@@ -81,6 +82,8 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
   }
 
   const [qrDataUrl, setQrDataUrl] = useState("")
+  const isProfileComplete = hasRequiredProfileFields(profileData)
+  const actionTitle = isProfileComplete ? undefined : REQUIRED_PROFILE_FIELDS_MESSAGE
 
   // Add generateVCardData function
   const generateVCardData = () => {
@@ -149,6 +152,8 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
 
   // Move handleDownloadVCard inside the component
   const handleDownloadVCard = async () => {
+    if (!isProfileComplete) return
+
     try {
       let photoData = '';
 
@@ -302,35 +307,44 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
                 <p className="text-slate-600 dark:text-slate-400 mb-8 font-medium">
                   Download {profileData.firstName} {profileData.lastName}&apos;s contact information as a vCard file
                 </p>
-                <Button
-                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn"
-                  onClick={handleDownloadVCard}
-                >
-                  <Download className="mr-3 h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:-translate-y-0.5" />
-                  Add to Contacts
-                </Button>
+                <div title={actionTitle}>
+                  <Button
+                    className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn"
+                    onClick={handleDownloadVCard}
+                    disabled={!isProfileComplete}
+                  >
+                    <Download className="mr-3 h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:-translate-y-0.5" />
+                    Add to Contacts
+                  </Button>
+                </div>
 
                 {/* Wallet Buttons */}
                 <div className="mt-4 space-y-3">
                   {(os === "ios" || os === "other") && (
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-semibold transition-all group/wallet"
-                      onClick={() => window.open(`/api/wallet/apple?shorturl=${profileData.shorturl}`, "_blank")}
-                    >
-                      <Wallet className="mr-2 h-5 w-5 text-blue-600 group-hover/wallet:scale-110 transition-transform" />
-                      Add to Apple Wallet
-                    </Button>
+                    <div title={actionTitle}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-semibold transition-all group/wallet"
+                        onClick={() => window.open(`/api/wallet/apple?shorturl=${profileData.shorturl}`, "_blank")}
+                        disabled={!isProfileComplete}
+                      >
+                        <Wallet className="mr-2 h-5 w-5 text-blue-600 group-hover/wallet:scale-110 transition-transform" />
+                        Add to Apple Wallet
+                      </Button>
+                    </div>
                   )}
                   {(os === "android" || os === "other") && (
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-500 font-semibold transition-all group/wallet"
-                      onClick={() => window.open(`/api/wallet/google?shorturl=${profileData.shorturl}`, "_blank")}
-                    >
-                      <Wallet className="mr-2 h-5 w-5 text-green-600 group-hover/wallet:scale-110 transition-transform" />
-                      Save to Google Wallet
-                    </Button>
+                    <div title={actionTitle}>
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-500 font-semibold transition-all group/wallet"
+                        onClick={() => window.open(`/api/wallet/google?shorturl=${profileData.shorturl}`, "_blank")}
+                        disabled={!isProfileComplete}
+                      >
+                        <Wallet className="mr-2 h-5 w-5 text-green-600 group-hover/wallet:scale-110 transition-transform" />
+                        Save to Google Wallet
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
