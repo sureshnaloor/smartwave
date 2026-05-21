@@ -53,4 +53,5 @@ next-env.d.ts
 # ignore other certs
 certs/
 VERCEL_VARS.txt
+google-play-service-account.json
 

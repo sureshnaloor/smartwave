@@ -1095,3 +1095,8 @@
     fill: #e5e7eb !important;
   }
 }
+/* Force white text for dark cards in light mode */
+#smartwave-digital-card-root .force-white-text,
+#smartwave-digital-card-root .force-white-text * {
+  color: #ffffff !important;
+}

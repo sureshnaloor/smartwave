@@ -296,9 +296,19 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div id="smartwave-digital-card-root" className="space-y-4">
       <CardContainer>
-        <div className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
+        {['onyx', 'creative'].includes(currentTheme) && (
+          <style dangerouslySetInnerHTML={{ __html: `
+            html.light #onyx-theme-card-wrapper *,
+            html:not(.dark) #onyx-theme-card-wrapper *,
+            html.light #creative-theme-card-wrapper *,
+            html:not(.dark) #creative-theme-card-wrapper * {
+              color: white !important;
+            }
+          ` }} />
+        )}
+        <div id={['onyx', 'creative'].includes(currentTheme) ? `${currentTheme}-theme-card-wrapper` : undefined} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
           <div
             className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${showFront ? "" : "rotate-y-180"
               }`}
@@ -307,7 +317,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <div
               ref={frontRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.front} rounded-xl shadow-lg ${cardStyles.text.primary} ${showFront ? "" : "hidden"
-                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-8' : 'overflow-hidden'}`}
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-8' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="flex justify-between h-full items-center py-2">
@@ -505,7 +515,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden !text-white">
+                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden !text-white force-white-text">
                   {/* Abstract Background Shapes */}
                   <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-[-20%] left-[-10%] w-96 h-96 bg-black/20 rounded-full blur-3xl"></div>
@@ -571,7 +581,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <div
               ref={backRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.back} rounded-xl shadow-lg rotate-y-180 ${cardStyles.text.primary} ${showFront ? "hidden" : ""
-                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="relative w-full h-full">
@@ -719,7 +729,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full flex items-center justify-center p-8 relative bg-gray-900 text-white">
+                <div className="h-full w-full flex items-center justify-center p-8 relative bg-gray-900 text-white force-white-text">
                   {/* Background Elements */}
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 
