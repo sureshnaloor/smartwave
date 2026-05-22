@@ -1,14 +1,34 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2, Linkedin, Twitter, Facebook, Instagram, Youtube, QrCode, Wallet } from "lucide-react"
 import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
-import * as htmlToImage from 'html-to-image'
 import { useTheme } from '@/context/ThemeContext'
 import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness"
+import {
+  captureCardElement,
+  DEFAULT_CARD_EXPORT_HEIGHT,
+  DEFAULT_CARD_EXPORT_WIDTH,
+  dimensionsFromHeight,
+  dimensionsFromWidth,
+  getDisplayExportDimensions,
+  settleLayout,
+  preloadImageUrl,
+  shareCardImage,
+  triggerDownload,
+} from "@/lib/card-export"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 // Standard business card dimensions (3.5 x 2 inches) at 300 DPI for print quality
 const CARD_WIDTH = 1050 // 3.5 inches * 300 DPI
@@ -127,6 +147,11 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
+  const [exportWidth, setExportWidth] = useState(DEFAULT_CARD_EXPORT_WIDTH)
+  const [exportHeight, setExportHeight] = useState(DEFAULT_CARD_EXPORT_HEIGHT)
+  const [lockAspectRatio, setLockAspectRatio] = useState(true)
   const [os, setOs] = useState<"ios" | "android" | "other">("other")
 
   useEffect(() => {
@@ -138,6 +163,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     }
   }, [])
 
+  const cardContainerRef = useRef<HTMLDivElement>(null)
+  const cardFlipRef = useRef<HTMLDivElement>(null)
   const frontRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLDivElement>(null)
   const actionDisabled = !hasRequiredProfileFields(user)
@@ -225,75 +252,148 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     generateQR()
   }, [currentTheme, user])
 
-  // Update the print dimensions constants (300 DPI for high quality)
-  const PRINT_CARD_WIDTH = 1050  // 3.5 inches * 300dpi
-  const PRINT_CARD_HEIGHT = 600  // 2 inches * 300dpi
+  const openDownloadDialog = () => {
+    if (actionDisabled || isDownloading) return
+    const displaySize = getDisplayExportDimensions(cardContainerRef.current)
+    setExportWidth(displaySize.width)
+    setExportHeight(displaySize.height)
+    setDownloadDialogOpen(true)
+  }
 
-  // Update the downloadBusinessCard function
+  const applyPreset = (width: number, height: number) => {
+    setExportWidth(width)
+    setExportHeight(height)
+  }
+
   const downloadBusinessCard = async () => {
-    if (actionDisabled || !frontRef.current || !backRef.current || isDownloading) return;
+    if (actionDisabled || !frontRef.current || !backRef.current || !cardContainerRef.current || isDownloading) return
 
-    setIsDownloading(true);
-    try {
-      // Store original states
-      const originalShowFront = showFront;
-      const originalFrontVisibility = frontRef.current.style.visibility;
-      const originalBackVisibility = backRef.current.style.visibility;
-      const originalFrontDisplay = frontRef.current.style.display;
-      const originalBackDisplay = backRef.current.style.display;
+    setIsDownloading(true)
 
-      // Configure options for exact dimensions
-      const options = {
-        quality: 1.0,
-        pixelRatio: 2, // Higher pixel ratio for better quality
-        width: CARD_WIDTH,
-        height: CARD_HEIGHT,
-        fontEmbedCSS: '', // Allow font embedding
-      }
+    const frontEl = frontRef.current
+    const backEl = backRef.current
+    const containerEl = cardContainerRef.current
+    const flipEl = cardFlipRef.current
 
-      // Wait for fonts to load
-      await document.fonts.ready;
+    const frontClassName = frontEl.className
+    const backClassName = backEl.className
+    const flipClassName = flipEl?.className ?? ""
+    const perspectiveClassName = containerEl.className
 
-      // Capture front
-      const frontImage = await htmlToImage.toJpeg(frontRef.current, {
-        ...options,
-        // Remove manual background override to let CSS handle it
-      });
-
-      // Capture back
-      const backImage = await htmlToImage.toJpeg(backRef.current, {
-        ...options,
-        // Remove manual background override to let CSS handle it
-      });
-
-      // Download front
-      const frontLink = document.createElement('a');
-      frontLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_front.jpg`;
-      frontLink.href = frontImage;
-      frontLink.click();
-
-      // Small delay between downloads
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Download back
-      const backLink = document.createElement('a');
-      backLink.download = `${user.name.replace(/\s+/g, '_')}_business_card_back.jpg`;
-      backLink.href = backImage;
-      backLink.click();
-
-      // Restore original states
-      frontRef.current.style.visibility = originalFrontVisibility;
-      backRef.current.style.visibility = originalBackVisibility;
-      frontRef.current.style.display = originalFrontDisplay;
-      backRef.current.style.display = originalBackDisplay;
-      setShowFront(originalShowFront);
-
-    } catch (error) {
-      // console.error('Error generating business card images:', error);
-    } finally {
-      setIsDownloading(false);
+    if (flipEl) {
+      flipEl.className = flipEl.className.replace("rotate-y-180", "").trim()
     }
-  };
+    containerEl.className = containerEl.className
+      .replace("perspective-1000", "")
+      .replace("transform-style-3d", "")
+      .trim()
+
+    try {
+      const width = Math.max(1, Math.round(exportWidth))
+      const height = Math.max(1, Math.round(exportHeight))
+      const safeName = user.name.replace(/\s+/g, "_")
+
+      if (user.photo) await preloadImageUrl(user.photo)
+      if (user.companyLogo) await preloadImageUrl(user.companyLogo)
+
+      frontEl.classList.remove("hidden")
+      backEl.classList.add("hidden")
+      await settleLayout()
+
+      const frontImage = await captureCardElement(frontEl, containerEl, width, height)
+      triggerDownload(frontImage, `${safeName}_business_card_front.jpg`)
+
+      await new Promise((resolve) => setTimeout(resolve, 300))
+
+      frontEl.classList.add("hidden")
+      backEl.classList.remove("hidden", "rotate-y-180")
+      backEl.style.transform = "none"
+      await settleLayout()
+
+      const backImage = await captureCardElement(backEl, containerEl, width, height, { isBackFace: true })
+      triggerDownload(backImage, `${safeName}_business_card_back.jpg`)
+
+      setDownloadDialogOpen(false)
+    } catch (error) {
+      console.error("Error generating business card images:", error)
+    } finally {
+      frontEl.className = frontClassName
+      backEl.className = backClassName
+      backEl.style.transform = ""
+      if (flipEl) {
+        flipEl.className = flipClassName
+      }
+      containerEl.className = perspectiveClassName
+      setIsDownloading(false)
+    }
+  }
+
+  const shareBusinessCard = async () => {
+    if (actionDisabled || !frontRef.current || !backRef.current || !cardContainerRef.current || isSharing || isDownloading) return
+
+    setIsSharing(true)
+
+    const frontEl = frontRef.current
+    const backEl = backRef.current
+    const containerEl = cardContainerRef.current
+    const flipEl = cardFlipRef.current
+    const visibleEl = showFront ? frontEl : backEl
+    const hiddenEl = showFront ? backEl : frontEl
+
+    const frontClassName = frontEl.className
+    const backClassName = backEl.className
+    const flipClassName = flipEl?.className ?? ""
+    const perspectiveClassName = containerEl.className
+
+    if (flipEl) {
+      flipEl.className = flipEl.className.replace("rotate-y-180", "").trim()
+    }
+    containerEl.className = containerEl.className
+      .replace("perspective-1000", "")
+      .replace("transform-style-3d", "")
+      .trim()
+
+    try {
+      const { width, height } = getDisplayExportDimensions(containerEl)
+      const safeName = user.name.replace(/\s+/g, "_")
+      const side = showFront ? "front" : "back"
+      const filename = `${safeName}_digital_card_${side}.jpg`
+      const title = `${user.name}'s Digital Business Card`
+
+      if (user.photo) await preloadImageUrl(user.photo)
+      if (user.companyLogo) await preloadImageUrl(user.companyLogo)
+
+      visibleEl.classList.remove("hidden")
+      hiddenEl.classList.add("hidden")
+      if (!showFront) {
+        backEl.classList.remove("rotate-y-180")
+        backEl.style.transform = "none"
+      }
+      await settleLayout()
+
+      const imageDataUrl = await captureCardElement(
+        visibleEl,
+        containerEl,
+        width,
+        height,
+        showFront ? undefined : { isBackFace: true }
+      )
+
+      await shareCardImage(imageDataUrl, filename, title)
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return
+      console.error("Error sharing business card:", error)
+    } finally {
+      frontEl.className = frontClassName
+      backEl.className = backClassName
+      backEl.style.transform = ""
+      if (flipEl) {
+        flipEl.className = flipClassName
+      }
+      containerEl.className = perspectiveClassName
+      setIsSharing(false)
+    }
+  }
 
   return (
     <div id="smartwave-digital-card-root" className="space-y-4">
@@ -308,8 +408,9 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             }
           ` }} />
         )}
-        <div id={['onyx', 'creative'].includes(currentTheme) ? `${currentTheme}-theme-card-wrapper` : undefined} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
+        <div id={['onyx', 'creative'].includes(currentTheme) ? `${currentTheme}-theme-card-wrapper` : undefined} ref={cardContainerRef} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
           <div
+            ref={cardFlipRef}
             className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${showFront ? "" : "rotate-y-180"
               }`}
           >
@@ -362,12 +463,12 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="relative flex-1 ml-4 flex items-center justify-end">
                     <div>
                       {user.photo ? (
-                        <Image
+                        <img
                           src={user.photo || "/placeholder.svg"}
                           alt={user.name}
                           width={85}
                           height={85}
-                          className="rounded-full border-2 border-current"
+                          className="rounded-full border-2 border-current w-[85px] h-[85px] object-cover"
                         />
                       ) : (
                         <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
@@ -385,12 +486,12 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="w-[38%] h-full bg-slate-100 dark:bg-slate-900 p-5 flex flex-col justify-between text-white relative">
                     <div className="relative z-10">
                       {user.photo ? (
-                        <Image
+                        <img
                           src={user.photo}
                           alt={user.name}
                           width={85}
                           height={85}
-                          className="rounded-full border-3 border-slate-700 mb-3 shadow-xl"
+                          className="rounded-full border-3 border-slate-700 mb-3 shadow-xl w-[85px] h-[85px] object-cover"
                         />
                       ) : (
                         <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-3">
@@ -432,7 +533,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="flex-1 p-6 py-8 flex flex-col justify-center bg-white dark:bg-slate-900 text-slate-950 dark:text-white">
                     <div className="mb-auto pt-1">
                       {user.companyLogo && (
-                        <Image src={user.companyLogo} alt="Logo" width={35} height={35} className="mb-3" />
+                        <img src={user.companyLogo} alt="Logo" width={35} height={35} className="mb-3 w-[35px] h-[35px] object-contain" />
                       )}
                     </div>
                     <div>
@@ -455,7 +556,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
                   <div className="flex-1 flex flex-col items-center justify-center text-center z-10 -mt-2">
                     {user.companyLogo ? (
-                      <Image src={user.companyLogo} alt="Logo" width={38} height={38} className="mb-2" />
+                      <img src={user.companyLogo} alt="Logo" width={38} height={38} className="mb-2 w-[38px] h-[38px] object-contain" />
                     ) : (
                       <div className="mb-2 p-1.5 bg-blue-100 rounded-lg">
                         <User className="h-5 w-5 text-blue-900" />
@@ -524,12 +625,12 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="w-full max-h-full bg-black/30 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-2xl flex items-center gap-5 relative z-10">
                     <div className="shrink-0 relative flex flex-col items-center gap-3">
                       {user.photo ? (
-                        <Image
+                        <img
                           src={user.photo}
                           alt={user.name}
                           width={85}
                           height={85}
-                          className="rounded-xl shadow-lg rotate-2 border-2 border-white/50"
+                          className="rounded-xl shadow-lg rotate-2 border-2 border-white/50 w-[85px] h-[85px] object-cover"
                         />
                       ) : (
                         <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center rotate-2 border-2 border-white/50">
@@ -652,23 +753,25 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="absolute right-0 top-0 bottom-0 w-[42%] flex flex-col items-end justify-between gap-4 p-3">
                     {user.companyLogo && (
                       <div>
-                        <Image
+                        <img
                           src={user.companyLogo || "/placeholder.svg"}
                           alt="Company Logo"
                           width={48}
                           height={48}
-                          className="rounded-sm border border-white/30"
+                          className="rounded-sm border border-white/30 w-12 h-12 object-contain"
                         />
                       </div>
                     )}
                     {/* QR code - smaller, positioned at bottom right */}
                     <div>
-                      <div className="w-28 h-28 bg-white rounded-lg shadow-lg flex items-center justify-center p-1">
+                      <div className="w-28 h-28 bg-white rounded-lg shadow-lg flex items-center justify-center p-1 shrink-0">
                         {qrDataUrl ? (
                           <img
                             src={qrDataUrl}
                             alt="QR Code"
-                            className="w-full h-full object-contain"
+                            width={104}
+                            height={104}
+                            className="w-[104px] h-[104px] block"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement
                               target.style.display = 'none'
@@ -699,9 +802,9 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
                   {/* Right Content (White) */}
                   <div className="flex-1 p-8 flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 relative">
-                    <div className="w-48 h-48 bg-white dark:bg-slate-800 p-2 shadow-xl rounded-xl">
+                    <div className="w-48 h-48 bg-white dark:bg-slate-800 p-2 shadow-xl rounded-xl shrink-0">
                       {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" className="w-full h-full object-contain" />
+                        <img src={qrDataUrl} alt="QR Code" width={176} height={176} className="w-full h-full block" />
                       )}
                     </div>
                     <p className="mt-4 text-slate-500 text-sm font-medium tracking-widest">SMARTWAVE</p>
@@ -719,9 +822,9 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       <p className="text-blue-200 text-sm max-w-[200px]">Scan the QR code to instantly save my contact details to your phone.</p>
                     </div>
 
-                    <div className="w-40 h-40 bg-white p-2 rounded-lg shadow-2xl">
+                    <div className="w-40 h-40 bg-white p-2 rounded-lg shadow-2xl shrink-0">
                       {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" className="w-full h-full object-contain" />
+                        <img src={qrDataUrl} alt="QR Code" width={144} height={144} className="w-full h-full block" />
                       )}
                     </div>
                   </div>
@@ -741,9 +844,9 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       <h4 className="text-2xl font-bold text-white">Let's<br />Connect</h4>
                     </div>
 
-                    <div className="w-40 h-40 bg-white rounded-2xl p-2 shadow-inner">
+                    <div className="w-40 h-40 bg-white rounded-2xl p-2 shadow-inner shrink-0">
                       {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" className="w-full h-full object-contain mix-blend-multiply" />
+                        <img src={qrDataUrl} alt="QR Code" width={144} height={144} className="w-full h-full block" />
                       )}
                     </div>
                   </div>
@@ -760,11 +863,11 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             variant="outline"
             size="sm"
             className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={downloadBusinessCard}
-            disabled={isDownloading || actionDisabled}
+            onClick={openDownloadDialog}
+            disabled={isDownloading || isSharing || actionDisabled}
           >
             <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Download</span>
+            <span className="hidden sm:inline">{isDownloading ? "Saving…" : "Download"}</span>
           </Button>
         </div>
         <div title={actionTitle}>
@@ -772,23 +875,11 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             variant="outline"
             size="sm"
             className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            disabled={actionDisabled}
-            onClick={async () => {
-              if (actionDisabled || !navigator.share) return;
-              try {
-                await navigator.share({
-                  title: `${user.name}'s Digital Business Card`,
-                  text: `Check out ${user.name}'s digital business card`,
-                  url: window.location.href
-                });
-              } catch (err) {
-                if (err instanceof Error && err.name === "AbortError") return;
-                console.warn("Share failed:", err);
-              }
-            }}
+            disabled={actionDisabled || isSharing || isDownloading}
+            onClick={shareBusinessCard}
           >
             <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Share</span>
+            <span className="hidden sm:inline">{isSharing ? "Sharing…" : "Share"}</span>
           </Button>
         </div>
         <div title={actionTitle}>
@@ -796,8 +887,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             variant="outline"
             size="sm"
             className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            disabled={actionDisabled || isSharing || isDownloading}
             onClick={cycleTheme}
-            disabled={actionDisabled}
           >
             <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Theme</span>
@@ -808,14 +899,122 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             variant="outline"
             size="sm"
             className="w-full text-xs sm:text-sm flex items-center justify-center gap-1 h-8 sm:h-9 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+            disabled={actionDisabled || isSharing || isDownloading}
             onClick={flipCard}
-            disabled={actionDisabled}
           >
             <RotateCw className="h-3 w-3 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline">Flip</span>
           </Button>
         </div>
       </div>
+
+      <Dialog open={downloadDialogOpen} onOpenChange={setDownloadDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Download Digital Card</DialogTitle>
+            <DialogDescription>
+              Export matches the card and theme currently on screen. Choose output size in pixels.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const displaySize = getDisplayExportDimensions(cardContainerRef.current)
+                  applyPreset(displaySize.width, displaySize.height)
+                }}
+              >
+                On-screen size
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset(DEFAULT_CARD_EXPORT_WIDTH, DEFAULT_CARD_EXPORT_HEIGHT)}
+              >
+                Print (1050×600)
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset(2100, 1200)}
+              >
+                High-res (2100×1200)
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="export-width">Width (px)</Label>
+                <Input
+                  id="export-width"
+                  type="number"
+                  min={1}
+                  value={exportWidth}
+                  onChange={(e) => {
+                    const nextWidth = Number(e.target.value) || 1
+                    const next = dimensionsFromWidth(nextWidth, lockAspectRatio, exportHeight)
+                    setExportWidth(next.width)
+                    setExportHeight(next.height)
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="export-height">Height (px)</Label>
+                <Input
+                  id="export-height"
+                  type="number"
+                  min={1}
+                  value={exportHeight}
+                  onChange={(e) => {
+                    const nextHeight = Number(e.target.value) || 1
+                    const next = dimensionsFromHeight(nextHeight, lockAspectRatio, exportWidth)
+                    setExportWidth(next.width)
+                    setExportHeight(next.height)
+                  }}
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={lockAspectRatio}
+                onChange={(e) => {
+                  const locked = e.target.checked
+                  setLockAspectRatio(locked)
+                  if (locked) {
+                    const next = dimensionsFromWidth(exportWidth, true, exportHeight)
+                    setExportWidth(next.width)
+                    setExportHeight(next.height)
+                  }
+                }}
+                className="rounded border-gray-300"
+              />
+              Lock business card aspect ratio (3.5″ × 2″)
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDownloadDialogOpen(false)}
+              disabled={isDownloading}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={downloadBusinessCard} disabled={isDownloading}>
+              {isDownloading ? "Generating…" : "Download front & back"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {(os === "ios" || os === "other") && (
