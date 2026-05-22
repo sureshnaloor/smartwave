@@ -365,7 +365,11 @@
     transform: scale(1.1);
   }
 
-  /* Light Mode Overrides */
+  #smartwave-digital-card-root a[href*="/wallet/apple"] {
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
   html.light .feature-card,
   html.light .industry-card,
   html.light .use-case-demo,
@@ -700,6 +704,18 @@
     animation: slideUp 0.5s ease-out !important;
   }
 
+  /* Light Mode Overrides */
+
+/* Modern theme left section - golden royal text */
+.modern-left {
+  color: #ff6600 !important;
+}
+
+/* Dark mode: slightly lighter background for left section */
+html.dark .modern-left {
+  background-color: rgba(255,255,255,0.04) !important;
+}
+
   /* Light Mode Overrides for Wallet and Integration */
   html.light .integration-step,
   html.light .enterprise-feature {
@@ -994,19 +1010,19 @@
     background: #ffffff !important;
   }
 
-  /* Ensure text is visible in light mode - but exclude chart containers */
-  html.light h1:not(.roi-calculator *):not(.market-chart *),
-  html.light h2:not(.roi-calculator *):not(.market-chart *),
-  html.light h3:not(.roi-calculator *):not(.market-chart *),
-  html.light h4:not(.roi-calculator *):not(.market-chart *),
-  html.light p:not(.roi-calculator *):not(.market-chart *),
-  html.light span:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) h1:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) h2:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) h3:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) h4:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) p:not(.roi-calculator *):not(.market-chart *),
-  html:not(.dark) span:not(.roi-calculator *):not(.market-chart *) {
+  /* Ensure text is visible in light mode - but exclude chart containers and digital cards */
+  html.light h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html.light h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html.light h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html.light h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html.light p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html.light span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
+  html:not(.dark) span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *) {
     color: #1a1a1a !important;
   }
 
@@ -1021,9 +1037,9 @@
     color: #1a1a1a !important;
   }
 
-  /* Fix text-white in light mode - should be dark */
-  html.light .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal),
-  html:not(.dark) .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal) {
+  /* Fix text-white in light mode - should be dark, except for digital cards */
+  html.light .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *),
+  html:not(.dark) .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *) {
     color: #1a1a1a !important;
   }
 
@@ -1103,8 +1119,4 @@
     fill: #e5e7eb !important;
   }
 }
-/* Force white text for dark cards in light mode */
-#smartwave-digital-card-root .force-white-text,
-#smartwave-digital-card-root .force-white-text * {
-  color: #ffffff !important;
-}
+

@@ -398,17 +398,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
   return (
     <div id="smartwave-digital-card-root" className="space-y-4">
       <CardContainer>
-        {['onyx', 'creative'].includes(currentTheme) && (
-          <style dangerouslySetInnerHTML={{ __html: `
-            html.light #onyx-theme-card-wrapper *,
-            html:not(.dark) #onyx-theme-card-wrapper *,
-            html.light #creative-theme-card-wrapper *,
-            html:not(.dark) #creative-theme-card-wrapper * {
-              color: white !important;
-            }
-          ` }} />
-        )}
-        <div id={['onyx', 'creative'].includes(currentTheme) ? `${currentTheme}-theme-card-wrapper` : undefined} ref={cardContainerRef} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
+        <div ref={cardContainerRef} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
           <div
             ref={cardFlipRef}
             className={`relative transition-transform duration-500 transform-style-3d w-full h-full ${showFront ? "" : "rotate-y-180"
@@ -418,7 +408,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <div
               ref={frontRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.front} rounded-xl shadow-lg ${cardStyles.text.primary} ${showFront ? "" : "hidden"
-                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="flex justify-between h-full items-center py-2">
@@ -485,7 +475,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               {currentTheme === 'modern' && (
                 <div className="flex h-full w-full">
                   {/* Left Sidebar */}
-                  <div className="w-[38%] h-full bg-slate-100 dark:bg-slate-900 p-5 flex flex-col justify-between text-white relative">
+                  <div className="w-[38%] h-full bg-slate-100 dark:bg-slate-900 p-5 flex flex-col justify-between text-slate-800 dark:text-white relative">
                     <div className="relative z-10">
                       {user.photo ? (
                         <img
@@ -504,26 +494,26 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       )}
                       <div className="space-y-1.5 mt-3">
                         {user.workEmail && (
-                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
-                            <Mail className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                          <div className="flex items-start gap-1 text-[7px] text-slate-800 dark:text-slate-200 font-medium min-w-0">
+                            <Mail className="h-2 w-2 shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
                             <span className="tracking-tighter break-all min-w-0 leading-tight">{user.workEmail}</span>
                           </div>
                         )}
                         {user.mobile && (
-                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
-                            <Phone className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                          <div className="flex items-start gap-1 text-[7px] text-slate-800 dark:text-slate-200 font-medium min-w-0">
+                            <Phone className="h-2 w-2 shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
                             <span className="tracking-tighter break-all min-w-0 leading-tight">{user.mobile}</span>
                           </div>
                         )}
                         {user.website && (
-                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
-                            <Globe className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                          <div className="flex items-start gap-1 text-[7px] text-slate-800 dark:text-slate-200 font-medium min-w-0">
+                            <Globe className="h-2 w-2 shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
                             <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                           </div>
                         )}
                         {workAddress && (
-                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
-                            <MapPin className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                          <div className="flex items-start gap-1 text-[7px] text-slate-800 dark:text-slate-200 font-medium min-w-0">
+                            <MapPin className="h-2 w-2 shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
                             <span className="tracking-tighter break-words min-w-0 leading-tight">{workAddress}</span>
                           </div>
                         )}
@@ -620,7 +610,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden !text-white force-white-text">
+                <div className="h-full w-full relative flex items-center justify-center p-8 py-10 overflow-hidden !text-white">
                   {/* Abstract Background Shapes */}
                   <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-[-20%] left-[-10%] w-96 h-96 bg-black/20 rounded-full blur-3xl"></div>
@@ -688,7 +678,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <div
               ref={backRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.back} rounded-xl shadow-lg rotate-y-180 ${cardStyles.text.primary} ${showFront ? "hidden" : ""
-                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="relative w-full h-full">
@@ -838,7 +828,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full flex items-center justify-center p-8 relative bg-gray-900 text-white force-white-text">
+                <div className="h-full w-full flex items-center justify-center p-8 relative bg-gray-900 text-white">
                   {/* Background Elements */}
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 

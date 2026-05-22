@@ -74,7 +74,7 @@ export default function HomePage() {
           {/* Two Column Layout: iOS Wallet Demo (Left) and Integration Steps (Right) */}
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-20">
             {/* Left Column: iOS Wallet Demo */}
-            <div className="flex justify-center lg:justify-start">
+            <div className="flex justify-center lg:justify-start modern-left">
               <IOSWalletDemo />
             </div>
 
