@@ -418,42 +418,42 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <div
               ref={frontRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.front} rounded-xl shadow-lg ${cardStyles.text.primary} ${showFront ? "" : "hidden"
-                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-8' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
+                } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'} ${currentTheme === 'onyx' ? 'force-white-text' : ''}`}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="flex justify-between h-full items-center py-2">
                   {/* Left column: identity + contact */}
-                  <div className="max-w-[62%] flex flex-col justify-center">
+                  <div className="max-w-[65%] flex flex-col justify-center min-w-0">
                     <div>
                       {/* Identity block */}
                       <div className="space-y-0.5">
-                        <h3 className="font-bold tracking-wide font-sans leading-tight">{user.name}</h3>
-                        {user.title && <p className="text-[11px] italic opacity-90 font-sans">{user.title}</p>}
-                        {user.company && <p className="text-xs font-semibold font-sans">{user.company}</p>}
+                        <h3 className="text-sm font-bold tracking-tight font-sans leading-tight">{user.name}</h3>
+                        {user.title && <p className="text-[10px] italic opacity-90 font-sans leading-tight tracking-tight">{user.title}</p>}
+                        {user.company && <p className="text-[11px] font-semibold font-sans leading-tight tracking-tight">{user.company}</p>}
                       </div>
                       {/* Address */}
                       {workAddress && (
                         <div className="relative mt-1.5">
-                          <MapPin className={`h-3.5 w-3.5 absolute -left-6 top-0.5 ${cardStyles.text.icon}`} />
-                          <div className={`text-[11px] font-serif ${cardStyles.text.address} pl-2`}>
-                            <p className="break-words italic leading-tight line-clamp-2">{workAddress}</p>
+                          <MapPin className={`h-3 w-3 absolute -left-5 top-0.5 ${cardStyles.text.icon}`} />
+                          <div className={`text-[10px] font-serif ${cardStyles.text.address} pl-1.5`}>
+                            <p className="break-words italic leading-snug tracking-tight">{workAddress}</p>
                           </div>
                         </div>
                       )}
                     </div>
 
                     {/* Contact block */}
-                    <div className={`space-y-0.5 text-[11px] font-mono ${cardStyles.text.contact} mt-1.5`}>
+                    <div className={`space-y-0.5 text-[10px] font-mono ${cardStyles.text.contact} mt-1.5`}>
                       {user.website && (
-                        <p className="flex items-center gap-1.5">
-                          <Globe className="h-3 w-3 flex-shrink-0" />
-                          <span className="tracking-tight truncate">{user.website}</span>
+                        <p className="flex items-start gap-1 min-w-0">
+                          <Globe className="h-2.5 w-2.5 flex-shrink-0 mt-0.5" />
+                          <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                         </p>
                       )}
                       {user.workEmail && (
-                        <p className="flex items-center gap-1.5">
-                          <Mail className="h-3 w-3 flex-shrink-0" />
-                          <span className="tracking-tight truncate">{user.workEmail}</span>
+                        <p className="flex items-start gap-1 min-w-0">
+                          <Mail className="h-2.5 w-2.5 flex-shrink-0 mt-0.5" />
+                          <span className="tracking-tighter break-all min-w-0 leading-tight">{user.workEmail}</span>
                         </p>
                       )}
                     </div>
@@ -468,6 +468,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           alt={user.name}
                           width={85}
                           height={85}
+                          loading="eager"
+                          decoding="sync"
                           className="rounded-full border-2 border-current w-[85px] h-[85px] object-cover"
                         />
                       ) : (
@@ -491,6 +493,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           alt={user.name}
                           width={85}
                           height={85}
+                          loading="eager"
+                          decoding="sync"
                           className="rounded-full border-3 border-slate-700 mb-3 shadow-xl w-[85px] h-[85px] object-cover"
                         />
                       ) : (
@@ -498,29 +502,29 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <User className="h-10 w-10 text-slate-400" />
                         </div>
                       )}
-                      <div className="space-y-2 mt-3">
+                      <div className="space-y-1.5 mt-3">
                         {user.workEmail && (
-                          <div className="flex items-center gap-1.5 text-[8px] text-slate-200 font-medium">
-                            <Mail className="h-2.5 w-2.5 shrink-0 text-slate-400" />
-                            <span className="truncate break-all">{user.workEmail}</span>
+                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
+                            <Mail className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.workEmail}</span>
                           </div>
                         )}
                         {user.mobile && (
-                          <div className="flex items-center gap-1.5 text-[8px] text-slate-200 font-medium">
-                            <Phone className="h-2.5 w-2.5 shrink-0 text-slate-400" />
-                            <span className="break-all">{user.mobile}</span>
+                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
+                            <Phone className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.mobile}</span>
                           </div>
                         )}
                         {user.website && (
-                          <div className="flex items-center gap-1.5 text-[8px] text-slate-200 font-medium">
-                            <Globe className="h-2.5 w-2.5 shrink-0 text-slate-400" />
-                            <span className="truncate break-all">{user.website}</span>
+                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
+                            <Globe className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                           </div>
                         )}
                         {workAddress && (
-                          <div className="flex items-start gap-1.5 text-[8px] text-slate-200 font-medium">
-                            <MapPin className="h-2.5 w-2.5 shrink-0 mt-0.5 text-slate-400" />
-                            <span className="leading-tight line-clamp-2">{workAddress}</span>
+                          <div className="flex items-start gap-1 text-[7px] text-slate-200 font-medium min-w-0">
+                            <MapPin className="h-2 w-2 shrink-0 mt-0.5 text-slate-400" />
+                            <span className="tracking-tighter break-words min-w-0 leading-tight">{workAddress}</span>
                           </div>
                         )}
                       </div>
@@ -537,10 +541,10 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       )}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-950 dark:text-white tracking-tight mb-0.5">{user.name}</h3>
-                      <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest mb-2">{user.title}</p>
+                      <h3 className="text-lg font-bold text-slate-950 dark:text-white tracking-tight mb-0.5 leading-tight">{user.name}</h3>
+                      <p className="text-[9px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-2 leading-tight">{user.title}</p>
                       <div className="w-10 h-0.5 bg-blue-700 mb-2"></div>
-                      {user.company && <p className="text-sm font-serif text-slate-800 dark:text-slate-300 font-semibold line-clamp-1">{user.company}</p>}
+                      {user.company && <p className="text-xs font-serif text-slate-800 dark:text-slate-300 font-semibold break-words leading-tight tracking-tight">{user.company}</p>}
                     </div>
                     <div className="mt-auto">
                       {/* Additional info if needed */}
@@ -550,7 +554,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'professional' && (
-                <div className="h-full w-full flex flex-col relative p-6 py-6 bg-white dark:bg-slate-900 text-blue-950 dark:text-white">
+                <div className="h-full w-full flex flex-col relative p-5 py-5 bg-white dark:bg-slate-900 text-blue-950 dark:text-white">
                   {/* Top Bar */}
                   <div className="absolute top-0 left-0 right-0 h-2.5 bg-blue-950"></div>
 
@@ -563,48 +567,48 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       </div>
                     )}
 
-                    <h3 className="text-xl font-serif font-bold text-blue-950 dark:text-white mb-0.5 leading-tight">{user.name}</h3>
-                    <p className="text-[10px] font-sans font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3">{user.title}</p>
+                    <h3 className="text-lg font-serif font-bold text-blue-950 dark:text-white mb-0.5 leading-tight tracking-tight">{user.name}</h3>
+                    <p className="text-[9px] font-sans font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-2.5 leading-tight">{user.title}</p>
 
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-left w-full max-w-[90%] mx-auto">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-left w-full max-w-[95%] mx-auto">
                       {user.workEmail && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-start gap-1 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
-                            <Mail className="h-2.5 w-2.5 text-blue-800" />
+                            <Mail className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.workEmail}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-all min-w-0 leading-tight">{user.workEmail}</span>
                         </div>
                       )}
                       {user.mobile && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-start gap-1 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
-                            <Phone className="h-2.5 w-2.5 text-blue-800" />
+                            <Phone className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90">{user.mobile}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-all min-w-0 leading-tight">{user.mobile}</span>
                         </div>
                       )}
                       {user.website && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-start gap-1 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
-                            <Globe className="h-2.5 w-2.5 text-blue-800" />
+                            <Globe className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.website}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                         </div>
                       )}
                       {user.company && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-start gap-1 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0">
-                            <MapPin className="h-2.5 w-2.5 text-blue-800" />
+                            <MapPin className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 truncate">{user.company}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-all min-w-0 leading-tight">{user.company}</span>
                         </div>
                       )}
                       {workAddress && (
-                        <div className="flex items-start gap-1.5 col-span-2">
+                        <div className="flex items-start gap-1 col-span-2 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0 mt-0.5">
-                            <MapPin className="h-2.5 w-2.5 text-blue-800" />
+                            <MapPin className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[9px] font-semibold text-blue-950 dark:text-white/90 leading-tight line-clamp-1">{workAddress}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-words min-w-0 leading-snug">{workAddress}</span>
                         </div>
                       )}
                     </div>
@@ -630,6 +634,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           alt={user.name}
                           width={85}
                           height={85}
+                          loading="eager"
+                          decoding="sync"
                           className="rounded-xl shadow-lg rotate-2 border-2 border-white/50 w-[85px] h-[85px] object-cover"
                         />
                       ) : (
@@ -643,32 +649,32 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col justify-center h-full text-white drop-shadow-sm">
-                      <h3 className="text-xl font-bold mb-0.5 tracking-tight leading-tight">{user.name}</h3>
-                      <p className="text-xs font-semibold text-white/90 mb-3 uppercase tracking-wide">{user.title}</p>
+                      <h3 className="text-lg font-bold mb-0.5 tracking-tight leading-tight">{user.name}</h3>
+                      <p className="text-[10px] font-semibold text-white/90 mb-2 uppercase tracking-wide leading-tight">{user.title}</p>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {user.workEmail && (
-                          <p className="text-[9px] font-medium flex items-center gap-1.5">
-                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 shadow-sm"></span>
-                            <span className="truncate">{user.workEmail}</span>
+                          <p className="text-[8px] font-medium flex items-start gap-1 min-w-0">
+                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 mt-1 shadow-sm"></span>
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.workEmail}</span>
                           </p>
                         )}
                         {user.mobile && (
-                          <p className="text-[9px] font-medium flex items-center gap-1.5">
-                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 shadow-sm"></span>
-                            <span>{user.mobile}</span>
+                          <p className="text-[8px] font-medium flex items-start gap-1 min-w-0">
+                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 mt-1 shadow-sm"></span>
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.mobile}</span>
                           </p>
                         )}
                         {user.website && (
-                          <p className="text-[9px] font-medium flex items-center gap-1.5">
-                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 shadow-sm"></span>
-                            <span className="truncate">{user.website}</span>
+                          <p className="text-[8px] font-medium flex items-start gap-1 min-w-0">
+                            <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 mt-1 shadow-sm"></span>
+                            <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                           </p>
                         )}
                         {workAddress && (
-                          <p className="text-[9px] font-medium flex items-start gap-1.5">
+                          <p className="text-[8px] font-medium flex items-start gap-1 min-w-0">
                             <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 mt-1 shadow-sm"></span>
-                            <span className="leading-tight line-clamp-1">{workAddress}</span>
+                            <span className="tracking-tighter break-words min-w-0 leading-snug">{workAddress}</span>
                           </p>
                         )}
                       </div>
@@ -687,61 +693,61 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="relative w-full h-full">
                   {/* Left content column - contrasting color */}
-                  <div className="absolute left-3 top-3 bottom-3 pr-2 w-[56%]">
-                    <h3 className={`text-sm font-semibold font-sans leading-tight mb-1.5 ${cardStyles.text.backLeft}`}>{user.name}</h3>
+                  <div className="absolute left-3 top-3 bottom-3 pr-2 w-[58%] min-w-0">
+                    <h3 className={`text-xs font-semibold font-sans leading-tight mb-1 tracking-tight ${cardStyles.text.backLeft}`}>{user.name}</h3>
                     {homeAddress && (
-                      <div className="relative mb-2">
-                        <MapPin className={`h-3 w-3 absolute -left-4 top-0.5 ${cardStyles.text.backLeft} opacity-60`} />
-                        <div className={`text-xs font-serif pl-2 ${cardStyles.text.backLeft} opacity-80`}>
-                          <p className="break-words italic leading-snug">{homeAddress}</p>
+                      <div className="relative mb-1.5">
+                        <MapPin className={`h-2.5 w-2.5 absolute -left-3.5 top-0.5 ${cardStyles.text.backLeft} opacity-60`} />
+                        <div className={`text-[10px] font-serif pl-1.5 ${cardStyles.text.backLeft} opacity-80`}>
+                          <p className="break-words italic leading-snug tracking-tight">{homeAddress}</p>
                         </div>
                       </div>
                     )}
 
-                    <div className={`space-y-1.5 text-[11px] font-mono ${cardStyles.text.backLeft}`}>
+                    <div className={`space-y-1 text-[10px] font-mono ${cardStyles.text.backLeft}`}>
                       {user.personalEmail && (
-                        <p className="flex items-center gap-2">
-                          <Mail className="h-3 w-3 flex-shrink-0 opacity-70" />
-                          <span className="tracking-tight opacity-90">{user.personalEmail}</span>
+                        <p className="flex items-start gap-1.5 min-w-0">
+                          <Mail className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                          <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.personalEmail}</span>
                         </p>
                       )}
                       {user.homePhone && (
-                        <p className="flex items-center gap-2">
-                          <Phone className="h-3 w-3 flex-shrink-0 opacity-70" />
-                          <span className="tracking-tight opacity-90">{user.homePhone}</span>
+                        <p className="flex items-start gap-1.5 min-w-0">
+                          <Phone className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                          <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.homePhone}</span>
                         </p>
                       )}
                       {/* Social handles */}
                       {(user.linkedin || user.twitter || user.facebook || user.instagram || user.youtube) && (
-                        <div className="pt-1 space-y-0.5">
+                        <div className="pt-0.5 space-y-0.5">
                           {user.linkedin && (
-                            <p className="flex items-center gap-2">
-                              <Linkedin className="h-3 w-3 flex-shrink-0 opacity-70" />
-                              <span className="tracking-tight break-all opacity-90">{user.linkedin}</span>
+                            <p className="flex items-start gap-1.5 min-w-0">
+                              <Linkedin className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                              <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.linkedin}</span>
                             </p>
                           )}
                           {user.twitter && (
-                            <p className="flex items-center gap-2">
-                              <Twitter className="h-3 w-3 flex-shrink-0 opacity-70" />
-                              <span className="tracking-tight break-all opacity-90">{user.twitter}</span>
+                            <p className="flex items-start gap-1.5 min-w-0">
+                              <Twitter className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                              <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.twitter}</span>
                             </p>
                           )}
                           {user.facebook && (
-                            <p className="flex items-center gap-2">
-                              <Facebook className="h-3 w-3 flex-shrink-0 opacity-70" />
-                              <span className="tracking-tight break-all opacity-90">{user.facebook}</span>
+                            <p className="flex items-start gap-1.5 min-w-0">
+                              <Facebook className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                              <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.facebook}</span>
                             </p>
                           )}
                           {user.instagram && (
-                            <p className="flex items-center gap-2">
-                              <Instagram className="h-3 w-3 flex-shrink-0 opacity-70" />
-                              <span className="tracking-tight break-all opacity-90">{user.instagram}</span>
+                            <p className="flex items-start gap-1.5 min-w-0">
+                              <Instagram className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                              <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.instagram}</span>
                             </p>
                           )}
                           {user.youtube && (
-                            <p className="flex items-center gap-2">
-                              <Youtube className="h-3 w-3 flex-shrink-0 opacity-70" />
-                              <span className="tracking-tight break-all opacity-90">{user.youtube}</span>
+                            <p className="flex items-start gap-1.5 min-w-0">
+                              <Youtube className="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5" />
+                              <span className="tracking-tighter break-all min-w-0 leading-tight opacity-90">{user.youtube}</span>
                             </p>
                           )}
                         </div>
@@ -909,10 +915,10 @@ export default function DigitalCard({ user }: DigitalCardProps) {
       </div>
 
       <Dialog open={downloadDialogOpen} onOpenChange={setDownloadDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white text-gray-900 border-gray-200 shadow-xl dark:bg-slate-900 dark:text-gray-100 dark:border-slate-700 [&>button]:text-gray-500 [&>button]:hover:text-gray-900 dark:[&>button]:text-gray-400 dark:[&>button]:hover:text-white">
           <DialogHeader>
-            <DialogTitle>Download Digital Card</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-gray-900 dark:text-white">Download Digital Card</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-300">
               Export matches the card and theme currently on screen. Choose output size in pixels.
             </DialogDescription>
           </DialogHeader>
@@ -923,6 +929,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                 type="button"
                 variant="outline"
                 size="sm"
+                className="bg-white text-gray-900 border-gray-300 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-100 dark:border-slate-600 dark:hover:bg-slate-700"
                 onClick={() => {
                   const displaySize = getDisplayExportDimensions(cardContainerRef.current)
                   applyPreset(displaySize.width, displaySize.height)
@@ -934,6 +941,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                 type="button"
                 variant="outline"
                 size="sm"
+                className="bg-white text-gray-900 border-gray-300 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-100 dark:border-slate-600 dark:hover:bg-slate-700"
                 onClick={() => applyPreset(DEFAULT_CARD_EXPORT_WIDTH, DEFAULT_CARD_EXPORT_HEIGHT)}
               >
                 Print (1050×600)
@@ -942,6 +950,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                 type="button"
                 variant="outline"
                 size="sm"
+                className="bg-white text-gray-900 border-gray-300 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-100 dark:border-slate-600 dark:hover:bg-slate-700"
                 onClick={() => applyPreset(2100, 1200)}
               >
                 High-res (2100×1200)
@@ -950,12 +959,13 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="export-width">Width (px)</Label>
+                <Label htmlFor="export-width" className="text-gray-900 dark:text-gray-100">Width (px)</Label>
                 <Input
                   id="export-width"
                   type="number"
                   min={1}
                   value={exportWidth}
+                  className="bg-white border-gray-300 text-gray-900 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                   onChange={(e) => {
                     const nextWidth = Number(e.target.value) || 1
                     const next = dimensionsFromWidth(nextWidth, lockAspectRatio, exportHeight)
@@ -965,12 +975,13 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="export-height">Height (px)</Label>
+                <Label htmlFor="export-height" className="text-gray-900 dark:text-gray-100">Height (px)</Label>
                 <Input
                   id="export-height"
                   type="number"
                   min={1}
                   value={exportHeight}
+                  className="bg-white border-gray-300 text-gray-900 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                   onChange={(e) => {
                     const nextHeight = Number(e.target.value) || 1
                     const next = dimensionsFromHeight(nextHeight, lockAspectRatio, exportWidth)
@@ -981,7 +992,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               </div>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input
                 type="checkbox"
                 checked={lockAspectRatio}
@@ -1004,6 +1015,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
             <Button
               type="button"
               variant="outline"
+              className="bg-white text-gray-900 border-gray-300 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-100 dark:border-slate-600 dark:hover:bg-slate-700"
               onClick={() => setDownloadDialogOpen(false)}
               disabled={isDownloading}
             >

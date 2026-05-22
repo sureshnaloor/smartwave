@@ -8,76 +8,123 @@ type CaptureOptions = {
   isBackFace?: boolean
 }
 
-function waitForImage(img: HTMLImageElement): Promise<void> {
+type ImageSnapshot = {
+  img: HTMLImageElement
+  src: string
+  srcset: string | null
+  crossOrigin: string | null
+}
+
+function waitForImage(img: HTMLImageElement, timeoutMs = 8000): Promise<boolean> {
   return new Promise((resolve) => {
     if (img.complete && img.naturalWidth > 0) {
-      resolve()
+      resolve(true)
       return
     }
-    img.onload = () => resolve()
-    img.onerror = () => resolve()
+
+    const timer = window.setTimeout(() => resolve(false), timeoutMs)
+    img.onload = () => {
+      window.clearTimeout(timer)
+      resolve(img.naturalWidth > 0)
+    }
+    img.onerror = () => {
+      window.clearTimeout(timer)
+      resolve(false)
+    }
   })
 }
 
-async function bakeImageToDataUrl(img: HTMLImageElement): Promise<string | null> {
-  if (!img.naturalWidth || !img.naturalHeight) return null
-  try {
-    const canvas = document.createElement("canvas")
-    canvas.width = img.naturalWidth
-    canvas.height = img.naturalHeight
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return null
-    ctx.drawImage(img, 0, 0)
-    return canvas.toDataURL("image/png")
-  } catch {
-    return null
-  }
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
 }
 
-async function ensureImagesReady(element: HTMLElement): Promise<void> {
+function resolveAbsoluteUrl(url: string): string {
+  if (url.startsWith("data:")) return url
+  if (url.startsWith("//")) return `${window.location.protocol}${url}`
+  if (url.startsWith("/")) return `${window.location.origin}${url}`
+  return url
+}
+
+/**
+ * Fetches an image through same-origin proxy (for CORS-blocked URLs like Google photos)
+ * or direct fetch, returning a data URL safe for canvas / html-to-image export.
+ */
+export async function fetchImageAsDataUrl(url: string): Promise<string | null> {
+  const absoluteUrl = resolveAbsoluteUrl(url)
+  if (absoluteUrl.startsWith("data:")) return absoluteUrl
+
+  try {
+    const proxyResponse = await fetch(
+      `/api/image-proxy?url=${encodeURIComponent(absoluteUrl)}`,
+      { credentials: "same-origin", cache: "no-store" }
+    )
+    if (proxyResponse.ok) {
+      return blobToDataUrl(await proxyResponse.blob())
+    }
+  } catch {
+    // fall through to direct fetch
+  }
+
+  try {
+    const directResponse = await fetch(absoluteUrl, { mode: "cors", cache: "no-store" })
+    if (directResponse.ok) {
+      return blobToDataUrl(await directResponse.blob())
+    }
+  } catch {
+    // fall through
+  }
+
+  return null
+}
+
+async function inlineImagesForExport(element: HTMLElement): Promise<ImageSnapshot[]> {
   const images = Array.from(element.querySelectorAll("img"))
+  const snapshots: ImageSnapshot[] = []
 
   await Promise.all(
     images.map(async (img) => {
-      const src = img.currentSrc || img.src
-      if (!src) return
+      const originalSrc = img.currentSrc || img.src
+      if (!originalSrc) return
 
-      if (src.startsWith("data:")) {
-        await waitForImage(img)
-        return
-      }
+      snapshots.push({
+        img,
+        src: originalSrc,
+        srcset: img.getAttribute("srcset"),
+        crossOrigin: img.getAttribute("crossorigin"),
+      })
 
+      const dataUrl = await fetchImageAsDataUrl(originalSrc)
+      if (!dataUrl) return
+
+      img.src = dataUrl
+      img.removeAttribute("srcset")
+      img.removeAttribute("crossorigin")
       await waitForImage(img)
-
-      if (img.complete && img.naturalWidth > 0) {
-        const baked = await bakeImageToDataUrl(img)
-        if (baked) {
-          img.src = baked
-          img.removeAttribute("srcset")
-          await waitForImage(img)
-          return
-        }
-      }
-
-      try {
-        const response = await fetch(src, { mode: "cors", cache: "no-cache" })
-        if (!response.ok) return
-        const blob = await response.blob()
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result as string)
-          reader.onerror = reject
-          reader.readAsDataURL(blob)
-        })
-        img.src = dataUrl
-        img.removeAttribute("srcset")
-        await waitForImage(img)
-      } catch {
-        img.crossOrigin = "anonymous"
-        await waitForImage(img)
-      }
     })
   )
+
+  return snapshots
+}
+
+function restoreInlineImages(snapshots: ImageSnapshot[]) {
+  for (const { img, src, srcset, crossOrigin } of snapshots) {
+    img.src = src
+    if (srcset) {
+      img.setAttribute("srcset", srcset)
+    } else {
+      img.removeAttribute("srcset")
+    }
+    if (crossOrigin) {
+      img.setAttribute("crossorigin", crossOrigin)
+    } else {
+      img.removeAttribute("crossorigin")
+    }
+  }
 }
 
 function resizeDataUrl(
@@ -163,13 +210,7 @@ export async function settleLayout(): Promise<void> {
 }
 
 export function preloadImageUrl(url: string): Promise<void> {
-  return new Promise((resolve) => {
-    const img = new window.Image()
-    img.crossOrigin = "anonymous"
-    img.onload = () => resolve()
-    img.onerror = () => resolve()
-    img.src = url
-  })
+  return fetchImageAsDataUrl(url).then(() => undefined)
 }
 
 /**
@@ -191,10 +232,11 @@ export async function captureCardElement(
 
   const snapshot = snapshotStyles(element)
   applyCaptureStyles(element, options)
+  let imageSnapshots: ImageSnapshot[] = []
 
   try {
     await settleLayout()
-    await ensureImagesReady(element)
+    imageSnapshots = await inlineImagesForExport(element)
     await settleLayout()
 
     const pixelRatio = Math.max(1, targetWidth / sourceWidth)
@@ -218,6 +260,7 @@ export async function captureCardElement(
 
     return resizeDataUrl(dataUrl, targetWidth, targetHeight, "image/jpeg", 0.95)
   } finally {
+    restoreInlineImages(imageSnapshots)
     restoreStyles(element, snapshot)
   }
 }
