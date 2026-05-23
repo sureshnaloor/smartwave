@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2, Linkedin, Twitter, Facebook, Instagram, Youtube, QrCode, Wallet } from "lucide-react"
+import { User, Mail, Phone, Globe, RotateCw, MapPin, Palette, Download, Share2, Edit2, Linkedin, Twitter, Facebook, Instagram, Youtube, QrCode, Wallet, Home } from "lucide-react"
 import { ProfileData } from "@/app/_actions/profile"
 import QRCode from "qrcode"
 import { useTheme } from '@/context/ThemeContext'
@@ -29,12 +29,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getMobileBackFields, getMobileFrontFields, getMobileCardLayout, formatAddressAtCommas, MOBILE_ADDRESS_MAX_LINES, MOBILE_THEME, type MobileCardFieldId } from "@/lib/mobile-card-layout"
 
 // Standard business card dimensions (3.5 x 2 inches) at 300 DPI for print quality
 const CARD_WIDTH = 1050 // 3.5 inches * 300 DPI
 const CARD_HEIGHT = 600 // 2 inches * 300 DPI
 
-type Theme = 'smartwave' | 'minimal' | 'onyx' | 'modern' | 'professional' | 'creative'
+type Theme = 'smartwave' | 'minimal' | 'onyx' | 'modern' | 'professional' | 'creative' | 'mobile'
 
 const themeStyles = {
   smartwave: {
@@ -115,10 +116,245 @@ const themeStyles = {
     buttonText: '!text-white/80 hover:!text-white',
     backButtonText: 'bg-white/20 !text-white hover:bg-white/30',
   },
+  mobile: {
+    front: 'bg-[#0d0d14]',
+    back: 'bg-[#08080e]',
+    text: {
+      primary: '!text-[#D4AF37]',
+      address: '!text-[#8B919A]',
+      contact: '!text-[#8B919A]',
+      icon: '!text-[#8B919A]',
+      backLeft: '!text-[#D4AF37]',
+    },
+    buttonText: '!text-[#C0C0C0] hover:!text-[#D4AF37]',
+    backButtonText: 'bg-[#1a1a24] !text-[#D4AF37] hover:bg-[#252530]',
+  },
 }
 
 interface DigitalCardProps {
   user: ProfileData
+}
+
+function MobileFieldIcon({ id, size }: { id: MobileCardFieldId; size: number }) {
+  const props = { className: "shrink-0", style: { width: size, height: size, marginTop: 1 } as const }
+  switch (id) {
+    case "workAddress":
+      return <MapPin {...props} />
+    case "homeAddress":
+      return <Home {...props} />
+    case "mobile":
+    case "workPhone":
+    case "homePhone":
+      return <Phone {...props} />
+    case "workEmail":
+    case "personalEmail":
+      return <Mail {...props} />
+    case "website":
+      return <Globe {...props} />
+    case "linkedin":
+      return <Linkedin {...props} />
+    case "twitter":
+      return <Twitter {...props} />
+    case "facebook":
+      return <Facebook {...props} />
+    case "instagram":
+      return <Instagram {...props} />
+    case "youtube":
+      return <Youtube {...props} />
+    default:
+      return <Globe {...props} />
+  }
+}
+
+function MobileLogoFrame({
+  size,
+  afterGap,
+  children,
+}: {
+  size: number
+  afterGap?: number
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className="relative"
+      style={{
+        width: size + 8,
+        height: size + 8,
+        marginBottom: afterGap ?? 0,
+        boxShadow: "5px 5px 4px rgba(0,0,0,0.5)",
+      }}
+    >
+      <div
+        className="h-full w-full"
+        style={{
+          padding: 3,
+          background: `linear-gradient(135deg, ${MOBILE_THEME.logoBorderGold} 0%, ${MOBILE_THEME.logoBorderSilver} 45%, ${MOBILE_THEME.logoBorderGold} 100%)`,
+          border: `1px solid ${MOBILE_THEME.logoBorderMid}`,
+        }}
+      >
+        <div
+          className="h-full w-full"
+          style={{
+            padding: 2,
+            background: `linear-gradient(160deg, ${MOBILE_THEME.logoBorderSilver} 0%, ${MOBILE_THEME.logoBorderGold} 100%)`,
+            border: `1px solid ${MOBILE_THEME.logoBorderGold}`,
+          }}
+        >
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{
+              padding: 2,
+              backgroundColor: MOBILE_THEME.frameFill,
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileSharpFrame({
+  size,
+  children,
+  className = "",
+}: {
+  size: number
+  children: React.ReactNode
+  className?: string
+}) {
+  const inner = Math.max(0, size - 8)
+  return (
+    <div className="relative" style={{ width: size + 6, height: size + 6 }}>
+      <div
+        className="absolute bg-black/55"
+        style={{ top: 5, left: 5, width: size, height: size }}
+      />
+      <div
+        className={`absolute left-0 top-0 flex items-center justify-center bg-[#252530] border-t-[3px] border-l-[3px] border-b-[3px] border-r-[3px] border-t-white/55 border-l-white/55 border-b-black/65 border-r-black/65 ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <div className="overflow-hidden" style={{ width: inner, height: inner }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileCircleFrame({
+  size,
+  children,
+}: {
+  size: number
+  children: React.ReactNode
+}) {
+  const inner = Math.max(0, size - 8)
+  return (
+    <div className="relative" style={{ width: size + 6, height: size + 6 }}>
+      <div
+        className="absolute rounded-full bg-black/55"
+        style={{ top: 5, left: 5, width: size, height: size }}
+      />
+      <div
+        className="absolute left-0 top-0 flex items-center justify-center overflow-hidden rounded-full bg-[#252530] border-t-[3px] border-l-[3px] border-b-[3px] border-r-[3px] border-t-white/55 border-l-white/55 border-b-black/65 border-r-black/65"
+        style={{ width: size, height: size }}
+      >
+        <div className="overflow-hidden rounded-full" style={{ width: inner, height: inner }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileContactList({
+  fields,
+  layout,
+}: {
+  fields: ReturnType<typeof getMobileFrontFields>
+  layout: ReturnType<typeof getMobileCardLayout>
+}) {
+  if (fields.length === 0) return null
+  return (
+    <div className="flex flex-col" style={{ gap: layout.contactGap }}>
+      {fields.map((field) => (
+        <p
+          key={field.id}
+          className={`flex items-start gap-1.5 ${field.maxLines > 1 ? "leading-snug" : "leading-tight"}`}
+          style={{ fontSize: layout.detailSize, color: field.color }}
+        >
+          <MobileFieldIcon id={field.id} size={layout.iconSize} />
+          <span
+            className={`min-w-0 ${field.maxLines > 1 ? "break-words whitespace-pre-line" : "truncate"}`}
+          >
+            {field.value}
+          </span>
+        </p>
+      ))}
+    </div>
+  )
+}
+
+function ThemeBackPersonalFields({
+  homeAddress,
+  personalEmail,
+  homePhone,
+  className = "",
+  textClassName = "tracking-tighter break-all min-w-0 leading-tight opacity-90",
+  iconClassName = "h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5",
+}: {
+  homeAddress?: string
+  personalEmail?: string
+  homePhone?: string
+  className?: string
+  textClassName?: string
+  iconClassName?: string
+}) {
+  const formattedHome = homeAddress ? formatAddressAtCommas(homeAddress) : ""
+  if (!formattedHome && !personalEmail && !homePhone) return null
+
+  return (
+    <div className={`space-y-1 ${className}`}>
+      {formattedHome && (
+        <p className="flex items-start gap-1.5 min-w-0">
+          <MapPin className={iconClassName} />
+          <span className={`${textClassName} break-words whitespace-pre-line`}>{formattedHome}</span>
+        </p>
+      )}
+      {personalEmail && (
+        <p className="flex items-start gap-1.5 min-w-0">
+          <Mail className={iconClassName} />
+          <span className={textClassName}>{personalEmail}</span>
+        </p>
+      )}
+      {homePhone && (
+        <p className="flex items-start gap-1.5 min-w-0">
+          <Phone className={iconClassName} />
+          <span className={textClassName}>{homePhone}</span>
+        </p>
+      )}
+    </div>
+  )
+}
+
+function MobileQrFrame({ size, children }: { size: number; children: React.ReactNode }) {
+  return (
+    <div className="relative" style={{ width: size + 18, height: size + 18 }}>
+      <div
+        className="absolute bg-black/55"
+        style={{ top: 5, left: 5, width: size + 12, height: size + 12 }}
+      />
+      <div
+        className="absolute left-0 top-0 flex items-center justify-center bg-white border-t-[3px] border-l-[3px] border-b-[3px] border-r-[3px] border-t-white/55 border-l-white/55 border-b-black/65 border-r-black/65 p-1.5"
+        style={{ width: size + 12, height: size + 12 }}
+      >
+        {children}
+      </div>
+    </div>
+  )
 }
 
 // Add a new CardContainer component
@@ -186,16 +422,22 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     user.workCountry
   ].filter(Boolean).join(", ")
 
+  const formattedWorkAddress = workAddress ? formatAddressAtCommas(workAddress) : ""
+  const formattedHomeAddress = homeAddress ? formatAddressAtCommas(homeAddress) : ""
+
   const flipCard = () => setShowFront(!showFront)
 
   const cycleTheme = () => {
-    const themes: Theme[] = ['smartwave', 'minimal', 'onyx', 'modern', 'professional', 'creative']
+    const themes: Theme[] = ['smartwave', 'minimal', 'onyx', 'modern', 'professional', 'creative', 'mobile']
     const currentIndex = themes.indexOf(currentTheme)
     const nextIndex = (currentIndex + 1) % themes.length
     setCurrentTheme(themes[nextIndex])
   }
 
   const cardStyles = themeStyles[currentTheme]
+  const mobileLayout = getMobileCardLayout(user)
+  const mobileFrontFields = getMobileFrontFields(user)
+  const mobileBackFields = getMobileBackFields(user)
 
   // Function to create vCard format string (simplified for better QR readability)
   const generateVCardData = () => {
@@ -409,6 +651,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               ref={frontRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.front} rounded-xl shadow-lg ${cardStyles.text.primary} ${showFront ? "" : "hidden"
                 } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
+              style={currentTheme === 'mobile' ? { padding: mobileLayout.pad } : undefined}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="flex justify-between h-full items-center py-2">
@@ -422,11 +665,11 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                         {user.company && <p className="text-[11px] font-semibold font-sans leading-tight tracking-tight">{user.company}</p>}
                       </div>
                       {/* Address */}
-                      {workAddress && (
+                      {formattedWorkAddress && (
                         <div className="relative mt-1.5">
                           <MapPin className={`h-3 w-3 absolute -left-5 top-0.5 ${cardStyles.text.icon}`} />
                           <div className={`text-[10px] font-serif ${cardStyles.text.address} pl-1.5`}>
-                            <p className="break-words italic leading-snug tracking-tight">{workAddress}</p>
+                            <p className="break-words italic leading-snug tracking-tight whitespace-pre-line">{formattedWorkAddress}</p>
                           </div>
                         </div>
                       )}
@@ -453,15 +696,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="relative flex-1 ml-4 flex items-center justify-end">
                     <div>
                       {user.photo ? (
-                        <img
-                          src={user.photo || "/placeholder.svg"}
-                          alt={user.name}
-                          width={85}
-                          height={85}
-                          loading="eager"
-                          decoding="sync"
-                          className="rounded-full border-2 border-current w-[85px] h-[85px] object-cover"
-                        />
+                        <div className="h-[85px] w-[85px] overflow-hidden rounded-full border-2 border-current">
+                          <img
+                            src={user.photo || "/placeholder.svg"}
+                            alt={user.name}
+                            width={85}
+                            height={85}
+                            loading="eager"
+                            decoding="sync"
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
                       ) : (
                         <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
                           <User className="h-12 w-12" />
@@ -478,15 +723,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="w-[38%] h-full bg-slate-100 dark:bg-slate-900 p-5 flex flex-col justify-between text-slate-800 dark:text-white relative">
                     <div className="relative z-10">
                       {user.photo ? (
-                        <img
-                          src={user.photo}
-                          alt={user.name}
-                          width={85}
-                          height={85}
-                          loading="eager"
-                          decoding="sync"
-                          className="rounded-full border-3 border-slate-700 mb-3 shadow-xl w-[85px] h-[85px] object-cover"
-                        />
+                        <div className="mb-3 h-[85px] w-[85px] overflow-hidden rounded-full border-[3px] border-slate-700 shadow-xl">
+                          <img
+                            src={user.photo}
+                            alt={user.name}
+                            width={85}
+                            height={85}
+                            loading="eager"
+                            decoding="sync"
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
                       ) : (
                         <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-3">
                           <User className="h-10 w-10 text-slate-400" />
@@ -511,10 +758,10 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                             <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                           </div>
                         )}
-                        {workAddress && (
+                        {formattedWorkAddress && (
                           <div className="flex items-start gap-1 text-[7px] text-slate-800 dark:text-slate-200 font-medium min-w-0">
                             <MapPin className="h-2 w-2 shrink-0 mt-0.5 text-slate-600 dark:text-slate-400" />
-                            <span className="tracking-tighter break-words min-w-0 leading-tight">{workAddress}</span>
+                            <span className="tracking-tighter break-words min-w-0 leading-snug whitespace-pre-line">{formattedWorkAddress}</span>
                           </div>
                         )}
                       </div>
@@ -593,12 +840,12 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                           <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-all min-w-0 leading-tight">{user.company}</span>
                         </div>
                       )}
-                      {workAddress && (
+                      {formattedWorkAddress && (
                         <div className="flex items-start gap-1 col-span-2 min-w-0">
                           <div className="p-0.5 bg-blue-100 rounded-full shrink-0 mt-0.5">
                             <MapPin className="h-2 w-2 text-blue-800" />
                           </div>
-                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-words min-w-0 leading-snug">{workAddress}</span>
+                          <span className="text-[8px] font-semibold text-blue-950 dark:text-white/90 tracking-tighter break-words min-w-0 leading-snug whitespace-pre-line">{formattedWorkAddress}</span>
                         </div>
                       )}
                     </div>
@@ -619,15 +866,17 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="w-full max-h-full bg-black/30 backdrop-blur-md rounded-2xl p-5 border border-white/20 shadow-2xl flex items-center gap-5 relative z-10">
                     <div className="shrink-0 relative flex flex-col items-center gap-3">
                       {user.photo ? (
-                        <img
-                          src={user.photo}
-                          alt={user.name}
-                          width={85}
-                          height={85}
-                          loading="eager"
-                          decoding="sync"
-                          className="rounded-xl shadow-lg rotate-2 border-2 border-white/50 w-[85px] h-[85px] object-cover"
-                        />
+                        <div className="h-[85px] w-[85px] overflow-hidden rounded-full border-2 border-white/50 shadow-lg rotate-2">
+                          <img
+                            src={user.photo}
+                            alt={user.name}
+                            width={85}
+                            height={85}
+                            loading="eager"
+                            decoding="sync"
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
                       ) : (
                         <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center rotate-2 border-2 border-white/50">
                           <User className="h-9 w-9 text-white" />
@@ -661,14 +910,88 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                             <span className="tracking-tighter break-all min-w-0 leading-tight">{user.website}</span>
                           </p>
                         )}
-                        {workAddress && (
+                        {formattedWorkAddress && (
                           <p className="text-[8px] font-medium flex items-start gap-1 min-w-0">
                             <span className="w-1 h-1 bg-orange-400 rounded-full shrink-0 mt-1 shadow-sm"></span>
-                            <span className="tracking-tighter break-words min-w-0 leading-snug">{workAddress}</span>
+                            <span className="tracking-tighter break-words min-w-0 leading-snug whitespace-pre-line">{formattedWorkAddress}</span>
                           </p>
                         )}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {currentTheme === 'mobile' && (
+                <div className="flex h-full w-full justify-between">
+                  <div
+                    className={`flex min-w-0 flex-1 flex-col pr-2 ${mobileLayout.spreadVertically ? "justify-between" : "justify-start"}`}
+                  >
+                    <div>
+                      <h3
+                        className="font-bold tracking-tight leading-tight"
+                        style={{
+                          fontSize: mobileLayout.nameSize,
+                          marginBottom: mobileLayout.blockGap,
+                          color: MOBILE_THEME.gold,
+                          textShadow: "1px 1px 1px rgba(0,0,0,0.45)",
+                        }}
+                      >
+                        {user.name}
+                      </h3>
+                      {user.title && (
+                        <p
+                          className="italic leading-tight"
+                          style={{
+                            fontSize: mobileLayout.titleSize,
+                            marginBottom: mobileLayout.lineGap,
+                            color: MOBILE_THEME.muted,
+                          }}
+                        >
+                          {user.title}
+                        </p>
+                      )}
+                      {user.company && (
+                        <p
+                          className="font-semibold leading-tight"
+                          style={{
+                            fontSize: mobileLayout.companySize,
+                            color: MOBILE_THEME.silver,
+                            textShadow: "0.5px 0.5px 0.5px rgba(0,0,0,0.35)",
+                          }}
+                        >
+                          {user.company}
+                        </p>
+                      )}
+                    </div>
+
+                    {mobileFrontFields.length > 0 && (
+                      <div style={{ marginTop: mobileLayout.blockGap }}>
+                        <MobileContactList fields={mobileFrontFields} layout={mobileLayout} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center justify-center">
+                    <MobileCircleFrame size={mobileLayout.photoSize}>
+                      {user.photo ? (
+                        <img
+                          src={user.photo}
+                          alt={user.name}
+                          width={mobileLayout.photoSize - 8}
+                          height={mobileLayout.photoSize - 8}
+                          loading="eager"
+                          decoding="sync"
+                          className="h-full w-full rounded-full object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="flex h-full w-full items-center justify-center rounded-full bg-white/5"
+                          style={{ fontSize: mobileLayout.nameSize * 0.85, fontWeight: 700, color: MOBILE_THEME.gold }}
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </MobileCircleFrame>
                   </div>
                 </div>
               )}
@@ -679,17 +1002,29 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               ref={backRef}
               className={`absolute w-full h-full backface-hidden ${cardStyles.back} rounded-xl shadow-lg rotate-y-180 ${cardStyles.text.primary} ${showFront ? "hidden" : ""
                 } ${['smartwave', 'minimal', 'onyx'].includes(currentTheme) ? 'p-6' : 'overflow-hidden'}`}
+              style={currentTheme === 'mobile' ? { padding: mobileLayout.pad } : undefined}
             >
               {['smartwave', 'minimal', 'onyx'].includes(currentTheme) && (
                 <div className="relative w-full h-full">
                   {/* Left content column - contrasting color */}
                   <div className="absolute left-3 top-3 bottom-3 pr-2 w-[58%] min-w-0">
+                    {user.companyLogo && (
+                      <div className="mb-3">
+                        <img
+                          src={user.companyLogo || "/placeholder.svg"}
+                          alt="Company Logo"
+                          width={48}
+                          height={48}
+                          className="rounded-sm border border-white/30 w-12 h-12 object-contain"
+                        />
+                      </div>
+                    )}
                     <h3 className={`text-xs font-semibold font-sans leading-tight mb-1 tracking-tight ${cardStyles.text.backLeft}`}>{user.name}</h3>
-                    {homeAddress && (
+                    {formattedHomeAddress && (
                       <div className="relative mb-1.5">
                         <MapPin className={`h-2.5 w-2.5 absolute -left-3.5 top-0.5 ${cardStyles.text.backLeft} opacity-60`} />
                         <div className={`text-[10px] font-serif pl-1.5 ${cardStyles.text.backLeft} opacity-80`}>
-                          <p className="break-words italic leading-snug tracking-tight">{homeAddress}</p>
+                          <p className="break-words italic leading-snug tracking-tight whitespace-pre-line">{formattedHomeAddress}</p>
                         </div>
                       </div>
                     )}
@@ -745,19 +1080,8 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                       {/* Notes removed on back side per spec */}
                     </div>
                   </div>
-                  {/* Right column: logo top-right near edge, QR bottom-right smaller */}
-                  <div className="absolute right-0 top-0 bottom-0 w-[42%] flex flex-col items-end justify-between gap-4 p-3">
-                    {user.companyLogo && (
-                      <div>
-                        <img
-                          src={user.companyLogo || "/placeholder.svg"}
-                          alt="Company Logo"
-                          width={48}
-                          height={48}
-                          className="rounded-sm border border-white/30 w-12 h-12 object-contain"
-                        />
-                      </div>
-                    )}
+                  {/* Right column: QR centered */}
+                  <div className="absolute right-0 top-0 bottom-0 w-[42%] flex flex-col items-end justify-center gap-4 p-3">
                     {/* QR code - smaller, positioned at bottom right */}
                     <div>
                       <div className="w-28 h-28 bg-white rounded-lg shadow-lg flex items-center justify-center p-1 shrink-0">
@@ -791,6 +1115,14 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                     <div className="absolute top-6 left-6">
                       <div className="w-12 h-1 bg-blue-500"></div>
                     </div>
+                    <ThemeBackPersonalFields
+                      homeAddress={homeAddress}
+                      personalEmail={user.personalEmail}
+                      homePhone={user.homePhone}
+                      className="relative z-10 text-[9px] text-white/85"
+                      textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-90"
+                      iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5 text-white/80"
+                    />
                     <div className="space-y-4 text-xs opacity-80">
                       <p className="font-light tracking-wide">SCAN TO SAVE CONTACT</p>
                     </div>
@@ -813,9 +1145,19 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="absolute inset-4 border border-blue-800/30"></div>
 
                   <div className="flex flex-row items-center gap-12 z-10">
-                    <div className="text-left space-y-2">
-                      <h4 className="text-xl font-serif text-white/90">Connect with me</h4>
-                      <p className="text-blue-200 text-sm max-w-[200px]">Scan the QR code to instantly save my contact details to your phone.</p>
+                    <div className="text-left space-y-3 max-w-[200px]">
+                      <div>
+                        <h4 className="text-xl font-serif text-white/90">Connect with me</h4>
+                        <p className="text-blue-200 text-sm">Scan the QR code to instantly save my contact details to your phone.</p>
+                      </div>
+                      <ThemeBackPersonalFields
+                        homeAddress={homeAddress}
+                        personalEmail={user.personalEmail}
+                        homePhone={user.homePhone}
+                        className="text-[10px] text-blue-100"
+                        textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-95"
+                        iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-80 mt-0.5 text-blue-200"
+                      />
                     </div>
 
                     <div className="w-40 h-40 bg-white p-2 rounded-lg shadow-2xl shrink-0">
@@ -833,11 +1175,19 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 
                   <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 flex items-center justify-between gap-8">
-                    <div className="space-y-4">
+                    <div className="space-y-4 min-w-0">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-400 to-fuchsia-500 flex items-center justify-center">
                         <Share2 className="text-white h-6 w-6" />
                       </div>
                       <h4 className="text-2xl font-bold text-white">Let's<br />Connect</h4>
+                      <ThemeBackPersonalFields
+                        homeAddress={homeAddress}
+                        personalEmail={user.personalEmail}
+                        homePhone={user.homePhone}
+                        className="text-[10px] text-white/90"
+                        textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-95"
+                        iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-80 mt-0.5 text-orange-200"
+                      />
                     </div>
 
                     <div className="w-40 h-40 bg-white rounded-2xl p-2 shadow-inner shrink-0">
@@ -845,6 +1195,63 @@ export default function DigitalCard({ user }: DigitalCardProps) {
                         <img src={qrDataUrl} alt="QR Code" width={144} height={144} className="w-full h-full block" />
                       )}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {currentTheme === 'mobile' && (
+                <div className="flex h-full w-full items-stretch justify-between">
+                  <div className="flex min-w-0 flex-1 flex-col pr-2">
+                    {user.companyLogo && (
+                      <MobileLogoFrame size={mobileLayout.logoSize} afterGap={mobileLayout.logoAfterGap}>
+                        <img
+                          src={user.companyLogo}
+                          alt="Company Logo"
+                          width={mobileLayout.logoSize - 14}
+                          height={mobileLayout.logoSize - 14}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </MobileLogoFrame>
+                    )}
+                    {mobileBackFields.length > 0 && (
+                      <div
+                        className={`flex flex-1 flex-col ${mobileBackFields.length <= 4 ? "justify-between" : "justify-start"}`}
+                        style={{
+                          gap: mobileLayout.contactGap,
+                        }}
+                      >
+                        <MobileContactList fields={mobileBackFields} layout={mobileLayout} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 flex-col items-center justify-center">
+                    <MobileQrFrame size={mobileLayout.qrSize}>
+                      {qrDataUrl ? (
+                        <img
+                          src={qrDataUrl}
+                          alt="QR Code"
+                          width={mobileLayout.qrSize}
+                          height={mobileLayout.qrSize}
+                          className="block"
+                          style={{ width: mobileLayout.qrSize, height: mobileLayout.qrSize }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="animate-pulse bg-black/10"
+                          style={{ width: mobileLayout.qrSize, height: mobileLayout.qrSize }}
+                        />
+                      )}
+                    </MobileQrFrame>
+                    <p
+                      className="mt-1.5 text-center leading-tight"
+                      style={{ fontSize: mobileLayout.detailSize, color: MOBILE_THEME.silver }}
+                    >
+                      Scan to save contact
+                    </p>
                   </div>
                 </div>
               )}
