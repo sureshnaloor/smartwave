@@ -16,7 +16,7 @@ import {
   getDisplayExportDimensions,
   settleLayout,
   preloadImageUrl,
-  shareCardImage,
+  shareCardImages,
   triggerDownload,
 } from "@/lib/card-export"
 import {
@@ -133,6 +133,10 @@ const themeStyles = {
 
 interface DigitalCardProps {
   user: ProfileData
+  /** Cap on-screen card width so fixed px typography stays proportional (export size unchanged). */
+  maxDisplayWidth?: number
+  /** Hide wallet CTAs when shown elsewhere on the page (e.g. public profile). */
+  showWalletButtons?: boolean
 }
 
 function MobileFieldIcon({ id, size }: { id: MobileCardFieldId; size: number }) {
@@ -358,15 +362,19 @@ function MobileQrFrame({ size, children }: { size: number; children: React.React
 }
 
 // Add a new CardContainer component
-function CardContainer({ children }: { children: React.ReactNode }) {
+function CardContainer({
+  children,
+  maxDisplayWidth,
+}: {
+  children: React.ReactNode
+  maxDisplayWidth: number
+}) {
   return (
-    <div className="w-full max-w-[1344px] mx-auto px-4 sm:px-0">
+    <div className="w-full mx-auto" style={{ maxWidth: maxDisplayWidth }}>
       <div
-        className="relative w-full max-w-[600px] sm:max-w-full mx-auto"
+        className="relative w-full mx-auto"
         style={{
           paddingBottom: `${(CARD_HEIGHT / CARD_WIDTH) * 100}%`,
-          maxWidth: `${CARD_WIDTH}px`,
-          maxHeight: `${CARD_HEIGHT}px`
         }}
       >
         <div className="absolute inset-0 overflow-hidden">
@@ -377,7 +385,11 @@ function CardContainer({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function DigitalCard({ user }: DigitalCardProps) {
+export default function DigitalCard({
+  user,
+  maxDisplayWidth = 520,
+  showWalletButtons = true,
+}: DigitalCardProps) {
   const { theme: globalTheme } = useTheme()
   const [showFront, setShowFront] = useState(true)
   const [currentTheme, setCurrentTheme] = useState<Theme>('smartwave')
@@ -579,8 +591,6 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     const backEl = backRef.current
     const containerEl = cardContainerRef.current
     const flipEl = cardFlipRef.current
-    const visibleEl = showFront ? frontEl : backEl
-    const hiddenEl = showFront ? backEl : frontEl
 
     const frontClassName = frontEl.className
     const backClassName = backEl.className
@@ -598,30 +608,33 @@ export default function DigitalCard({ user }: DigitalCardProps) {
     try {
       const { width, height } = getDisplayExportDimensions(containerEl)
       const safeName = user.name.replace(/\s+/g, "_")
-      const side = showFront ? "front" : "back"
-      const filename = `${safeName}_digital_card_${side}.jpg`
       const title = `${user.name}'s Digital Business Card`
 
       if (user.photo) await preloadImageUrl(user.photo)
       if (user.companyLogo) await preloadImageUrl(user.companyLogo)
 
-      visibleEl.classList.remove("hidden")
-      hiddenEl.classList.add("hidden")
-      if (!showFront) {
-        backEl.classList.remove("rotate-y-180")
-        backEl.style.transform = "none"
-      }
+      frontEl.classList.remove("hidden")
+      backEl.classList.add("hidden")
       await settleLayout()
 
-      const imageDataUrl = await captureCardElement(
-        visibleEl,
-        containerEl,
-        width,
-        height,
-        showFront ? undefined : { isBackFace: true }
-      )
+      const frontImage = await captureCardElement(frontEl, containerEl, width, height)
 
-      await shareCardImage(imageDataUrl, filename, title)
+      await new Promise((resolve) => setTimeout(resolve, 300))
+
+      frontEl.classList.add("hidden")
+      backEl.classList.remove("hidden", "rotate-y-180")
+      backEl.style.transform = "none"
+      await settleLayout()
+
+      const backImage = await captureCardElement(backEl, containerEl, width, height, { isBackFace: true })
+
+      await shareCardImages(
+        [
+          { dataUrl: frontImage, filename: `${safeName}_business_card_front.jpg` },
+          { dataUrl: backImage, filename: `${safeName}_business_card_back.jpg` },
+        ],
+        title
+      )
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") return
       console.error("Error sharing business card:", error)
@@ -639,7 +652,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
   return (
     <div id="smartwave-digital-card-root" className="space-y-4">
-      <CardContainer>
+      <CardContainer maxDisplayWidth={maxDisplayWidth}>
         <div ref={cardContainerRef} className="perspective-1000 w-full h-full bg-white dark:bg-gray-900 rounded-xl">
           <div
             ref={cardFlipRef}
@@ -1110,59 +1123,59 @@ export default function DigitalCard({ user }: DigitalCardProps) {
 
               {currentTheme === 'modern' && (
                 <div className="flex h-full w-full">
-                  {/* Left Sidebar (Dark) */}
-                  <div className="w-[35%] h-full bg-slate-900 p-6 flex flex-col justify-end text-white relative">
-                    <div className="absolute top-6 left-6">
-                      <div className="w-12 h-1 bg-blue-500"></div>
+                  {/* Left — personal info (majority width) */}
+                  <div className="flex min-w-0 flex-1 flex-col justify-end bg-slate-900 p-4 pr-3 text-white relative">
+                    <div className="absolute top-4 left-4">
+                      <div className="w-10 h-0.5 bg-blue-500"></div>
                     </div>
                     <ThemeBackPersonalFields
                       homeAddress={homeAddress}
                       personalEmail={user.personalEmail}
                       homePhone={user.homePhone}
                       className="relative z-10 text-[9px] text-white/85"
-                      textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-90"
+                      textClassName="tracking-tight break-words min-w-0 leading-snug opacity-90"
                       iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-70 mt-0.5 text-white/80"
                     />
-                    <div className="space-y-4 text-xs opacity-80">
+                    <div className="mt-3 text-[8px] opacity-80">
                       <p className="font-light tracking-wide">SCAN TO SAVE CONTACT</p>
                     </div>
                   </div>
 
-                  {/* Right Content (White) */}
-                  <div className="flex-1 p-8 flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 relative">
-                    <div className="w-48 h-48 bg-white dark:bg-slate-800 p-2 shadow-xl rounded-xl shrink-0">
+                  {/* Right — QR only (narrow) */}
+                  <div className="flex w-[32%] max-w-[120px] shrink-0 flex-col items-center justify-center bg-white dark:bg-slate-900 p-2 text-slate-500 dark:text-slate-400">
+                    <div className="w-[72px] h-[72px] bg-white dark:bg-slate-800 p-1 shadow-md rounded-lg shrink-0">
                       {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" width={176} height={176} className="w-full h-full block" />
+                        <img src={qrDataUrl} alt="QR Code" width={64} height={64} className="w-full h-full block" />
                       )}
                     </div>
-                    <p className="mt-4 text-slate-500 text-sm font-medium tracking-widest">SMARTWAVE</p>
+                    <p className="mt-1.5 text-[7px] text-slate-500 font-medium tracking-widest">SMARTWAVE</p>
                   </div>
                 </div>
               )}
 
               {currentTheme === 'professional' && (
-                <div className="h-full w-full flex flex-col items-center justify-center p-8 relative bg-blue-950 text-white">
-                  <div className="absolute inset-4 border border-blue-800/30"></div>
+                <div className="h-full w-full flex items-center p-5 relative bg-blue-950 text-white">
+                  <div className="absolute inset-3 border border-blue-800/30 pointer-events-none"></div>
 
-                  <div className="flex flex-row items-center gap-12 z-10">
-                    <div className="text-left space-y-3 max-w-[200px]">
+                  <div className="flex w-full items-center gap-4 z-10">
+                    <div className="flex-1 min-w-0 text-left space-y-2 pr-2">
                       <div>
-                        <h4 className="text-xl font-serif text-white/90">Connect with me</h4>
-                        <p className="text-blue-200 text-sm">Scan the QR code to instantly save my contact details to your phone.</p>
+                        <h4 className="text-base font-serif text-white/90 leading-tight">Connect with me</h4>
+                        <p className="text-blue-200 text-[10px] leading-snug mt-1">Scan the QR code to instantly save my contact details to your phone.</p>
                       </div>
                       <ThemeBackPersonalFields
                         homeAddress={homeAddress}
                         personalEmail={user.personalEmail}
                         homePhone={user.homePhone}
-                        className="text-[10px] text-blue-100"
-                        textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-95"
+                        className="text-[9px] text-blue-100"
+                        textClassName="tracking-tight break-words min-w-0 leading-snug opacity-95"
                         iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-80 mt-0.5 text-blue-200"
                       />
                     </div>
 
-                    <div className="w-40 h-40 bg-white p-2 rounded-lg shadow-2xl shrink-0">
+                    <div className="shrink-0 w-[84px] h-[84px] bg-white p-1.5 rounded-lg shadow-xl">
                       {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" width={144} height={144} className="w-full h-full block" />
+                        <img src={qrDataUrl} alt="QR Code" width={72} height={72} className="w-full h-full block" />
                       )}
                     </div>
                   </div>
@@ -1170,30 +1183,31 @@ export default function DigitalCard({ user }: DigitalCardProps) {
               )}
 
               {currentTheme === 'creative' && (
-                <div className="h-full w-full flex items-center justify-center p-8 relative bg-gray-900 text-white">
-                  {/* Background Elements */}
+                <div className="h-full w-full flex items-center p-4 relative bg-gray-900 text-white">
                   <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 
-                  <div className="w-full max-w-md bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 flex items-center justify-between gap-8">
-                    <div className="space-y-4 min-w-0">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-orange-400 to-fuchsia-500 flex items-center justify-center">
-                        <Share2 className="text-white h-6 w-6" />
+                  <div className="relative z-10 w-full flex items-stretch gap-3 bg-white/5 backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-400 to-fuchsia-500 flex items-center justify-center">
+                        <Share2 className="text-white h-4 w-4" />
                       </div>
-                      <h4 className="text-2xl font-bold text-white">Let's<br />Connect</h4>
+                      <h4 className="text-lg font-bold text-white leading-tight">Let&apos;s Connect</h4>
                       <ThemeBackPersonalFields
                         homeAddress={homeAddress}
                         personalEmail={user.personalEmail}
                         homePhone={user.homePhone}
-                        className="text-[10px] text-white/90"
-                        textClassName="tracking-tighter break-all min-w-0 leading-snug opacity-95"
+                        className="text-[9px] text-white/90"
+                        textClassName="tracking-tight break-words min-w-0 leading-snug opacity-95"
                         iconClassName="h-2.5 w-2.5 flex-shrink-0 opacity-80 mt-0.5 text-orange-200"
                       />
                     </div>
 
-                    <div className="w-40 h-40 bg-white rounded-2xl p-2 shadow-inner shrink-0">
-                      {qrDataUrl && (
-                        <img src={qrDataUrl} alt="QR Code" width={144} height={144} className="w-full h-full block" />
-                      )}
+                    <div className="shrink-0 flex items-center justify-center self-center">
+                      <div className="w-[80px] h-[80px] bg-white rounded-xl p-1.5 shadow-inner">
+                        {qrDataUrl && (
+                          <img src={qrDataUrl} alt="QR Code" width={68} height={68} className="w-full h-full block" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1425,6 +1439,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
         </DialogContent>
       </Dialog>
 
+      {showWalletButtons && (
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         {(os === "ios" || os === "other") && (
           <div className="flex-1" title={actionTitle}>
@@ -1463,6 +1478,7 @@ export default function DigitalCard({ user }: DigitalCardProps) {
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }

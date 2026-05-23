@@ -19,6 +19,8 @@ import {
 import QRCode from 'qrcode'
 import Image from 'next/image'
 import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib/profile-completeness"
+import DigitalCard from "@/components/dashboardlogin/digital-card"
+import type { ProfileData as CardProfileData } from "@/app/_actions/profile"
 
 interface DigitalProfileProps {
   profileData: ProfileData
@@ -262,95 +264,111 @@ export function DigitalProfile({ profileData }: DigitalProfileProps) {
           <SocialLinks {...profileData} theme={layoutTheme} />
         </div>
 
-        {/* Contact Actions Section */}
-        <div className="mt-16 grid gap-10 md:grid-cols-2 md:gap-12">
-          {/* QR Code */}
-          <div className="flex justify-center">
-            <div className="relative group max-w-sm w-full">
-              {/* Glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-              <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2">
-                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  QR Code
+        {/* Digital Card + QR / Contacts — responsive two-column on large screens */}
+        <section className="mt-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-start max-w-5xl mx-auto">
+            {/* Column 1: Digital Card */}
+            <div className="relative group w-full">
+              <div className="absolute -inset-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-orange-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+              <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 h-full">
+                <h3 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-violet-600 to-orange-500 bg-clip-text text-transparent">
+                  Digital Card
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 font-medium">
-                  Scan to add {profileData.firstName} {profileData.lastName} to your contacts
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mb-5 font-medium">
+                  Browse themes, flip the card, and share or download {profileData.firstName}&apos;s business card
                 </p>
-                <div className="flex justify-center">
-                  {qrDataUrl ? (
-                    <div className="relative p-4 bg-white rounded-xl shadow-lg transition-transform duration-500 hover:scale-105">
-                      <Image
-                        src={qrDataUrl}
-                        alt="QR Code"
-                        width={300}
-                        height={300}
-                        className="rounded-lg"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-[300px] h-[300px] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl animate-pulse" />
-                  )}
-                </div>
+                <DigitalCard
+                  user={profileData as unknown as CardProfileData}
+                  maxDisplayWidth={480}
+                  showWalletButtons={false}
+                />
               </div>
             </div>
-          </div>
 
-          {/* vCard Download */}
-          <div className="flex justify-center">
-            <div className="relative group max-w-sm w-full">
-              {/* Glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-              <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] hover:-translate-y-2">
-                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Add to Contacts
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-8 font-medium">
-                  Download {profileData.firstName} {profileData.lastName}&apos;s contact information as a vCard file
-                </p>
-                <div title={actionTitle}>
-                  <Button
-                    className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn"
-                    onClick={handleDownloadVCard}
-                    disabled={!isProfileComplete}
-                  >
-                    <Download className="mr-3 h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:-translate-y-0.5" />
+            {/* Column 2: QR + Add to Contacts + Wallet */}
+            <div className="flex flex-col gap-6 w-full">
+              {/* QR Code */}
+              <div className="relative group w-full">
+                <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                    QR Code
+                  </h3>
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mb-5 font-medium">
+                    Scan to add {profileData.firstName} {profileData.lastName} to your contacts
+                  </p>
+                  <div className="flex justify-center">
+                    {qrDataUrl ? (
+                      <div className="relative p-3 sm:p-4 bg-white rounded-xl shadow-lg">
+                        <Image
+                          src={qrDataUrl}
+                          alt="QR Code"
+                          width={240}
+                          height={240}
+                          className="rounded-lg w-[200px] h-[200px] sm:w-[240px] sm:h-[240px]"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-[200px] h-[200px] sm:w-[240px] sm:h-[240px] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl animate-pulse" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Add to Contacts + Wallet */}
+              <div className="relative group w-full">
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-5 sm:p-6 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Add to Contacts
-                  </Button>
-                </div>
+                  </h3>
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mb-5 font-medium">
+                    Download {profileData.firstName} {profileData.lastName}&apos;s contact information as a vCard file
+                  </p>
+                  <div title={actionTitle}>
+                    <Button
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={handleDownloadVCard}
+                      disabled={!isProfileComplete}
+                    >
+                      <Download className="mr-2 sm:mr-3 h-5 w-5" />
+                      Add to Contacts
+                    </Button>
+                  </div>
 
-                {/* Wallet Buttons */}
-                <div className="mt-4 space-y-3">
-                  {(os === "ios" || os === "other") && (
-                    <div title={actionTitle}>
-                      <Button
-                        variant="outline"
-                        className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-semibold transition-all group/wallet"
-                        onClick={() => window.open(`/api/wallet/apple?shorturl=${profileData.shorturl}`, "_blank")}
-                        disabled={!isProfileComplete}
-                      >
-                        <Wallet className="mr-2 h-5 w-5 text-blue-600 group-hover/wallet:scale-110 transition-transform" />
-                        Add to Apple Wallet
-                      </Button>
-                    </div>
-                  )}
-                  {(os === "android" || os === "other") && (
-                    <div title={actionTitle}>
-                      <Button
-                        variant="outline"
-                        className="w-full h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-500 font-semibold transition-all group/wallet"
-                        onClick={() => window.open(`/api/wallet/google?shorturl=${profileData.shorturl}`, "_blank")}
-                        disabled={!isProfileComplete}
-                      >
-                        <Wallet className="mr-2 h-5 w-5 text-green-600 group-hover/wallet:scale-110 transition-transform" />
-                        Save to Google Wallet
-                      </Button>
-                    </div>
-                  )}
+                  <div className="mt-4 space-y-3">
+                    {(os === "ios" || os === "other") && (
+                      <div title={actionTitle}>
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 sm:h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 font-semibold transition-all"
+                          onClick={() => window.open(`/api/wallet/apple?shorturl=${profileData.shorturl}`, "_blank")}
+                          disabled={!isProfileComplete}
+                        >
+                          <Wallet className="mr-2 h-5 w-5 text-blue-600" />
+                          Add to Apple Wallet
+                        </Button>
+                      </div>
+                    )}
+                    {(os === "android" || os === "other") && (
+                      <div title={actionTitle}>
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 sm:h-12 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-500 font-semibold transition-all"
+                          onClick={() => window.open(`/api/wallet/google?shorturl=${profileData.shorturl}`, "_blank")}
+                          disabled={!isProfileComplete}
+                        >
+                          <Wallet className="mr-2 h-5 w-5 text-green-600" />
+                          Save to Google Wallet
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

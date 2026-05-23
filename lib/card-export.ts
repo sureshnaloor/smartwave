@@ -319,22 +319,24 @@ export async function dataUrlToFile(dataUrl: string, filename: string): Promise<
 
 export type ShareCardResult = "shared" | "downloaded" | "cancelled"
 
-/**
- * Opens the native share sheet with the card JPEG (WhatsApp, Mail, AirDrop, Save to Photos, etc.).
- * Falls back to download when file sharing is unavailable.
- */
-export async function shareCardImage(
-  dataUrl: string,
-  filename: string,
+type ShareCardItem = {
+  dataUrl: string
+  filename: string
+}
+
+async function shareFilesWithFallback(
+  files: File[],
+  items: ShareCardItem[],
   title: string
 ): Promise<ShareCardResult> {
   if (typeof navigator === "undefined" || typeof navigator.share !== "function") {
-    triggerDownload(dataUrl, filename)
+    for (const item of items) {
+      triggerDownload(item.dataUrl, item.filename)
+    }
     return "downloaded"
   }
 
-  const file = await dataUrlToFile(dataUrl, filename)
-  const shareData = { files: [file], title, text: title }
+  const shareData = { files, title, text: title }
 
   if (typeof navigator.canShare === "function" && navigator.canShare(shareData)) {
     try {
@@ -346,6 +348,37 @@ export async function shareCardImage(
     }
   }
 
-  triggerDownload(dataUrl, filename)
+  for (const item of items) {
+    triggerDownload(item.dataUrl, item.filename)
+  }
   return "downloaded"
+}
+
+/**
+ * Opens the native share sheet with one or more card JPEGs.
+ * Falls back to download when file sharing is unavailable.
+ */
+export async function shareCardImages(
+  items: ShareCardItem[],
+  title: string
+): Promise<ShareCardResult> {
+  if (items.length === 0) return "cancelled"
+
+  const files = await Promise.all(
+    items.map((item) => dataUrlToFile(item.dataUrl, item.filename))
+  )
+
+  return shareFilesWithFallback(files, items, title)
+}
+
+/**
+ * Opens the native share sheet with the card JPEG (WhatsApp, Mail, AirDrop, Save to Photos, etc.).
+ * Falls back to download when file sharing is unavailable.
+ */
+export async function shareCardImage(
+  dataUrl: string,
+  filename: string,
+  title: string
+): Promise<ShareCardResult> {
+  return shareCardImages([{ dataUrl, filename }], title)
 }

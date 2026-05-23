@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 
 const ALLOWED_HOST_SUFFIXES = [
   "res.cloudinary.com",
@@ -23,11 +21,6 @@ function isAllowedImageUrl(rawUrl: string, requestOrigin: string): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
   const rawUrl = request.nextUrl.searchParams.get("url")
   if (!rawUrl) {
     return NextResponse.json({ error: "Missing url parameter" }, { status: 400 })
@@ -52,7 +45,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "private, max-age=3600",
+        "Cache-Control": "public, max-age=3600",
       },
     })
   } catch {
