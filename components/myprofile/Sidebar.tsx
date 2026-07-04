@@ -9,6 +9,7 @@ import { hasRequiredProfileFields, REQUIRED_PROFILE_FIELDS_MESSAGE } from "@/lib
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "lucide-react";
+import MarketingAssets from "./MarketingAssets";
 
 type Props = {
   profile?: ProfileData;
@@ -104,6 +105,7 @@ export default function MyProfileSidebar({ profile, userEmail: sessionUserEmail 
           </div>
         )}
       </div>
+      <MarketingAssets profile={profile || ({ userEmail: sessionUserEmail, name: sessionUserEmail ?? "" } as ProfileData)} />
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
         <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">QR Code</div>
         <QRCodeGenerator user={profile || ({ userEmail: sessionUserEmail, name: sessionUserEmail ?? "" } as ProfileData)} />
