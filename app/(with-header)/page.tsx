@@ -16,6 +16,7 @@ import Processflow from '@/components/landing/Processflow';
 import Sustainability from '@/components/landing/Sustainability';
 import Testimonials from '@/components/landing/Testimonials';
 import Footer from '@/components/Footer';
+import AuroraBackground from '@/components/ui/AuroraBackground';
 
 export default function HomePage() {
   useEffect(() => {
@@ -168,8 +169,9 @@ export default function HomePage() {
 
 
       {/* Features Grid Section */}
-      <section id="features" className="py-20 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="features" className="py-20 bg-white dark:bg-black relative overflow-hidden">
+        <AuroraBackground />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
               Everything Your Paper Card

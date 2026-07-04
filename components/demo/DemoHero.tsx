@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import AuroraBackground from '@/components/ui/AuroraBackground';
 
 export default function DemoHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -90,9 +91,10 @@ export default function DemoHero() {
   };
 
   return (
-    <section id="home" className="sw-aurora-bg hero-bg min-h-screen flex items-center relative overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black pt-20">
+      <AuroraBackground />
+      {/* Background Effects */}
+      <div className="absolute inset-0 w-full h-full">
         <Image
           src="/images/hero-nfc.jpg"
           alt="NFC Technology Background"

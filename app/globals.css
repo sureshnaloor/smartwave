@@ -154,6 +154,26 @@
     z-index: 0;
   }
 
+  @keyframes blob-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(5%, 10%) scale(1.1); }
+    66% { transform: translate(-5%, 5%) scale(0.9); }
+  }
+  @keyframes blob-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-5%, -10%) scale(1.1); }
+    66% { transform: translate(5%, -5%) scale(0.9); }
+  }
+  @keyframes blob-3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(5%, -5%) scale(0.9); }
+    66% { transform: translate(-5%, 10%) scale(1.1); }
+  }
+
+  .animate-aurora-blob-1 { animation: blob-1 20s infinite ease-in-out; }
+  .animate-aurora-blob-2 { animation: blob-2 22s infinite ease-in-out; }
+  .animate-aurora-blob-3 { animation: blob-3 24s infinite ease-in-out; }
+
   .sw-card {
     background: #0f172a;
     position: relative;

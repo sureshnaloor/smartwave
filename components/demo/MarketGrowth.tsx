@@ -2,10 +2,12 @@
 
 import { Building2, RefreshCw, Leaf, Bell, Users, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
+import AuroraBackground from '@/components/ui/AuroraBackground';
 
 export default function MarketGrowth() {
   return (
     <section className="py-20 bg-black relative overflow-hidden">
+      <AuroraBackground />
       {/* Background Image */}
       <div className="absolute inset-0 z-0 opacity-20">
         <Image
