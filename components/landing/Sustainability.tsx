@@ -55,7 +55,7 @@ export default function Sustainability() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Sustainable Digital Solutions
+            Save 2,450 kg of Paper Waste. One Team at a Time.
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Join us in creating a more sustainable future through digital transformation

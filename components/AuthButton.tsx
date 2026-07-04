@@ -14,16 +14,16 @@ export default function AuthButton() {
   return (
     <div className="flex items-center gap-2">
       <Link href="/auth/signin">
-        <Button variant="ghost" size="sm" className="hidden sm:flex">
+        <button className="sw-btn-ghost px-4 py-2 hidden sm:flex items-center text-sm">
           <LogIn className="w-4 h-4 mr-2" />
           Sign In
-        </Button>
+        </button>
       </Link>
       <Link href="/auth/signup">
-        <Button size="sm">
+        <button className="sw-btn-primary px-4 py-2 flex items-center text-sm">
           <UserPlus className="w-4 h-4 mr-2" />
           Sign Up
-        </Button>
+        </button>
       </Link>
     </div>
   );

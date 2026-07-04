@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  h2, h3, h4 {
+    @apply font-heading;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -30,36 +34,49 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* SmartWave Custom Colors */
-    --smart-charcoal: #1a1a1a;
-    --smart-silver: #e8e8e8;
-    --smart-teal: #00d4aa;
-    --smart-amber: #ffb347;
-    --nav-bg: rgba(26, 26, 26, 0.9);
-    --card-bg: rgba(255, 255, 255, 0.02);
-    --border-color: rgba(255, 255, 255, 0.1);
+    /* Aurora Tech Theme Colors */
+    --sw-deepest: #0a0a0a;
+    --sw-card: #0f172a;
+    --sw-elevated: #111827;
+    --sw-teal: #00b4d8;
+    --sw-aurora: #00f5d4;
+    --sw-copper: #b87333;
+    --sw-text-primary: #ffffff;
+    --sw-text-secondary: #e5e7eb;
+    --sw-text-muted: #94a3b8;
+    --sw-text-dim: #64748b;
+
+    /* Legacy SmartWave aliases */
+    --smart-charcoal: #0a0a0a;
+    --smart-silver: #e5e7eb;
+    --smart-teal: #00b4d8;
+    --smart-aurora: #00f5d4;
+    --smart-amber: #b87333;
+    --nav-bg: rgba(10, 10, 10, 0.9);
+    --card-bg: rgba(15, 23, 42, 0.8);
+    --border-color: rgba(0, 180, 216, 0.15);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 100%;
+    --card: 222 47% 11%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 191 100% 42%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 220 13% 91%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 16% 65%;
+    --accent: 168 100% 48%;
+    --accent-foreground: 0 0% 4%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 215 16% 47%;
+    --input: 222 47% 14%;
+    --ring: 191 100% 42%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -90,11 +107,243 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
   }
 }
 
 @layer utilities {
+
+  /* ── Aurora Tech Theme Components ── */
+
+  .sw-aurora-bg {
+    background: #0a0a0a;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sw-aurora-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 40%, rgba(0, 180, 216, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 60%, rgba(0, 245, 212, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 30% at 50% 80%, rgba(184, 115, 51, 0.08) 0%, transparent 50%);
+    animation: aurora-shift 25s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sw-aurora-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 180, 216, 0.06) 0%,
+      transparent 30%,
+      rgba(0, 245, 212, 0.05) 60%,
+      transparent 100%
+    );
+    animation: aurora 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sw-card {
+    background: #0f172a;
+    position: relative;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .sw-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 180, 216, 0.5),
+      rgba(0, 245, 212, 0.3),
+      rgba(184, 115, 51, 0.2)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .sw-card:hover {
+    box-shadow: 0 0 30px rgba(0, 180, 216, 0.15), 0 0 60px rgba(0, 245, 212, 0.08);
+    transform: translateY(-4px);
+  }
+
+  .sw-card::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #00b4d8;
+    box-shadow: 0 0 15px #00b4d8;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+  }
+
+  .sw-card:hover::after {
+    opacity: 1;
+  }
+
+  .sw-glow:hover {
+    box-shadow: 0 0 30px rgba(0, 180, 216, 0.2), 0 0 60px rgba(0, 245, 212, 0.1);
+  }
+
+  .sw-gradient-border {
+    position: relative;
+  }
+  .sw-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 180, 216, 0.5), rgba(0, 245, 212, 0.3), rgba(184, 115, 51, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* sw-card keeps dark surface in both themes — light text in light mode */
+  html.light .sw-card,
+  html:not(.dark) .sw-card {
+    background: #0f172a !important;
+    color: #e5e7eb;
+  }
+
+  html.light .sw-card h1,
+  html.light .sw-card h2,
+  html.light .sw-card h3,
+  html.light .sw-card h4,
+  html.light .sw-card p,
+  html.light .sw-card li,
+  html:not(.dark) .sw-card h1,
+  html:not(.dark) .sw-card h2,
+  html:not(.dark) .sw-card h3,
+  html:not(.dark) .sw-card h4,
+  html:not(.dark) .sw-card p,
+  html:not(.dark) .sw-card li {
+    color: #ffffff !important;
+  }
+
+  html.light .sw-card .text-smart-silver\/80,
+  html.light .sw-card .text-sw-text-secondary,
+  html:not(.dark) .sw-card .text-smart-silver\/80,
+  html:not(.dark) .sw-card .text-sw-text-secondary {
+    color: #e5e7eb !important;
+  }
+
+  html.light .sw-card .text-smart-silver\/60,
+  html.light .sw-card .text-sw-text-muted,
+  html.light .sw-card ul,
+  html:not(.dark) .sw-card .text-smart-silver\/60,
+  html:not(.dark) .sw-card .text-sw-text-muted,
+  html:not(.dark) .sw-card ul {
+    color: #94a3b8 !important;
+  }
+
+  html.light .sw-card span:not(.text-smart-amber):not(.text-smart-teal),
+  html:not(.dark) .sw-card span:not(.text-smart-amber):not(.text-smart-teal) {
+    color: inherit;
+  }
+
+  html.light .sw-card .text-smart-amber,
+  html:not(.dark) .sw-card .text-smart-amber {
+    color: #b87333 !important;
+  }
+
+  html.light .sw-card .text-smart-teal,
+  html:not(.dark) .sw-card .text-smart-teal {
+    color: #00b4d8 !important;
+  }
+
+  .sw-btn-primary {
+    background: #00b4d8;
+    color: #0a0a0a;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .sw-btn-primary:hover {
+    background: #00f5d4;
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.4), 0 4px 15px rgba(0, 180, 216, 0.2);
+    transform: scale(1.02);
+  }
+
+  .sw-btn-premium {
+    background: #b87333;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .sw-btn-premium:hover {
+    background: #d4a574;
+    box-shadow: 0 0 20px rgba(184, 115, 51, 0.4), 0 0 30px rgba(184, 115, 51, 0.6);
+    transform: scale(1.02);
+  }
+
+  .sw-btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(0, 180, 216, 0.5);
+    color: #00b4d8;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .sw-btn-ghost:hover {
+    background: rgba(0, 180, 216, 0.1);
+    border: 1px solid #00b4d8;
+    transform: scale(1.02);
+  }
+
+  @keyframes aurora-shift {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0.5;
+    }
+    33% {
+      transform: translate(5%, -3%) rotate(1deg);
+      opacity: 0.7;
+    }
+    66% {
+      transform: translate(-3%, 2%) rotate(-1deg);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(0, 180, 216, 0.3), 0 0 40px rgba(0, 245, 212, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(0, 180, 216, 0.5), 0 0 60px rgba(0, 245, 212, 0.2);
+    }
+  }
 
   /* SmartWave Logo Icon - Rounded square with gradient */
   .logo-icon {
@@ -206,23 +455,41 @@
 
   /* Text Gradient */
   .text-gradient {
-    background: linear-gradient(135deg, #00d4aa 0%, #ffb347 100%);
+    background: linear-gradient(135deg, #00b4d8 0%, #00f5d4 50%, #b87333 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Feature Card */
+  /* Feature Card — extends sw-card */
   .feature-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f172a;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
     transition: all 0.3s ease;
   }
 
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 180, 216, 0.5),
+      rgba(0, 245, 212, 0.3),
+      rgba(184, 115, 51, 0.2)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
   .feature-card:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    box-shadow: 0 0 30px rgba(0, 180, 216, 0.15), 0 0 60px rgba(0, 245, 212, 0.08);
     transform: translateY(-5px);
   }
 
@@ -238,7 +505,7 @@
   }
 
   .comparison-table th {
-    background: rgba(0, 212, 170, 0.1);
+    background: rgba(0, 180, 216, 0.1);
   }
 
   .comparison-table tr:hover {
@@ -262,15 +529,15 @@
   }
 
   .industry-card:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.05);
+    border-color: rgba(0, 180, 216, 0.3);
     transform: translateY(-5px);
   }
 
   .industry-card.active {
-    background: rgba(0, 212, 170, 0.1);
-    border-color: rgba(0, 212, 170, 0.5);
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.1);
+    border-color: rgba(0, 180, 216, 0.5);
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
   }
 
   /* Use Case Demo */
@@ -303,7 +570,7 @@
 
   .demo-screen:hover {
     transform: scale(1.02);
-    box-shadow: 0 25px 70px rgba(0, 212, 170, 0.3);
+    box-shadow: 0 25px 70px rgba(0, 180, 216, 0.3);
   }
 
   .nfc-simulation {
@@ -313,7 +580,7 @@
     transform: translate(-50%, -50%);
     width: 100px;
     height: 100px;
-    border: 3px solid rgba(0, 212, 170, 0.5);
+    border: 3px solid rgba(0, 180, 216, 0.5);
     border-radius: 50%;
     opacity: 0;
     pointer-events: none;
@@ -339,21 +606,21 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    background: #00d4aa;
+    background: #00b4d8;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
   }
 
   input[type="range"]::-webkit-slider-thumb:hover {
-    background: #00b894;
+    background: #0096b8;
     transform: scale(1.1);
   }
 
   input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
-    background: #00d4aa;
+    background: #00b4d8;
     border-radius: 50%;
     cursor: pointer;
     border: none;
@@ -361,7 +628,7 @@
   }
 
   input[type="range"]::-moz-range-thumb:hover {
-    background: #00b894;
+    background: #0096b8;
     transform: scale(1.1);
   }
 
@@ -381,17 +648,17 @@
 
   html.light .feature-card:hover,
   html.light .industry-card:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.05);
+    border-color: rgba(0, 180, 216, 0.3);
   }
 
   html.light .industry-card.active {
-    background: rgba(0, 212, 170, 0.1);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.1);
+    border-color: rgba(0, 180, 216, 0.3);
   }
 
   html.light .comparison-table th {
-    background: rgba(0, 212, 170, 0.1);
+    background: rgba(0, 180, 216, 0.1);
   }
 
   html.light .comparison-table tr:hover {
@@ -413,14 +680,14 @@
   html.light input[type="range"]::-webkit-slider-thumb,
   html:not(.dark) input[type="range"]::-webkit-slider-thumb,
   :root.light input[type="range"]::-webkit-slider-thumb {
-    background: #00d4aa !important;
+    background: #00b4d8 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
   }
 
   html.light input[type="range"]::-moz-range-thumb,
   html:not(.dark) input[type="range"]::-moz-range-thumb,
   :root.light input[type="range"]::-moz-range-thumb {
-    background: #00d4aa !important;
+    background: #00b4d8 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
   }
 
@@ -475,7 +742,7 @@
   }
 
   html.light .text-gradient {
-    background: linear-gradient(135deg, #00d4aa 0%, #ffb347 100%);
+    background: linear-gradient(135deg, #007a93 0%, #009a85 50%, #8c5626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -490,8 +757,8 @@
   }
 
   .integration-step:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.05);
+    border-color: rgba(0, 180, 216, 0.3);
   }
 
   /* Enterprise Feature */
@@ -502,8 +769,8 @@
   }
 
   .enterprise-feature:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.05);
+    border-color: rgba(0, 180, 216, 0.3);
   }
 
   /* iOS Wallet Demo Styles */
@@ -541,13 +808,13 @@
   }
 
   .wallet-card.business-card {
-    background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 212, 170, 0.05) 100%);
-    border: 1px solid rgba(0, 212, 170, 0.2);
+    background: linear-gradient(135deg, rgba(0, 180, 216, 0.1) 0%, rgba(0, 180, 216, 0.05) 100%);
+    border: 1px solid rgba(0, 180, 216, 0.2);
   }
 
   .wallet-card.loyalty-card {
-    background: linear-gradient(135deg, rgba(255, 179, 71, 0.1) 0%, rgba(255, 179, 71, 0.05) 100%);
-    border: 1px solid rgba(255, 179, 71, 0.2);
+    background: linear-gradient(135deg, rgba(184, 115, 51, 0.1) 0%, rgba(184, 115, 51, 0.05) 100%);
+    border: 1px solid rgba(184, 115, 51, 0.2);
   }
 
   .wallet-card.event-card {
@@ -680,7 +947,7 @@
     position: absolute;
     inset: -4px;
     border-radius: inherit;
-    background: linear-gradient(45deg, #00d4aa, #ffb347, #00d4aa);
+    background: linear-gradient(45deg, #00b4d8, #00f5d4, #b87333);
     opacity: 0;
     z-index: -1;
     transition: opacity 0.3s ease;
@@ -725,8 +992,8 @@ html.dark .modern-left {
 
   html.light .integration-step:hover,
   html.light .enterprise-feature:hover {
-    background: rgba(0, 212, 170, 0.05);
-    border-color: rgba(0, 212, 170, 0.3);
+    background: rgba(0, 180, 216, 0.05);
+    border-color: rgba(0, 180, 216, 0.3);
   }
 
   html.light .wallet-screen,
@@ -827,7 +1094,7 @@ html.dark .modern-left {
 
   /* Demo Page Styles */
   .hero-bg {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    background: #0a0a0a;
     position: relative;
     overflow: hidden;
   }
@@ -839,10 +1106,10 @@ html.dark .modern-left {
     width: 100%;
     height: 100%;
     background: linear-gradient(45deg,
-        rgba(0, 212, 170, 0.1) 0%,
-        rgba(255, 179, 71, 0.05) 50%,
-        rgba(0, 212, 170, 0.1) 100%);
-    animation: aurora 8s ease-in-out infinite;
+        rgba(0, 180, 216, 0.1) 0%,
+        rgba(0, 245, 212, 0.05) 50%,
+        rgba(184, 115, 51, 0.05) 100%);
+    animation: aurora 20s ease-in-out infinite;
   }
 
   .card-3d {
@@ -855,7 +1122,8 @@ html.dark .modern-left {
   }
 
   .glow-edge {
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.3), 0 0 40px rgba(0, 245, 212, 0.1);
+    animation: glow-pulse 3s ease-in-out infinite;
   }
 
   .particle-canvas {
@@ -879,17 +1147,17 @@ html.dark .modern-left {
 
   .theme-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 212, 170, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 180, 216, 0.2);
   }
 
   .theme-card.active {
-    border: 2px solid #00d4aa;
-    box-shadow: 0 0 30px rgba(0, 212, 170, 0.4);
+    border: 2px solid #00b4d8;
+    box-shadow: 0 0 30px rgba(0, 180, 216, 0.4);
   }
 
   /* Theme selector glow effect */
   .theme-card-selected {
-    box-shadow: 0 0 20px rgba(0, 212, 170, 0.6), 0 0 40px rgba(0, 212, 170, 0.3);
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.6), 0 0 40px rgba(0, 245, 212, 0.3);
   }
 
   .floating-card {
@@ -905,9 +1173,9 @@ html.dark .modern-left {
   html.light .aurora-flow,
   html:not(.dark) .aurora-flow {
     background: linear-gradient(45deg,
-        rgba(0, 212, 170, 0.05) 0%,
-        rgba(255, 179, 71, 0.02) 50%,
-        rgba(0, 212, 170, 0.05) 100%) !important;
+        rgba(0, 180, 216, 0.05) 0%,
+        rgba(0, 245, 212, 0.02) 50%,
+        rgba(184, 115, 51, 0.02) 100%) !important;
   }
 
   html.light section.bg-black,
@@ -1011,18 +1279,18 @@ html.dark .modern-left {
   }
 
   /* Ensure text is visible in light mode - but exclude chart containers and digital cards */
-  html.light h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html.light h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html.light h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html.light h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html.light p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html.light span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *),
-  html:not(.dark) span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *) {
+  html.light h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html.light h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html.light h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html.light h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html.light p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html.light span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) h1:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) h2:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) h3:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) h4:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) p:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *),
+  html:not(.dark) span:not(.roi-calculator *):not(.market-chart *):not(#smartwave-digital-card-root *):not(.sw-card *) {
     color: #1a1a1a !important;
   }
 
@@ -1037,10 +1305,25 @@ html.dark .modern-left {
     color: #1a1a1a !important;
   }
 
-  /* Fix text-white in light mode - should be dark, except for digital cards */
-  html.light .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *),
-  html:not(.dark) .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *) {
+  /* Fix text-white in light mode - should be dark, except for digital cards and sw-cards */
+  html.light .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *):not(.sw-card):not(.sw-card *),
+  html:not(.dark) .text-white:not(.bg-smart-teal):not(.bg-smart-amber):not(.bg-smart-charcoal):not(#smartwave-digital-card-root *):not(.sw-card):not(.sw-card *) {
     color: #1a1a1a !important;
+  }
+
+  html.light .sw-card .text-white,
+  html:not(.dark) .sw-card .text-white {
+    color: #ffffff !important;
+  }
+
+  html.light .sw-card .text-sw-text-secondary,
+  html:not(.dark) .sw-card .text-sw-text-secondary {
+    color: #e5e7eb !important;
+  }
+
+  html.light .sw-card .text-sw-text-muted,
+  html:not(.dark) .sw-card .text-sw-text-muted {
+    color: #94a3b8 !important;
   }
 
   /* Ensure text-smart-charcoal is visible in light mode */

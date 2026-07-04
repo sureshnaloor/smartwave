@@ -332,7 +332,7 @@ export default function WalletDemo() {
                 </p>
                 <button 
                   onClick={handleAddToWallet}
-                  className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                  className="sw-btn-primary px-6 py-2 flex items-center gap-2"
                 >
                   Add to Wallet
                   <span className="text-sm">📱</span>

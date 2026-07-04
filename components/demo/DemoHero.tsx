@@ -5,11 +5,7 @@ import Image from 'next/image';
 
 export default function DemoHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [typedText, setTypedText] = useState('');
   const [mounted, setMounted] = useState(false);
-  const words = ['Networking', 'Connection', 'Business'];
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -65,7 +61,7 @@ export default function DemoHero() {
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 212, 170, 0.3)';
+        ctx.fillStyle = 'rgba(0, 180, 216, 0.3)';
         ctx.fill();
       });
 
@@ -79,29 +75,7 @@ export default function DemoHero() {
     };
   }, [mounted]);
 
-  // Typed text effect
-  useEffect(() => {
-    const currentWord = words[currentWordIndex];
-    let timeout: NodeJS.Timeout;
 
-    if (!isDeleting && typedText === currentWord) {
-      timeout = setTimeout(() => setIsDeleting(true), 2000);
-    } else if (isDeleting && typedText === '') {
-      setIsDeleting(false);
-      setCurrentWordIndex((prev) => (prev + 1) % words.length);
-    } else {
-      const speed = isDeleting ? 50 : 100;
-      timeout = setTimeout(() => {
-        setTypedText(
-          isDeleting
-            ? currentWord.substring(0, typedText.length - 1)
-            : currentWord.substring(0, typedText.length + 1)
-        );
-      }, speed);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [typedText, isDeleting, currentWordIndex]);
 
   const scrollToCustomizer = () => {
     const element = document.getElementById('customizer');
@@ -116,7 +90,7 @@ export default function DemoHero() {
   };
 
   return (
-    <section id="home" className="hero-bg min-h-screen flex items-center relative overflow-hidden">
+    <section id="home" className="sw-aurora-bg hero-bg min-h-screen flex items-center relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -141,33 +115,33 @@ export default function DemoHero() {
             {/* Left Content */}
             <div className="space-y-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center px-4 py-2 bg-smart-teal/10 border border-smart-teal/30 rounded-full text-smart-teal text-sm font-medium">
-                  🚀 The Future of Networking is Here
+                <div className="inline-flex items-center px-4 py-2 bg-smart-teal/10 border border-smart-teal/30 rounded-full text-teal-800 dark:text-smart-teal text-sm font-medium">
+                  🚀 Next Generation Business Cards
                 </div>
-                <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                  <span className="block">The Future of</span>
-                  <span className="block text-gradient" id="typed-text">
-                    {typedText}
-                    <span className="animate-pulse">|</span>
-                  </span>
-                </h1>
-                <p className="text-xl text-smart-silver/80 leading-relaxed max-w-lg">
-                  Join the $4.2B contactless revolution. SmartWave delivers premium NFC business cards with iOS Wallet integration, QR codes, and multi-themed digital experiences that transform how professionals connect.
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-sw-copper/10 via-smart-teal/10 to-sw-aurora/10 dark:from-sw-copper/30 dark:via-smart-teal/20 dark:to-sw-aurora/30 blur-2xl rounded-full"></div>
+                  <h1 className="relative text-5xl lg:text-7xl font-display font-extrabold leading-tight">
+                    <span className="block">Your Identity,</span>
+                    <span className="block text-gradient">One Tap Away</span>
+                  </h1>
+                </div>
+                <p className="text-xl text-slate-600 dark:text-smart-silver/80 leading-relaxed max-w-lg">
+                  Premium NFC business cards with digital profiles that update instantly.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={scrollToCustomizer}
-                  className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-8 py-4 rounded-xl font-semibold transition-all transform hover:scale-105"
+                  className="sw-btn-primary px-8 py-4 text-center"
                 >
-                  Try Card Customizer
+                  Design Your Card
                 </button>
                 <button
                   onClick={playDemo}
-                  className="border border-smart-silver/30 hover:border-smart-teal text-smart-silver hover:text-smart-teal px-8 py-4 rounded-xl font-semibold transition-all"
+                  className="sw-btn-ghost px-8 py-4 text-center"
                 >
-                  Watch Demo
+                  Learn More
                 </button>
               </div>
 
@@ -175,22 +149,22 @@ export default function DemoHero() {
               <div className="grid grid-cols-3 gap-6 pt-8">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-smart-teal">20%</div>
-                  <div className="text-sm text-smart-silver/60">Market Growth</div>
+                  <div className="text-sm text-slate-500 dark:text-smart-silver/60">Market Growth</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-smart-amber">$4.2B</div>
-                  <div className="text-sm text-smart-silver/60">Market Size</div>
+                  <div className="text-sm text-slate-500 dark:text-smart-silver/60">Market Size</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-smart-charcoal dark:text-white">70%</div>
-                  <div className="text-sm text-smart-silver/60">Contactless Rise</div>
+                  <div className="text-sm text-slate-500 dark:text-smart-silver/60">Contactless Rise</div>
                 </div>
               </div>
             </div>
 
             {/* Right Content - Floating Cards */}
             <div className="relative">
-              <div className="floating-card">
+              <div className="floating-card animate-float">
                 <div className="w-full max-w-md mx-auto card-3d glow-edge rounded-2xl overflow-hidden">
                   <Image
                     src="/images/card-mockup.png"

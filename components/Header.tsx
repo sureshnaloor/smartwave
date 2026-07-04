@@ -109,11 +109,7 @@ export default function Header() {
               {isAuthenticated && itemCount > 0 && !isCorporateEmployee && (
                 <Link href="/cart" className="relative group">
                   <Button
-                    className="
-                      animate-breathe-x font-bold bg-sky-500 hover:bg-sky-600 text-white 
-                      rounded-tl-2xl rounded-br-2xl rounded-tr-sm rounded-bl-sm 
-                      border-none shadow-lg h-10 px-4 transition-all duration-300 hover:scale-105 active:scale-95
-                    "
+                    className="sw-btn-primary animate-breathe-x h-10 px-4 flex items-center justify-center"
                     size="sm"
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
@@ -190,7 +186,7 @@ export default function Header() {
 
                 {!isCorporateEmployee && (
                   <Link href="/cart" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full h-14 rounded-2xl bg-smart-teal text-white font-bold text-lg">
+                    <Button className="sw-btn-primary w-full h-14">
                       Cart ({itemCount})
                     </Button>
                   </Link>

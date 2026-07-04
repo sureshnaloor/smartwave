@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Smartphone, Palette, QrCode, ShieldCheck, BarChart, Leaf } from "lucide-react";
 import DemoHero from '@/components/demo/DemoHero';
 import CardCustomizer from '@/components/demo/CardCustomizer';
 import MarketGrowth from '@/components/demo/MarketGrowth';
@@ -87,7 +88,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">One-Tap Addition</h3>
-                    <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
+                    <p className="text-sw-text-secondary mb-4">
                       Users can add your SmartWave card to their wallet with a single tap. No complex
                       setup or additional apps required.
                     </p>
@@ -98,7 +99,7 @@ export default function HomePage() {
                             (window as any).addToWallet();
                           }
                         }}
-                        className="bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-6 py-2 rounded-lg font-semibold transition-colors"
+                        className="sw-btn-primary px-6 py-2 font-semibold"
                       >
                         Add to Wallet
                       </button>
@@ -115,7 +116,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Automatic Updates</h3>
-                    <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
+                    <p className="text-sw-text-secondary mb-4">
                       When you update your information, all wallet cards update automatically via push
                       notifications. Your contacts always have your latest details.
                     </p>
@@ -140,7 +141,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Multiple Card Management</h3>
-                    <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
+                    <p className="text-sw-text-secondary mb-4">
                       Manage multiple SmartWave cards for different contexts - business, personal,
                       conference-specific, or role-based cards with instant switching.
                     </p>
@@ -171,9 +172,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
-              Powerful <span className="text-gradient">Features</span>
+              Everything Your Paper Card
               <br />
-              for Modern Networking
+              <span className="text-gradient">Wishes It Could Do</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-smart-silver/80 max-w-3xl mx-auto">
               Discover how SmartWave's comprehensive NFC technology stack transforms professional
@@ -183,16 +184,15 @@ export default function HomePage() {
 
           {/* Feature Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-smart-teal/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">📱</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <Smartphone className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">iOS Wallet Integration</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                Seamlessly add your digital business cards to Apple Wallet with one tap. Push
-                notifications keep your contacts updated automatically.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">iOS Wallet Integration</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Add your digital card to Apple Wallet in one tap. Your contacts stay updated automatically via push notifications.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• One-tap wallet addition</li>
                 <li>• Automatic push updates</li>
                 <li>• Multiple card management</li>
@@ -200,16 +200,15 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-smart-amber/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">🎨</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <Palette className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">15+ Premium Themes</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                Choose from professionally designed themes that match your brand identity. From
-                minimalist to luxury, we have your style.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">15+ Premium Themes</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Select from professional themes tailored to your brand identity, ranging from minimalist designs to luxury aesthetics.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• Industry-specific designs</li>
                 <li>• Custom color palettes</li>
                 <li>• Typography options</li>
@@ -217,16 +216,15 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">📋</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <QrCode className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">QR Code Integration</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                Dynamic QR codes that never expire. Update your information anytime without
-                reprinting cards or changing codes.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">QR Code Integration</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Share via dynamic QR codes that never expire. Update your details anytime without ever reprinting your cards.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• Dynamic QR generation</li>
                 <li>• Real-time updates</li>
                 <li>• Scan analytics</li>
@@ -234,16 +232,15 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">🔒</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Enterprise Security</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                SOC 2 Type II certified with end-to-end encryption. Your data is protected with
-                bank-level security standards.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">Enterprise Security</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Bank-level security standards with SOC 2 Type II certification and end-to-end encryption for your data.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• SOC 2 Type II certified</li>
                 <li>• End-to-end encryption</li>
                 <li>• GDPR compliant</li>
@@ -251,16 +248,15 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">📊</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <BarChart className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Advanced Analytics</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                Track engagement metrics, connection rates, and ROI. Understand how your networking
-                efforts translate to business results.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">Advanced Analytics</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Track engagement, connection rates, and ROI to see exactly how your networking translates into real business results.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• Real-time engagement tracking</li>
                 <li>• Connection conversion rates</li>
                 <li>• Geographic insights</li>
@@ -268,16 +264,15 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="feature-card p-8 rounded-2xl">
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-6">
-                <span className="text-2xl">🌱</span>
+            <div className="sw-card sw-gradient-border sw-glow p-8 rounded-2xl">
+              <div className="w-12 h-12 bg-smart-teal/10 rounded-lg flex items-center justify-center mb-6 text-smart-teal">
+                <Leaf className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Sustainability Impact</h3>
-              <p className="text-gray-600 dark:text-smart-silver/80 mb-4">
-                Join the movement to save 7 million trees annually. Digital cards eliminate paper
-                waste while enhancing your professional image.
+              <h3 className="text-xl font-heading font-bold mb-4 text-white">Sustainability Impact</h3>
+              <p className="text-sw-text-secondary mb-4">
+                Eliminate paper waste and elevate your professional image. Join our movement to save 7 million trees every year.
               </p>
-              <ul className="text-sm text-gray-500 dark:text-smart-silver/60 space-y-2">
+              <ul className="text-sm text-sw-text-muted space-y-2">
                 <li>• Zero paper waste</li>
                 <li>• Carbon footprint reduction</li>
                 <li>• ESG compliance support</li>
@@ -294,7 +289,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold mb-6 text-gray-900 dark:text-white">
-                See SmartWave in <span className="text-gradient">Action</span>
+                Your Card Lives in Their Wallet — <span className="text-gradient">Permanently</span>
               </h2>
               <p className="text-xl text-gray-600 dark:text-smart-silver/80 mb-8">
                 Experience the seamless NFC interaction. Simply tap your SmartWave card to any
@@ -342,7 +337,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <button className="mt-8 bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-8 py-4 rounded-xl font-semibold transition-colors">
+              <button className="sw-btn-primary px-8 py-4 font-semibold">
                 Try Interactive Demo
               </button>
             </div>

@@ -64,8 +64,8 @@ const PricingCards = () => {
       features: individualFeatures,
       cta: "Start Free Trial",
       ctaLink: "/auth/signup",
-      popular: false,
-      color: "bg-teal-50/30 dark:bg-teal-900/10 border-teal-200 dark:border-teal-800"
+      ctaClass: "sw-btn-primary",
+      popular: false
     },
     {
       name: "Enterprise - Starter",
@@ -79,8 +79,8 @@ const PricingCards = () => {
       features: enterpriseFeatures,
       cta: "Buy Now",
       ctaLink: "/cart",
-      popular: false,
-      color: "bg-slate-50/50 dark:bg-slate-800/20 border-slate-300 dark:border-slate-700"
+      ctaClass: "sw-btn-primary",
+      popular: false
     },
     {
       name: "Enterprise - Growth",
@@ -93,8 +93,8 @@ const PricingCards = () => {
       features: enterpriseFeatures,
       cta: "Buy Now",
       ctaLink: "/cart",
-      popular: true,
-      color: "bg-amber-50/50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-800"
+      ctaClass: "sw-btn-premium",
+      popular: true
     },
     {
       name: "Enterprise - Corporate",
@@ -104,8 +104,8 @@ const PricingCards = () => {
       features: corporateFeatures,
       cta: "Contact Sales",
       ctaLink: "mailto:smart@smartwave.name",
-      popular: false,
-      color: "bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800"
+      ctaClass: "sw-btn-ghost",
+      popular: false
     }
   ];
 
@@ -120,12 +120,12 @@ const PricingCards = () => {
           <Card
             key={index}
             onClick={() => setSelectedPlan(index)}
-            className={`price-card shadow-lg ${plan.popular ? "ring-2 ring-teal-500" : ""} ${plan.color} relative flex flex-col cursor-pointer transition-all duration-300
-              ${selectedPlan === index ? 'border-2 border-primary shadow-2xl scale-[1.02] ring-0' : 'hover:shadow-xl'}
+            className={`sw-card sw-gradient-border relative flex flex-col cursor-pointer transition-all duration-300
+              ${selectedPlan === index ? 'shadow-[0_0_30px_rgba(0,180,216,0.2)] scale-[1.02]' : ''}
             `}
           >
             <CardHeader>
-              {plan.popular && <Badge className="absolute top-4 right-4 bg-teal-500">Popular</Badge>}
+              {plan.popular && <Badge className="absolute top-4 right-4 bg-[#b87333] hover:bg-[#a0632a] text-white">Most Popular</Badge>}
               <CardTitle className="text-2xl">{plan.name}</CardTitle>
               <p className="text-sm text-gray-600 dark:text-gray-400">{plan.subtitle}</p>
             </CardHeader>
@@ -239,16 +239,15 @@ const PricingCards = () => {
               </ul>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleNavigation(plan.ctaLink);
                 }}
-                className={`w-full ${plan.popular ? "bg-teal-600 hover:bg-teal-700" : ""}`}
-                variant={plan.popular ? "default" : "outline"}
+                className={`w-full py-3 ${plan.ctaClass}`}
               >
                 {plan.cta}
-              </Button>
+              </button>
             </CardFooter>
           </Card>
         ))}

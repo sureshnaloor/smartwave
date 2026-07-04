@@ -103,7 +103,7 @@ export default function CardCustomizer() {
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
             Design Your <span className="text-gradient">SmartWave Card</span>
           </h2>
-          <p className="text-xl text-smart-silver/80 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-smart-silver/80 max-w-3xl mx-auto">
             Create your perfect NFC business card with our interactive studio. Choose from 15+ premium themes, customize colors, and see your QR code generate in real-time.
           </p>
         </div>
@@ -125,13 +125,13 @@ export default function CardCustomizer() {
                   <div
                     className={`w-full h-20 rounded-lg border-2 transition-all ${selectedTheme.id === theme.id
                       ? 'border-smart-teal shadow-lg shadow-smart-teal/50 theme-card-selected'
-                      : 'border-white/10 hover:border-white/30'
+                      : 'border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30'
                       }`}
                     style={{ background: theme.gradient }}
                   />
-                  <span className={`text-xs font-medium ${selectedTheme.id === theme.id
+                  <span className={`text-xs font-medium mt-2 ${selectedTheme.id === theme.id
                     ? 'text-smart-teal'
-                    : 'text-smart-silver'
+                    : 'text-slate-600 dark:text-smart-silver'
                     }`}>
                     {theme.name}
                   </span>

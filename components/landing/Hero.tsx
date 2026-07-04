@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-blue-200 to-indigo-200  dark:from-gray-900 dark:to-gray-950 pt-32 pb-24">
+    <section className="relative overflow-hidden sw-aurora-bg pt-32 pb-24">
         <div className="absolute inset-0 -z-10">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
           <path
@@ -58,18 +58,18 @@ export default function Hero() {
           transition={{ duration: 0.5 }}
           className="text-center max-w-4xl mx-auto"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-6">
             Transform Your Digital Identity with{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <span className="text-gradient">
               SmartWave
             </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+          <p className="text-xl text-sw-text-secondary mb-8">
             Create stunning digital business cards and vCards powered by AI. Share your professional profile instantly and make lasting impressions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup">
-              <Button size="lg" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto sw-btn-primary px-8 py-4">
                 Get Started Free
               </Button>
             </Link>
@@ -77,7 +77,7 @@ export default function Hero() {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto sw-btn-premium px-8 py-4 border-0"
               >
                 Learn More
               </Button>

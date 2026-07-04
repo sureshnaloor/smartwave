@@ -336,7 +336,7 @@ const ProcessFlow = () => {
         >
           <Link href="/auth/signup">
             <motion.button 
-              className="px-6 py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+              className="sw-btn-primary px-6 py-3 font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

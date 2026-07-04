@@ -106,9 +106,8 @@ const NfcCards = () => {
           <Card
             key={index}
             onClick={() => setSelectedCard(index)}
-            className={`price-card shadow-sm overflow-hidden flex flex-col cursor-pointer transition-all duration-300
-              ${selectedCard === index ? 'border-2 border-primary shadow-2xl scale-[1.02] ring-0' : 'hover:shadow-lg'}
-              ${card.popular && selectedCard !== index ? "ring-2 ring-blue-600" : ""}
+            className={`sw-card sw-gradient-border overflow-hidden flex flex-col cursor-pointer transition-all duration-300
+              ${selectedCard === index ? 'shadow-[0_0_30px_rgba(0,180,216,0.2)] scale-[1.02]' : ''}
             `}
           >
             <div className={`h-48 ${card.headerColor} flex items-center justify-center p-6 relative`}>
@@ -140,16 +139,15 @@ const NfcCards = () => {
               </ul>
             </CardContent>
             <CardFooter className="mt-auto pt-6">
-              <Button
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleNavigation("/store");
                 }}
-                className={`w-full ${card.popular ? "bg-blue-600 hover:bg-blue-700" : ""}`}
-                variant={card.popular ? "default" : "outline"}
+                className={`w-full py-3 ${card.popular ? "sw-btn-premium" : "sw-btn-primary"}`}
               >
                 Order Now
-              </Button>
+              </button>
             </CardFooter>
           </Card>
         ))}
@@ -157,13 +155,12 @@ const NfcCards = () => {
 
       <div className="mt-16 text-center">
         <h3 className="text-xl font-semibold mb-4">Need Custom Quantities or Designs?</h3>
-        <Button
+        <button
           onClick={() => handleNavigation("/contact")}
-          size="lg"
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          className="sw-btn-ghost px-8 py-4"
         >
           Contact for Custom Orders
-        </Button>
+        </button>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export default function FeaturesPage() {
     return (
         <main className="pt-20">
             {/* Hero Section */}
-            <section id="features" className="pt-12 pb-20 bg-gradient-to-b from-smart-charcoal to-black">
+            <section id="features" className="pt-12 pb-20 sw-aurora-bg bg-gradient-to-b from-sw-deepest to-black">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h1 className="text-5xl lg:text-6xl font-bold mb-6">
@@ -23,16 +23,16 @@ export default function FeaturesPage() {
 
                     {/* Feature Grid */}
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-smart-teal/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">📱</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">iOS Wallet Integration</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">iOS Wallet Integration</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 Seamlessly add your digital business cards to Apple Wallet with one tap. Push
                                 notifications keep your contacts updated automatically.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• One-tap wallet addition</li>
                                 <li>• Automatic push updates</li>
                                 <li>• Multiple card management</li>
@@ -40,16 +40,16 @@ export default function FeaturesPage() {
                             </ul>
                         </div>
 
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-smart-amber/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">🎨</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">15+ Premium Themes</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">15+ Premium Themes</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 Choose from professionally designed themes that match your brand identity. From
                                 minimalist to luxury, we have your style.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• Industry-specific designs</li>
                                 <li>• Custom color palettes</li>
                                 <li>• Typography options</li>
@@ -57,16 +57,16 @@ export default function FeaturesPage() {
                             </ul>
                         </div>
 
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">📋</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">QR Code Integration</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">QR Code Integration</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 Dynamic QR codes that never expire. Update your information anytime without
                                 reprinting cards or changing codes.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• Dynamic QR generation</li>
                                 <li>• Real-time updates</li>
                                 <li>• Scan analytics</li>
@@ -74,16 +74,16 @@ export default function FeaturesPage() {
                             </ul>
                         </div>
 
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">🔒</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">Enterprise Security</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">Enterprise Security</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 SOC 2 Type II certified with end-to-end encryption. Your data is protected with
                                 bank-level security standards.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• SOC 2 Type II certified</li>
                                 <li>• End-to-end encryption</li>
                                 <li>• GDPR compliant</li>
@@ -91,16 +91,16 @@ export default function FeaturesPage() {
                             </ul>
                         </div>
 
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">📊</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">Advanced Analytics</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">Advanced Analytics</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 Track engagement metrics, connection rates, and ROI. Understand how your networking
                                 efforts translate to business results.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• Real-time engagement tracking</li>
                                 <li>• Connection conversion rates</li>
                                 <li>• Geographic insights</li>
@@ -108,16 +108,16 @@ export default function FeaturesPage() {
                             </ul>
                         </div>
 
-                        <div className="feature-card p-8 rounded-2xl">
+                        <div className="sw-card p-8 rounded-2xl">
                             <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-6">
                                 <span className="text-2xl">🌱</span>
                             </div>
-                            <h3 className="text-xl font-bold mb-4">Sustainability Impact</h3>
-                            <p className="text-smart-silver/80 mb-4">
+                            <h3 className="text-xl font-bold mb-4 text-white">Sustainability Impact</h3>
+                            <p className="text-sw-text-secondary mb-4">
                                 Join the movement to save 7 million trees annually. Digital cards eliminate paper
                                 waste while enhancing your professional image.
                             </p>
-                            <ul className="text-sm text-smart-silver/60 space-y-2">
+                            <ul className="text-sm text-sw-text-muted space-y-2">
                                 <li>• Zero paper waste</li>
                                 <li>• Carbon footprint reduction</li>
                                 <li>• ESG compliance support</li>
@@ -182,7 +182,7 @@ export default function FeaturesPage() {
                                 </div>
                             </div>
 
-                            <button className="mt-8 bg-smart-teal hover:bg-smart-teal/80 text-smart-charcoal px-8 py-4 rounded-xl font-semibold transition-colors">
+                            <button className="sw-btn-primary px-8 py-4 font-semibold">
                                 Try Interactive Demo
                             </button>
                         </div>
@@ -290,15 +290,10 @@ export default function FeaturesPage() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button 
-                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-white"
-                            style={{ backgroundColor: '#00d4aa' }}
-                        >
+                        <button className="sw-btn-primary px-8 py-4 font-semibold">
                             Start Free Trial
                         </button>
-                        <button 
-                            className="px-8 py-4 rounded-xl font-semibold transition-colors text-smart-charcoal dark:text-white border-2 bg-white dark:bg-transparent border-gray-300 dark:border-white/30"
-                        >
+                        <button className="sw-btn-premium px-8 py-4 font-semibold border-2 border-transparent">
                             Schedule Demo
                         </button>
                     </div>

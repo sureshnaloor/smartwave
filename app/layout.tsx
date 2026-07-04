@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk, Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import './styles/animations.css';
 import { Providers } from "./providers";
 import Script from 'next/script'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-heading" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-display" });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body-fallback" });
 
 export const metadata: Metadata = {
   title: "Smartwave",
@@ -19,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${outfit.variable} ${plusJakarta.variable} font-body`}>
         <Providers>
           {children}
           <Script

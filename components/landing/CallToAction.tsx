@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 
 export default function CallToAction() {
   return (
-    <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600">
-      <div className="container mx-auto px-4">
+    <section className="py-24 sw-aurora-bg relative overflow-hidden">
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -23,7 +23,7 @@ export default function CallToAction() {
             <Link href="/auth/signup">
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto bg-white text-blue-600 hover:bg-gray-100"
+                className="w-full sm:w-auto sw-btn-primary px-8 py-4"
               >
                 Sign Up Free
               </Button>
@@ -32,7 +32,7 @@ export default function CallToAction() {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="w-full sm:w-auto border-white text-white hover:bg-white/10"
+                className="w-full sm:w-auto sw-btn-premium px-8 py-4 border-0"
               >
                 Contact Sales
               </Button>

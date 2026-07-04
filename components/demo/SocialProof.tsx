@@ -78,7 +78,7 @@ export default function SocialProof() {
             >
               {testimonials.map((testimonial, index) => (
                 <div key={index} className="min-w-full px-4">
-                  <div className="testimonial-card p-8 rounded-2xl">
+                  <div className="sw-card testimonial-card p-8 rounded-2xl relative z-10">
                     <div className="flex items-center mb-6">
                       <div className="relative w-16 h-16 rounded-full overflow-hidden mr-4 flex-shrink-0">
                         <Image
@@ -89,11 +89,11 @@ export default function SocialProof() {
                         />
                       </div>
                       <div>
-                        <h4 className="font-semibold">{testimonial.name}</h4>
-                        <p className="text-smart-silver/60">{testimonial.role}, {testimonial.company}</p>
+                        <h4 className="font-semibold text-white">{testimonial.name}</h4>
+                        <p className="text-sw-text-muted">{testimonial.role}, {testimonial.company}</p>
                       </div>
                     </div>
-                    <p className="text-lg mb-4">{testimonial.text}</p>
+                    <p className="text-lg mb-4 text-sw-text-secondary">{testimonial.text}</p>
                     <div className="flex text-smart-amber">
                       ★★★★★
                     </div>
@@ -106,14 +106,14 @@ export default function SocialProof() {
           {/* Navigation Buttons */}
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10"
+            className="absolute left-0 top-1/2 -translate-y-1/2 bg-sw-teal/10 hover:bg-sw-teal/20 text-sw-teal dark:text-white p-3 rounded-full transition-colors z-10"
             aria-label="Previous testimonial"
           >
             <FaChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10"
+            className="absolute right-0 top-1/2 -translate-y-1/2 bg-sw-teal/10 hover:bg-sw-teal/20 text-sw-teal dark:text-white p-3 rounded-full transition-colors z-10"
             aria-label="Next testimonial"
           >
             <FaChevronRight className="w-5 h-5" />
@@ -126,7 +126,7 @@ export default function SocialProof() {
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-smart-teal' : 'bg-white/30'
+                  index === currentIndex ? 'bg-smart-teal' : 'bg-gray-300 dark:bg-white/30'
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
